@@ -8,6 +8,7 @@ import Signup from './pages/Signup';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import Search from './pages/Search';
+import Settings from './pages/Settings';
 import Home from './pages/Home';
 import Profile from './pages/Profile';
 import Notifications from './pages/Notifications';
@@ -52,6 +53,7 @@ function AppRoutes() {
         <Route path="churches" element={<Churches />} />
         <Route path="churches/:id" element={<ChurchPage />} />
         <Route path="search" element={<Search />} />
+        <Route path="settings" element={<Settings />} />
         <Route path="bible-bot" element={<BibleBot />} />
         <Route path="notifications" element={<Notifications />} />
         <Route path="profile" element={<Profile />} />

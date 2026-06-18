@@ -89,10 +89,9 @@ export default function Layout() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col max-w-md mx-auto relative shadow-xl">
       <header className="prayer-gradient text-white px-4 py-2.5 flex items-center justify-between sticky top-0 z-30">
-        <button onClick={() => { logout(); navigate('/login'); }}
-          className="text-xs text-white/60 hover:text-white font-medium w-16">Logout</button>
+        <div className="w-10" />
         <Logo size="sm" light={true} />
-        <div className="flex items-center justify-end w-16">
+        <div className="flex items-center justify-end w-10">
           <button onClick={() => navigate('/notifications')} className="relative">
             <BellIcon />
             {unread > 0 && (

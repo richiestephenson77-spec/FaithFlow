@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import api from '../utils/api';
 import { useAuth } from '../contexts/AuthContext';
 import Avatar from '../components/Avatar';
@@ -110,13 +110,21 @@ export default function Profile() {
           </div>
         </div>
 
-        {/* Action button top right */}
-        <div className="absolute top-3 right-3">
+        {/* Action buttons top right */}
+        <div className="absolute top-3 right-3 flex gap-2">
           {isOwnProfile ? (
-            <button onClick={() => setEditing(true)}
-              className="bg-black/30 backdrop-blur-sm text-white text-xs px-4 py-1.5 rounded-full font-semibold border border-white/30">
-              Edit Profile
-            </button>
+            <>
+              <button onClick={() => setEditing(true)}
+                className="bg-black/30 backdrop-blur-sm text-white text-xs px-4 py-1.5 rounded-full font-semibold border border-white/30">
+                Edit Profile
+              </button>
+              <Link to="/settings"
+                className="bg-black/30 backdrop-blur-sm text-white w-8 h-8 rounded-full flex items-center justify-center border border-white/30">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                </svg>
+              </Link>
+            </>
           ) : (
             <button onClick={handleFollow}
               className={`text-xs px-5 py-2 rounded-full font-bold shadow-lg ${following

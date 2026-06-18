@@ -79,10 +79,7 @@ export default function Search() {
 
         {searched && results.length === 0 && !loading && (
           <div className="text-center py-16">
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <span className="text-3xl">😔</span>
-            </div>
-            <p className="font-semibold text-gray-700">No believers found</p>
+            <p className="font-semibold text-gray-600">No believers found</p>
             <p className="text-sm text-gray-400 mt-1">Try a different name or church</p>
           </div>
         )}

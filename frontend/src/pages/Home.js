@@ -1,16 +1,31 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import { useAuth } from '../contexts/AuthContext';
+import { useSocket } from '../contexts/SocketContext';
 import Avatar from '../components/Avatar';
 import PrayerSession from '../components/PrayerSession';
 import NewPrayerRequestModal from '../components/NewPrayerRequestModal';
 
 export default function Home() {
   const { user } = useAuth();
+  const { notifications } = useSocket();
+  const navigate = useNavigate();
   const [feed, setFeed] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeSession, setActiveSession] = useState(null);
   const [showNewRequest, setShowNewRequest] = useState(false);
+  const [prayerToast, setPrayerToast] = useState(null);
+
+  // Show in-app toast when someone prays for you
+  useEffect(() => {
+    const latest = notifications[0];
+    if (latest?.type === 'PRAYER_STARTED') {
+      setPrayerToast(latest.message + ' 🙏');
+      const t = setTimeout(() => setPrayerToast(null), 4000);
+      return () => clearTimeout(t);
+    }
+  }, [notifications]);
 
   const loadFeed = useCallback(async () => {
     try {
@@ -49,6 +64,14 @@ export default function Home() {
 
   return (
     <div className="bg-gray-50 min-h-full">
+      {/* Prayer notification toast */}
+      {prayerToast && (
+        <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-sm">
+          <div className="bg-gray-900 text-white text-sm font-medium px-4 py-3 rounded-2xl shadow-xl text-center animate-fade-in">
+            {prayerToast}
+          </div>
+        </div>
+      )}
       {/* Hero Banner */}
       <div className="prayer-gradient px-5 pt-5 pb-8">
         <p className="text-white/80 text-sm mb-1">{greeting}, {firstName} 🙏</p>
@@ -83,7 +106,7 @@ export default function Home() {
         ) : (
           <div className="space-y-3">
             {feed.map(request => (
-              <PrayerCard key={request.id} request={request} onPray={() => startPraying(request)} />
+              <PrayerCard key={request.id} request={request} onPray={() => startPraying(request)} onUserClick={() => navigate(`/profile/${request.user.id}`)} />
             ))}
           </div>
         )}
@@ -96,17 +119,21 @@ export default function Home() {
   );
 }
 
-function PrayerCard({ request, onPray }) {
+function PrayerCard({ request, onPray, onUserClick }) {
   const timeAgo = getTimeAgo(request.createdAt);
 
   return (
     <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 fade-in">
       <div className="flex items-start gap-3">
-        <Avatar user={request.user} size="md" />
+        <button onClick={onUserClick} className="flex-shrink-0">
+          <Avatar user={request.user} size="md" />
+        </button>
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
             <div>
-              <p className="font-semibold text-gray-900 text-sm leading-tight">{request.user?.name}</p>
+              <button onClick={onUserClick} className="font-semibold text-gray-900 text-sm leading-tight text-left hover:underline">
+                {request.user?.name}
+              </button>
               {request.user?.churchName && (
                 <p className="text-xs text-faith-500 mt-0.5">{request.user.churchName}</p>
               )}
