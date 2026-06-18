@@ -1,1 +1,1 @@
-web: npx prisma generate && npx prisma migrate deploy && node src/index.js
+web: node src/index.js
