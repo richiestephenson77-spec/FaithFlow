@@ -26,7 +26,14 @@ const io = new Server(server, {
 setupSocket(io);
 app.set('io', io);
 
-app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:3000' }));
+const allowedOrigins = [
+  process.env.CLIENT_URL,
+  'http://localhost:3000',
+  'https://faith-flow-nu.vercel.app',
+  'https://faithflow.vercel.app',
+].filter(Boolean);
+
+app.use(cors({ origin: allowedOrigins }));
 app.use(express.json());
 app.use('/uploads', express.static('uploads'));
 
