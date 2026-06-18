@@ -1,72 +1,85 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const API_KEY = process.env.REACT_APP_BIBLE_API_KEY || '';
-const KJV_BIBLE_ID = 'de4e12af7f28f599-02'; // KJV on API.Bible
+// bible-api.com — free, no API key, public domain KJV
+const BASE = 'https://bible-api.com';
 
 const BOOKS = [
-  { id: 'GEN', name: 'Genesis' }, { id: 'EXO', name: 'Exodus' }, { id: 'LEV', name: 'Leviticus' },
-  { id: 'NUM', name: 'Numbers' }, { id: 'DEU', name: 'Deuteronomy' }, { id: 'JOS', name: 'Joshua' },
-  { id: 'JDG', name: 'Judges' }, { id: 'RUT', name: 'Ruth' }, { id: '1SA', name: '1 Samuel' },
-  { id: '2SA', name: '2 Samuel' }, { id: '1KI', name: '1 Kings' }, { id: '2KI', name: '2 Kings' },
-  { id: '1CH', name: '1 Chronicles' }, { id: '2CH', name: '2 Chronicles' }, { id: 'EZR', name: 'Ezra' },
-  { id: 'NEH', name: 'Nehemiah' }, { id: 'EST', name: 'Esther' }, { id: 'JOB', name: 'Job' },
-  { id: 'PSA', name: 'Psalms' }, { id: 'PRO', name: 'Proverbs' }, { id: 'ECC', name: 'Ecclesiastes' },
-  { id: 'SNG', name: 'Song of Solomon' }, { id: 'ISA', name: 'Isaiah' }, { id: 'JER', name: 'Jeremiah' },
-  { id: 'LAM', name: 'Lamentations' }, { id: 'EZK', name: 'Ezekiel' }, { id: 'DAN', name: 'Daniel' },
-  { id: 'HOS', name: 'Hosea' }, { id: 'JOL', name: 'Joel' }, { id: 'AMO', name: 'Amos' },
-  { id: 'OBA', name: 'Obadiah' }, { id: 'JON', name: 'Jonah' }, { id: 'MIC', name: 'Micah' },
-  { id: 'NAM', name: 'Nahum' }, { id: 'HAB', name: 'Habakkuk' }, { id: 'ZEP', name: 'Zephaniah' },
-  { id: 'HAG', name: 'Haggai' }, { id: 'ZEC', name: 'Zechariah' }, { id: 'MAL', name: 'Malachi' },
-  { id: 'MAT', name: 'Matthew' }, { id: 'MRK', name: 'Mark' }, { id: 'LUK', name: 'Luke' },
-  { id: 'JHN', name: 'John' }, { id: 'ACT', name: 'Acts' }, { id: 'ROM', name: 'Romans' },
-  { id: '1CO', name: '1 Corinthians' }, { id: '2CO', name: '2 Corinthians' }, { id: 'GAL', name: 'Galatians' },
-  { id: 'EPH', name: 'Ephesians' }, { id: 'PHP', name: 'Philippians' }, { id: 'COL', name: 'Colossians' },
-  { id: '1TH', name: '1 Thessalonians' }, { id: '2TH', name: '2 Thessalonians' }, { id: '1TI', name: '1 Timothy' },
-  { id: '2TI', name: '2 Timothy' }, { id: 'TIT', name: 'Titus' }, { id: 'PHM', name: 'Philemon' },
-  { id: 'HEB', name: 'Hebrews' }, { id: 'JAS', name: 'James' }, { id: '1PE', name: '1 Peter' },
-  { id: '2PE', name: '2 Peter' }, { id: '1JN', name: '1 John' }, { id: '2JN', name: '2 John' },
-  { id: '3JN', name: '3 John' }, { id: 'JUD', name: 'Jude' }, { id: 'REV', name: 'Revelation' },
+  { id: 'genesis', name: 'Genesis', chapters: 50 },
+  { id: 'exodus', name: 'Exodus', chapters: 40 },
+  { id: 'leviticus', name: 'Leviticus', chapters: 27 },
+  { id: 'numbers', name: 'Numbers', chapters: 36 },
+  { id: 'deuteronomy', name: 'Deuteronomy', chapters: 34 },
+  { id: 'joshua', name: 'Joshua', chapters: 24 },
+  { id: 'judges', name: 'Judges', chapters: 21 },
+  { id: 'ruth', name: 'Ruth', chapters: 4 },
+  { id: '1+samuel', name: '1 Samuel', chapters: 31 },
+  { id: '2+samuel', name: '2 Samuel', chapters: 24 },
+  { id: '1+kings', name: '1 Kings', chapters: 22 },
+  { id: '2+kings', name: '2 Kings', chapters: 25 },
+  { id: '1+chronicles', name: '1 Chronicles', chapters: 29 },
+  { id: '2+chronicles', name: '2 Chronicles', chapters: 36 },
+  { id: 'ezra', name: 'Ezra', chapters: 10 },
+  { id: 'nehemiah', name: 'Nehemiah', chapters: 13 },
+  { id: 'esther', name: 'Esther', chapters: 10 },
+  { id: 'job', name: 'Job', chapters: 42 },
+  { id: 'psalms', name: 'Psalms', chapters: 150 },
+  { id: 'proverbs', name: 'Proverbs', chapters: 31 },
+  { id: 'ecclesiastes', name: 'Ecclesiastes', chapters: 12 },
+  { id: 'song+of+solomon', name: 'Song of Solomon', chapters: 8 },
+  { id: 'isaiah', name: 'Isaiah', chapters: 66 },
+  { id: 'jeremiah', name: 'Jeremiah', chapters: 52 },
+  { id: 'lamentations', name: 'Lamentations', chapters: 5 },
+  { id: 'ezekiel', name: 'Ezekiel', chapters: 48 },
+  { id: 'daniel', name: 'Daniel', chapters: 12 },
+  { id: 'hosea', name: 'Hosea', chapters: 14 },
+  { id: 'joel', name: 'Joel', chapters: 3 },
+  { id: 'amos', name: 'Amos', chapters: 9 },
+  { id: 'obadiah', name: 'Obadiah', chapters: 1 },
+  { id: 'jonah', name: 'Jonah', chapters: 4 },
+  { id: 'micah', name: 'Micah', chapters: 7 },
+  { id: 'nahum', name: 'Nahum', chapters: 3 },
+  { id: 'habakkuk', name: 'Habakkuk', chapters: 3 },
+  { id: 'zephaniah', name: 'Zephaniah', chapters: 3 },
+  { id: 'haggai', name: 'Haggai', chapters: 2 },
+  { id: 'zechariah', name: 'Zechariah', chapters: 14 },
+  { id: 'malachi', name: 'Malachi', chapters: 4 },
+  { id: 'matthew', name: 'Matthew', chapters: 28 },
+  { id: 'mark', name: 'Mark', chapters: 16 },
+  { id: 'luke', name: 'Luke', chapters: 24 },
+  { id: 'john', name: 'John', chapters: 21 },
+  { id: 'acts', name: 'Acts', chapters: 28 },
+  { id: 'romans', name: 'Romans', chapters: 16 },
+  { id: '1+corinthians', name: '1 Corinthians', chapters: 16 },
+  { id: '2+corinthians', name: '2 Corinthians', chapters: 13 },
+  { id: 'galatians', name: 'Galatians', chapters: 6 },
+  { id: 'ephesians', name: 'Ephesians', chapters: 6 },
+  { id: 'philippians', name: 'Philippians', chapters: 4 },
+  { id: 'colossians', name: 'Colossians', chapters: 4 },
+  { id: '1+thessalonians', name: '1 Thessalonians', chapters: 5 },
+  { id: '2+thessalonians', name: '2 Thessalonians', chapters: 3 },
+  { id: '1+timothy', name: '1 Timothy', chapters: 6 },
+  { id: '2+timothy', name: '2 Timothy', chapters: 4 },
+  { id: 'titus', name: 'Titus', chapters: 3 },
+  { id: 'philemon', name: 'Philemon', chapters: 1 },
+  { id: 'hebrews', name: 'Hebrews', chapters: 13 },
+  { id: 'james', name: 'James', chapters: 5 },
+  { id: '1+peter', name: '1 Peter', chapters: 5 },
+  { id: '2+peter', name: '2 Peter', chapters: 3 },
+  { id: '1+john', name: '1 John', chapters: 5 },
+  { id: '2+john', name: '2 John', chapters: 1 },
+  { id: '3+john', name: '3 John', chapters: 1 },
+  { id: 'jude', name: 'Jude', chapters: 1 },
+  { id: 'revelation', name: 'Revelation', chapters: 22 },
 ];
 
-const NT_START = BOOKS.findIndex(b => b.id === 'MAT');
-
-async function apiBible(path) {
-  const res = await fetch(`https://api.scripture.api.bible/v1/bibles/${KJV_BIBLE_ID}${path}`, {
-    headers: { 'api-key': API_KEY },
-  });
-  if (!res.ok) throw new Error('API error');
-  const json = await res.json();
-  return json.data;
-}
-
-function parseVerses(html) {
-  const div = document.createElement('div');
-  div.innerHTML = html;
-  div.querySelectorAll('.note, .nd, .wj').forEach(el => {
-    if (el.tagName === 'SPAN' && el.classList.contains('nd')) return;
-    el.remove();
-  });
-  const verseEls = div.querySelectorAll('[data-number]');
-  const verses = [];
-  verseEls.forEach(el => {
-    const num = el.getAttribute('data-number');
-    const text = el.textContent.replace(/\s+/g, ' ').trim();
-    if (text) verses.push({ num, text });
-  });
-  if (verses.length === 0) {
-    const raw = div.textContent.replace(/\s+/g, ' ').trim();
-    if (raw) verses.push({ num: '', text: raw });
-  }
-  return verses;
-}
+const NT_START = BOOKS.findIndex(b => b.id === 'matthew');
 
 export default function Bible() {
   const navigate = useNavigate();
-  const [tab, setTab] = useState('read'); // read | search
+  const [tab, setTab] = useState('read');
   const [book, setBook] = useState(BOOKS[0]);
   const [chapter, setChapter] = useState(1);
-  const [chapterCount, setChapterCount] = useState(50);
   const [verses, setVerses] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -75,62 +88,52 @@ export default function Bible() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [searching, setSearching] = useState(false);
+  const [searched, setSearched] = useState(false);
 
   const loadChapter = useCallback(async (b, ch) => {
-    if (!API_KEY) {
-      setError('Bible API key not set. Add REACT_APP_BIBLE_API_KEY to your Vercel environment variables.');
-      return;
-    }
     setLoading(true);
     setError('');
+    setVerses([]);
     try {
-      const data = await apiBible(`/chapters/${b.id}.${ch}?content-type=html&include-notes=false&include-titles=false&include-chapter-numbers=false&include-verse-numbers=true`);
-      const parsed = parseVerses(data.content);
-      setVerses(parsed);
-    } catch (e) {
-      setError('Could not load chapter. Check your API key.');
+      const res = await fetch(`${BASE}/${b.id}+${ch}?translation=kjv`);
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      setVerses(data.verses || []);
+    } catch {
+      setError('Could not load this chapter. Please try again.');
     }
     setLoading(false);
   }, []);
 
-  useEffect(() => {
-    loadChapter(book, chapter);
-  }, [book, chapter, loadChapter]);
-
-  async function fetchChapterCount(b) {
-    if (!API_KEY) return;
-    try {
-      const data = await apiBible(`/books/${b.id}/chapters`);
-      setChapterCount(data.length - 1); // -1 to exclude intro chapter
-    } catch {}
-  }
+  useEffect(() => { loadChapter(book, chapter); }, [book, chapter, loadChapter]);
 
   function selectBook(b) {
     setBook(b);
     setChapter(1);
     setShowBookPicker(false);
-    fetchChapterCount(b);
   }
 
   function copyVerse(v) {
-    const text = `"${v.text}" — ${book.name} ${chapter}:${v.num} (KJV)`;
+    const text = `"${v.text.trim()}" — ${v.book_name} ${v.chapter}:${v.verse} (KJV)`;
     navigator.clipboard.writeText(text).catch(() => {});
-    setCopied(v.num);
+    setCopied(v.verse);
     setTimeout(() => setCopied(null), 1800);
   }
 
   async function doSearch(q) {
-    if (!q.trim() || !API_KEY) return;
+    if (!q.trim()) return;
     setSearching(true);
+    setSearched(false);
     try {
-      const res = await fetch(
-        `https://api.scripture.api.bible/v1/bibles/${KJV_BIBLE_ID}/search?query=${encodeURIComponent(q)}&limit=20`,
-        { headers: { 'api-key': API_KEY } }
-      );
-      const json = await res.json();
-      setSearchResults(json.data?.verses || []);
-    } catch {}
+      const res = await fetch(`${BASE}/${encodeURIComponent(q)}?translation=kjv`);
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      setSearchResults(data.verses || []);
+    } catch {
+      setSearchResults([]);
+    }
     setSearching(false);
+    setSearched(true);
   }
 
   return (
@@ -145,14 +148,13 @@ export default function Bible() {
           </button>
           <div>
             <h2 className="text-lg font-bold text-white leading-tight">Holy Bible</h2>
-            <p className="text-white/60 text-xs">King James Version</p>
+            <p className="text-white/60 text-xs">King James Version · Public Domain</p>
           </div>
         </div>
-        {/* Tabs */}
         <div className="flex gap-2">
           {['read', 'search'].map(t => (
             <button key={t} onClick={() => setTab(t)}
-              className={`px-4 py-1.5 rounded-full text-xs font-bold capitalize transition-all ${
+              className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${
                 tab === t ? 'bg-white text-faith-700' : 'bg-white/20 text-white'
               }`}>
               {t === 'read' ? '📖 Read' : '🔍 Search'}
@@ -183,20 +185,27 @@ export default function Bible() {
               </button>
 
               <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-2xl px-2 shadow-sm">
-                <button onClick={() => chapter > 1 && setChapter(c => c - 1)} className="w-8 h-8 flex items-center justify-center text-faith-600 font-bold text-lg">‹</button>
+                <button
+                  onClick={() => chapter > 1 && setChapter(c => c - 1)}
+                  className="w-8 h-8 flex items-center justify-center text-faith-600 font-bold text-lg disabled:opacity-30"
+                  disabled={chapter <= 1}
+                >‹</button>
                 <span className="text-sm font-semibold text-gray-800 w-12 text-center">Ch {chapter}</span>
-                <button onClick={() => chapter < chapterCount && setChapter(c => c + 1)} className="w-8 h-8 flex items-center justify-center text-faith-600 font-bold text-lg">›</button>
+                <button
+                  onClick={() => chapter < book.chapters && setChapter(c => c + 1)}
+                  className="w-8 h-8 flex items-center justify-center text-faith-600 font-bold text-lg disabled:opacity-30"
+                  disabled={chapter >= book.chapters}
+                >›</button>
               </div>
             </div>
 
-            {/* Chapter heading */}
-            <h3 className="text-base font-bold text-gray-700 mb-4">{book.name} — Chapter {chapter}</h3>
+            <h3 className="text-base font-bold text-gray-700 mb-4">{book.name} {chapter}</h3>
 
             {loading ? (
               <div className="space-y-3">
                 {[1,2,3,4,5].map(i => (
-                  <div key={i} className="animate-pulse">
-                    <div className="h-3 bg-gray-200 rounded-full w-full mb-1" />
+                  <div key={i} className="animate-pulse space-y-1.5">
+                    <div className="h-3 bg-gray-200 rounded-full w-full" />
                     <div className="h-3 bg-gray-200 rounded-full w-4/5" />
                   </div>
                 ))}
@@ -204,16 +213,14 @@ export default function Bible() {
             ) : (
               <div className="space-y-0">
                 {verses.map((v, i) => (
-                  <div key={i} className="group flex gap-2 py-2 border-b border-gray-100 last:border-0">
-                    {v.num && (
-                      <span className="text-[10px] font-bold text-faith-400 mt-1 w-5 flex-shrink-0 text-right leading-tight">{v.num}</span>
-                    )}
-                    <p className="text-sm text-gray-800 leading-relaxed flex-1">{v.text}</p>
+                  <div key={i} className="group flex gap-2 py-2.5 border-b border-gray-100 last:border-0">
+                    <span className="text-[10px] font-bold text-faith-400 mt-0.5 w-5 flex-shrink-0 text-right">{v.verse}</span>
+                    <p className="text-sm text-gray-800 leading-relaxed flex-1">{v.text.trim()}</p>
                     <button
                       onClick={() => copyVerse(v)}
                       className="opacity-0 group-hover:opacity-100 focus:opacity-100 w-7 h-7 flex-shrink-0 flex items-center justify-center rounded-lg bg-gray-100 active:bg-faith-100 transition-opacity"
                     >
-                      {copied === v.num ? (
+                      {copied === v.verse ? (
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                           <polyline points="20 6 9 17 4 12"/>
                         </svg>
@@ -228,23 +235,18 @@ export default function Bible() {
               </div>
             )}
 
-            {/* Next/Prev nav */}
             {!loading && verses.length > 0 && (
               <div className="flex gap-3 mt-6">
                 <button
                   disabled={chapter <= 1}
                   onClick={() => setChapter(c => c - 1)}
                   className="flex-1 py-3 bg-white border border-gray-200 rounded-2xl text-sm font-semibold text-gray-600 disabled:opacity-40 shadow-sm"
-                >
-                  ← Previous
-                </button>
+                >← Previous</button>
                 <button
-                  disabled={chapter >= chapterCount}
+                  disabled={chapter >= book.chapters}
                   onClick={() => setChapter(c => c + 1)}
                   className="flex-1 py-3 prayer-gradient text-white rounded-2xl text-sm font-semibold shadow-sm disabled:opacity-40"
-                >
-                  Next →
-                </button>
+                >Next →</button>
               </div>
             )}
           </>
@@ -263,7 +265,7 @@ export default function Bible() {
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && doSearch(searchQuery)}
-                placeholder="Search scripture..."
+                placeholder='e.g. "love" or "john 3:16"'
                 className="w-full bg-white border border-gray-200 rounded-2xl pl-11 pr-20 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-faith-400 shadow-sm"
                 autoFocus
               />
@@ -281,14 +283,14 @@ export default function Bible() {
               </div>
             )}
 
-            {!searching && searchResults.length === 0 && searchQuery.length > 0 && (
-              <div className="text-center py-12 text-gray-400">
-                <p className="font-semibold text-gray-600">No results found</p>
-                <p className="text-sm mt-1">Try different keywords</p>
+            {!searching && searched && searchResults.length === 0 && (
+              <div className="text-center py-12">
+                <p className="font-semibold text-gray-600">No verses found</p>
+                <p className="text-sm text-gray-400 mt-1">Try a different word or reference</p>
               </div>
             )}
 
-            {!searching && searchResults.length === 0 && !searchQuery && (
+            {!searching && !searched && (
               <div className="text-center py-16">
                 <div className="w-16 h-16 prayer-gradient rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
                   <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -296,18 +298,21 @@ export default function Bible() {
                   </svg>
                 </div>
                 <p className="font-semibold text-gray-700">Search God's Word</p>
-                <p className="text-sm text-gray-400 mt-1">Type a word or phrase and press Search</p>
+                <p className="text-sm text-gray-400 mt-1">Try "love", "faith", or "John 3:16"</p>
               </div>
             )}
 
             <div className="space-y-3">
               {searchResults.map((v, i) => (
                 <div key={i} className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
-                  <p className="text-xs font-bold text-faith-600 mb-1">{v.reference}</p>
-                  <p className="text-sm text-gray-800 leading-relaxed">{v.text}</p>
+                  <p className="text-xs font-bold text-faith-600 mb-1">
+                    {v.book_name} {v.chapter}:{v.verse}
+                  </p>
+                  <p className="text-sm text-gray-800 leading-relaxed">{v.text.trim()}</p>
                   <button
                     onClick={() => {
-                      navigator.clipboard.writeText(`"${v.text}" — ${v.reference} (KJV)`).catch(() => {});
+                      const text = `"${v.text.trim()}" — ${v.book_name} ${v.chapter}:${v.verse} (KJV)`;
+                      navigator.clipboard.writeText(text).catch(() => {});
                     }}
                     className="mt-2 text-xs text-gray-400 flex items-center gap-1"
                   >
