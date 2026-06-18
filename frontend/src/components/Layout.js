@@ -71,10 +71,11 @@ const navItems = [
 ];
 
 export default function Layout() {
-  const { notifications } = useSocket();
+  const { unreadCount } = useSocket();
   const { logout } = useAuth();
   const navigate = useNavigate();
   const [latestToast, setLatestToast] = useState(null);
+  const { notifications, unreadCount } = useSocket();
   const [prevCount, setPrevCount] = useState(0);
 
   useEffect(() => {
@@ -84,8 +85,6 @@ export default function Layout() {
     setPrevCount(notifications.length);
   }, [notifications]);
 
-  const unread = notifications.filter((n) => !n.isRead).length;
-
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col max-w-md mx-auto relative shadow-xl">
       <header className="prayer-gradient text-white px-4 py-2.5 flex items-center justify-between sticky top-0 z-30">
@@ -94,9 +93,9 @@ export default function Layout() {
         <div className="flex items-center justify-end w-10">
           <button onClick={() => navigate('/notifications')} className="relative">
             <BellIcon />
-            {unread > 0 && (
+            {unreadCount > 0 && (
               <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center leading-none font-bold">
-                {unread}
+                {unreadCount > 9 ? '9+' : unreadCount}
               </span>
             )}
           </button>

@@ -12,7 +12,7 @@ const ICONS = {
 export default function Notifications() {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { notifications: live } = useSocket();
+  const { notifications: live, markAllRead } = useSocket();
 
   useEffect(() => {
     api.get('/notifications')
@@ -20,6 +20,7 @@ export default function Notifications() {
       .catch(() => {})
       .finally(() => setLoading(false));
     api.post('/notifications/read-all').catch(() => {});
+    markAllRead();
   }, []);
 
   const all = [...live, ...notifications];
