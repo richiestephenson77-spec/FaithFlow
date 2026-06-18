@@ -169,19 +169,37 @@ export default function Profile() {
       {/* Prayer Stats */}
       {stats && (
         <div className="px-4 mb-4">
-          <div className="grid grid-cols-4 gap-2">
-            <StatCard icon="🙏" label="Prayed" value={stats.totalPeoplePrayedFor} />
-            <StatCard icon="⏱️" label="Hours" value={formatDuration(stats.totalPrayerSeconds)} />
-            <StatCard icon="📊" label="Avg" value={formatDuration(stats.avgSessionSeconds)} />
-            <StatCard icon="🔥" label="Streak" value={`${stats.streak}d`} />
+          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Prayer Statistics</p>
+
+          {/* Streak highlight card */}
+          <div className="prayer-gradient rounded-2xl p-4 mb-3 flex items-center justify-between text-white shadow-sm">
+            <div>
+              <p className="text-xs text-white/70 mb-1">🔥 Current Streak</p>
+              <p className="text-3xl font-extrabold leading-none">{stats.streak || 0}
+                <span className="text-base font-semibold ml-1">days</span>
+              </p>
+            </div>
+            <div className="text-right">
+              <p className="text-xs text-white/70 mb-1">🏆 Longest Streak</p>
+              <p className="text-3xl font-extrabold leading-none">{stats.longestStreak || 0}
+                <span className="text-base font-semibold ml-1">days</span>
+              </p>
+            </div>
           </div>
-          {isOwnProfile && (
-            <div className="mt-2 prayer-gradient rounded-2xl p-4 flex items-center justify-between text-white shadow-sm">
+
+          <div className="grid grid-cols-3 gap-2">
+            <StatCard icon="🙏" label="Total Prayers" value={stats.totalSessions || stats.totalPeoplePrayedFor || 0} />
+            <StatCard icon="⏱️" label="Prayer Time" value={formatDuration(stats.totalPrayerSeconds)} />
+            <StatCard icon="👥" label="Prayed For" value={stats.totalPeoplePrayedFor} />
+          </div>
+
+          {isOwnProfile && stats.todaySeconds > 0 && (
+            <div className="mt-2 bg-amber-50 border border-amber-100 rounded-2xl p-3 flex items-center gap-3">
+              <span className="text-xl">🌟</span>
               <div>
-                <p className="text-xs text-white/70">Today's prayer time</p>
-                <p className="text-2xl font-bold mt-0.5">{formatDuration(stats.todaySeconds)}</p>
+                <p className="text-xs text-amber-700 font-semibold">Today's prayer time</p>
+                <p className="text-sm font-bold text-amber-900">{formatDuration(stats.todaySeconds)}</p>
               </div>
-              <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center text-2xl">🌟</div>
             </div>
           )}
         </div>

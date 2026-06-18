@@ -7,6 +7,14 @@ import Avatar from '../components/Avatar';
 import PrayerSession from '../components/PrayerSession';
 import NewPrayerRequestModal from '../components/NewPrayerRequestModal';
 
+function streakMessage(n) {
+  if (n >= 100) return 'Incredible commitment to prayer.';
+  if (n >= 30) return '30 days of consistency. Keep going.';
+  if (n >= 7) return 'One week of faithful prayer.';
+  if (n >= 1) return 'Every prayer matters.';
+  return 'Start your streak today!';
+}
+
 export default function Home() {
   const { user } = useAuth();
   const { notifications } = useSocket();
@@ -16,6 +24,7 @@ export default function Home() {
   const [activeSession, setActiveSession] = useState(null);
   const [showNewRequest, setShowNewRequest] = useState(false);
   const [prayerToast, setPrayerToast] = useState(null);
+  const [streak, setStreak] = useState(null);
 
   // Show in-app toast when someone prays for you
   useEffect(() => {
@@ -36,6 +45,12 @@ export default function Home() {
   }, []);
 
   useEffect(() => { loadFeed(); }, [loadFeed]);
+
+  useEffect(() => {
+    api.get('/users/me/dashboard').then(res => {
+      setStreak({ current: res.data.streak || 0, longest: res.data.longestStreak || 0 });
+    }).catch(() => {});
+  }, []);
 
   async function startPraying(request) {
     try {
@@ -76,19 +91,41 @@ export default function Home() {
       <div className="prayer-gradient px-5 pt-5 pb-8">
         <p className="text-white/80 text-sm mb-1">{greeting}, {firstName} 🙏</p>
         <h2 className="text-2xl font-bold text-white mb-4">Who will you pray<br />for today?</h2>
-        <button
-          onClick={() => setShowNewRequest(true)}
-          className="bg-white text-faith-700 font-bold rounded-2xl px-5 py-3 text-sm shadow-lg flex items-center gap-2"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-          </svg>
-          Share a Prayer Request
-        </button>
+
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setShowNewRequest(true)}
+            className="bg-white text-faith-700 font-bold rounded-2xl px-5 py-3 text-sm shadow-lg flex items-center gap-2"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            Share a Prayer Request
+          </button>
+
+          {streak !== null && (
+            <div className="bg-white/15 backdrop-blur border border-white/20 rounded-2xl px-4 py-3 flex items-center gap-2 flex-shrink-0">
+              <span className="text-2xl leading-none">🔥</span>
+              <div>
+                <p className="text-white font-extrabold text-lg leading-none">{streak.current}</p>
+                <p className="text-white/70 text-[10px] leading-tight">day streak</p>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Feed */}
       <div className="-mt-3 rounded-t-3xl bg-gray-50 px-4 pt-5 pb-4">
+        {streak !== null && streak.current > 0 && (
+          <div className="bg-amber-50 border border-amber-100 rounded-2xl px-4 py-3 mb-4 flex items-center gap-3">
+            <span className="text-xl">🔥</span>
+            <div>
+              <p className="text-sm font-bold text-amber-800">{streak.current} Day Prayer Streak</p>
+              <p className="text-xs text-amber-600">{streakMessage(streak.current)}</p>
+            </div>
+          </div>
+        )}
         <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Prayer Requests</h3>
 
         {loading ? (

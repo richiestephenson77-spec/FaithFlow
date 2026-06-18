@@ -9,6 +9,7 @@ async function getProfile(req, res) {
       select: {
         id: true, name: true, bio: true, churchName: true,
         location: true, profilePhoto: true, coverPhoto: true, createdAt: true,
+        prayerStreak: true, longestPrayerStreak: true,
         _count: { select: { followers: true, following: true, prayerRequests: true, posts: true } },
         prayerRequests: {
           where: { isActive: true },
@@ -31,7 +32,7 @@ async function getProfile(req, res) {
       select: { prayerRequestId: true },
     });
 
-    const streak = await getPrayerStreak(id);
+    const totalSessions = await prisma.prayerSession.count({ where: { userId: id, durationSeconds: { gt: 0 } } });
     const todaySeconds = await getTodayPrayerTime(id);
 
     const isFollowing = req.user
@@ -46,7 +47,9 @@ async function getProfile(req, res) {
         totalPeoplePrayedFor: uniquePrayedFor.length,
         totalPrayerSeconds: sessions._sum.durationSeconds || 0,
         avgSessionSeconds: Math.round(sessions._avg.durationSeconds || 0),
-        streak,
+        totalSessions,
+        streak: user.prayerStreak,
+        longestStreak: user.longestPrayerStreak,
         todaySeconds,
       },
       isFollowing,
@@ -154,25 +157,26 @@ async function getFollowing(req, res) {
 async function getDashboard(req, res) {
   const id = req.user.id;
   try {
-    const sessions = await prisma.prayerSession.aggregate({
-      where: { userId: id, durationSeconds: { not: null } },
-      _sum: { durationSeconds: true },
-      _avg: { durationSeconds: true },
-    });
+    const [sessions, uniquePrayedFor, totalSessions, user] = await Promise.all([
+      prisma.prayerSession.aggregate({
+        where: { userId: id, durationSeconds: { not: null } },
+        _sum: { durationSeconds: true },
+        _avg: { durationSeconds: true },
+      }),
+      prisma.prayerSession.findMany({ where: { userId: id }, distinct: ['prayerRequestId'] }),
+      prisma.prayerSession.count({ where: { userId: id, durationSeconds: { gt: 0 } } }),
+      prisma.user.findUnique({ where: { id }, select: { prayerStreak: true, longestPrayerStreak: true } }),
+    ]);
 
-    const uniquePrayedFor = await prisma.prayerSession.findMany({
-      where: { userId: id },
-      distinct: ['prayerRequestId'],
-    });
-
-    const streak = await getPrayerStreak(id);
     const todaySeconds = await getTodayPrayerTime(id);
 
     res.json({
       totalPeoplePrayedFor: uniquePrayedFor.length,
       totalPrayerSeconds: sessions._sum.durationSeconds || 0,
       avgSessionSeconds: Math.round(sessions._avg.durationSeconds || 0),
-      streak,
+      totalSessions,
+      streak: user.prayerStreak,
+      longestStreak: user.longestPrayerStreak,
       todaySeconds,
     });
   } catch {

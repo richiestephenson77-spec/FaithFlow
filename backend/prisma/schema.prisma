@@ -20,6 +20,10 @@ model User {
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
+  prayerStreak        Int       @default(0)
+  longestPrayerStreak Int       @default(0)
+  lastPrayerDate      DateTime?
+
   prayerRequests  PrayerRequest[]
   prayerSessions  PrayerSession[]
   posts           Post[]

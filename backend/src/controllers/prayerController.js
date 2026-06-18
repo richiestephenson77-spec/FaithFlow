@@ -113,12 +113,69 @@ async function endSession(req, res) {
     const endedAt = new Date();
     const durationSeconds = Math.round((endedAt - session.startedAt) / 1000);
 
-    const updated = await prisma.prayerSession.update({
+    await prisma.prayerSession.update({
       where: { id: sessionId },
       data: { endedAt, durationSeconds },
     });
 
-    res.json(updated);
+    // Streak logic
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.id },
+      select: { prayerStreak: true, longestPrayerStreak: true, lastPrayerDate: true },
+    });
+
+    const todayStr = new Date().toISOString().split('T')[0];
+    const lastStr = user.lastPrayerDate
+      ? new Date(user.lastPrayerDate).toISOString().split('T')[0]
+      : null;
+
+    let newStreak = user.prayerStreak;
+    let streakIncreased = false;
+
+    if (!lastStr) {
+      // Case A: first ever prayer
+      newStreak = 1;
+      streakIncreased = true;
+    } else if (lastStr === todayStr) {
+      // Case B: already prayed today — no change
+      newStreak = user.prayerStreak;
+    } else {
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+      if (lastStr === yesterdayStr) {
+        // Case C: prayed yesterday — extend streak
+        newStreak = user.prayerStreak + 1;
+        streakIncreased = true;
+      } else {
+        // Case D: missed one or more days — reset
+        newStreak = 1;
+        streakIncreased = true;
+      }
+    }
+
+    const newLongest = Math.max(newStreak, user.longestPrayerStreak);
+    const isRecord = newStreak > user.longestPrayerStreak;
+
+    await prisma.user.update({
+      where: { id: req.user.id },
+      data: {
+        prayerStreak: newStreak,
+        longestPrayerStreak: newLongest,
+        lastPrayerDate: new Date(),
+      },
+    });
+
+    res.json({
+      durationSeconds,
+      streak: {
+        current: newStreak,
+        longest: newLongest,
+        increased: streakIncreased,
+        isRecord,
+      },
+    });
   } catch {
     res.status(500).json({ error: 'Failed to end session' });
   }
