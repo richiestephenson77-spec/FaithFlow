@@ -40,49 +40,66 @@ export default function Churches() {
   }
 
   return (
-    <div className="px-4 py-4">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-bold text-gray-800">Churches</h2>
-        {!myChurch && (
-          <button onClick={() => setShowCreate(true)}
-            className="text-sm prayer-gradient text-white px-4 py-1.5 rounded-full font-medium">
-            + Register Church
-          </button>
-        )}
-        {myChurch && (
-          <button onClick={() => navigate(`/churches/${myChurch.id}`)}
-            className="text-sm text-faith-600 font-medium border border-faith-200 px-3 py-1.5 rounded-full">
-            My Church
-          </button>
-        )}
+    <div className="bg-gray-50 min-h-full">
+      {/* Header */}
+      <div className="prayer-gradient px-5 pt-5 pb-8">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-white">Churches</h2>
+            <p className="text-white/70 text-sm mt-0.5">Find your faith community</p>
+          </div>
+          {!myChurch ? (
+            <button onClick={() => setShowCreate(true)}
+              className="bg-white text-faith-700 text-xs font-bold px-4 py-2 rounded-full shadow-lg">
+              + Register
+            </button>
+          ) : (
+            <button onClick={() => navigate(`/churches/${myChurch.id}`)}
+              className="bg-white/20 backdrop-blur-sm text-white text-xs font-semibold px-4 py-2 rounded-full border border-white/30">
+              My Church
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* Search */}
-      <div className="relative mb-4">
-        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
-        <input
-          value={search}
-          onChange={e => handleSearch(e.target.value)}
-          placeholder="Search churches by name or location..."
-          className="w-full border border-gray-200 rounded-xl pl-9 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-faith-500 bg-white"
-        />
-      </div>
+      <div className="-mt-3 rounded-t-3xl bg-gray-50 px-4 pt-5 pb-4">
+        {/* Search */}
+        <div className="relative mb-5">
+          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+          </div>
+          <input
+            value={search}
+            onChange={e => handleSearch(e.target.value)}
+            placeholder="Search churches..."
+            className="w-full bg-white border border-gray-200 rounded-2xl pl-11 pr-4 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-faith-400 shadow-sm"
+          />
+        </div>
 
-      {loading ? (
-        <div className="text-center text-gray-400 py-12">Loading...</div>
-      ) : churches.length === 0 ? (
-        <div className="text-center py-12 text-gray-400">
-          <div className="text-4xl mb-3">⛪</div>
-          <p>{search ? 'No churches found' : 'No churches yet'}</p>
-          <p className="text-sm mt-1">Be the first to register yours!</p>
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {churches.map(church => (
-            <ChurchCard key={church.id} church={church} onClick={() => navigate(`/churches/${church.id}`)} />
-          ))}
-        </div>
-      )}
+        {loading ? (
+          <div className="space-y-3">
+            {[1,2,3].map(i => (
+              <div key={i} className="bg-white rounded-2xl h-28 animate-pulse border border-gray-100" />
+            ))}
+          </div>
+        ) : churches.length === 0 ? (
+          <div className="text-center py-16">
+            <div className="w-16 h-16 prayer-gradient rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+              <span className="text-3xl">⛪</span>
+            </div>
+            <p className="font-semibold text-gray-700">{search ? 'No churches found' : 'No churches yet'}</p>
+            <p className="text-sm text-gray-400 mt-1">Be the first to register yours!</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {churches.map(church => (
+              <ChurchCard key={church.id} church={church} onClick={() => navigate(`/churches/${church.id}`)} />
+            ))}
+          </div>
+        )}
+      </div>
 
       {showCreate && <CreateChurchModal onClose={() => setShowCreate(false)} onCreate={onChurchCreated} />}
     </div>
@@ -91,25 +108,30 @@ export default function Churches() {
 
 function ChurchCard({ church, onClick }) {
   return (
-    <button onClick={onClick} className="w-full bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden text-left">
-      {church.coverPhoto && (
-        <img src={church.coverPhoto} alt="" className="w-full h-24 object-cover" />
-      )}
-      {!church.coverPhoto && (
-        <div className="w-full h-16 prayer-gradient" />
-      )}
-      <div className="p-3 flex items-center gap-3">
-        <div className="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 bg-white border-2 border-white shadow -mt-8 relative">
+    <button onClick={onClick} className="w-full bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden text-left active:scale-[0.98] transition-transform">
+      <div className="relative h-20">
+        {church.coverPhoto
+          ? <img src={church.coverPhoto} alt="" className="w-full h-full object-cover" />
+          : <div className="w-full h-full prayer-gradient" />
+        }
+      </div>
+      <div className="px-4 pb-4 pt-2 flex items-end gap-3 -mt-6 relative">
+        <div className="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 bg-white border-2 border-white shadow-md">
           {church.logo
             ? <img src={church.logo} alt="" className="w-full h-full object-cover" />
-            : <div className="w-full h-full prayer-gradient flex items-center justify-center text-white text-xl">⛪</div>
+            : <div className="w-full h-full prayer-gradient flex items-center justify-center text-white text-lg">⛪</div>
           }
         </div>
-        <div className="flex-1 min-w-0">
-          <p className="font-bold text-gray-900 text-sm">{church.name}</p>
-          {church.location && <p className="text-xs text-gray-400">📍 {church.location}</p>}
-          <p className="text-xs text-faith-600">{church._count?.followers || 0} members</p>
+        <div className="flex-1 min-w-0 pt-5">
+          <p className="font-bold text-gray-900 text-sm leading-tight">{church.name}</p>
+          <div className="flex items-center gap-3 mt-0.5">
+            {church.location && <p className="text-xs text-gray-400">{church.location}</p>}
+            <p className="text-xs text-faith-600 font-medium">{church._count?.followers || 0} members</p>
+          </div>
         </div>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="9 18 15 12 9 6"/>
+        </svg>
       </div>
     </button>
   );
@@ -137,41 +159,40 @@ function CreateChurchModal({ onClose, onCreate }) {
 
   return (
     <div className="fixed inset-0 bg-black/60 z-50 flex items-end" onClick={onClose}>
-      <div className="bg-white rounded-t-3xl w-full max-w-md mx-auto p-6 pb-8 fade-in"
-        onClick={e => e.stopPropagation()}>
-        <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-4" />
-        <h3 className="text-lg font-bold mb-4">Register Your Church</h3>
+      <div className="bg-white rounded-t-3xl w-full max-w-md mx-auto pb-8 fade-in" onClick={e => e.stopPropagation()}>
+        <div className="sticky top-0 bg-white pt-3 pb-3 px-5 border-b border-gray-100">
+          <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-3" />
+          <div className="flex items-center justify-between">
+            <button onClick={onClose} className="text-sm text-gray-400 font-medium">Cancel</button>
+            <h3 className="text-base font-bold text-gray-900">Register Church</h3>
+            <button onClick={handleSubmit} disabled={saving}
+              className="prayer-gradient text-white text-sm font-bold px-4 py-1.5 rounded-full disabled:opacity-40">
+              {saving ? 'Saving...' : 'Create'}
+            </button>
+          </div>
+        </div>
 
-        {error && <div className="bg-red-50 text-red-600 rounded-lg px-4 py-2 mb-4 text-sm">{error}</div>}
-
-        <form onSubmit={handleSubmit} className="space-y-3">
+        <div className="px-5 pt-4 space-y-3">
+          {error && <div className="bg-red-50 text-red-600 rounded-xl px-4 py-2 text-sm">{error}</div>}
           {[
             { field: 'name', placeholder: 'Church name *', required: true },
-            { field: 'location', placeholder: 'City, State/Country' },
+            { field: 'location', placeholder: 'City, State / Country' },
             { field: 'website', placeholder: 'Website (optional)' },
           ].map(({ field, placeholder, required }) => (
             <input key={field} required={required}
               value={form[field]} onChange={e => setForm(p => ({ ...p, [field]: e.target.value }))}
               placeholder={placeholder}
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-faith-500"
+              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-faith-400"
             />
           ))}
           <textarea
             value={form.description}
             onChange={e => setForm(p => ({ ...p, description: e.target.value }))}
-            placeholder="Church description / vision..."
+            placeholder="Vision / description..."
             rows={3}
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-faith-500 resize-none"
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-faith-400 resize-none"
           />
-          <div className="flex gap-3">
-            <button type="button" onClick={onClose}
-              className="flex-1 border border-gray-200 text-gray-600 rounded-xl py-3 text-sm">Cancel</button>
-            <button type="submit" disabled={saving}
-              className="flex-1 prayer-gradient text-white rounded-xl py-3 text-sm font-bold disabled:opacity-60">
-              {saving ? 'Creating...' : 'Register ⛪'}
-            </button>
-          </div>
-        </form>
+        </div>
       </div>
     </div>
   );

@@ -95,22 +95,18 @@ export default function Profile() {
   return (
     <div className="pb-4">
       {/* Cover Photo */}
-      <div className="relative h-36 bg-gradient-to-br from-faith-700 to-faith-500">
-        {profile.coverPhoto && (
-          <img src={profile.coverPhoto} alt="cover" className="w-full h-full object-cover" />
+      <div className="relative h-40 bg-gradient-to-br from-faith-700 to-faith-500 overflow-hidden">
+        {profile.coverPhoto && !profile.coverPhoto.includes('cover') && (
+          <img src={profile.coverPhoto} alt="" className="w-full h-full object-cover" />
         )}
-        <div className="absolute inset-0 bg-black/20" />
+        <div className="absolute inset-0 bg-black/10" />
 
         {/* Profile photo floating */}
         <div className="absolute -bottom-12 left-4">
           <div className="relative">
-            <Avatar user={profile} size="xl" />
-            {isOwnProfile && editing && (
-              <button onClick={() => profilePhotoRef.current?.click()}
-                className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center text-white text-xs">
-                Edit
-              </button>
-            )}
+            <div className="ring-4 ring-white rounded-full shadow-lg">
+              <Avatar user={profile} size="xl" />
+            </div>
           </div>
         </div>
 
@@ -118,13 +114,13 @@ export default function Profile() {
         <div className="absolute top-3 right-3">
           {isOwnProfile ? (
             <button onClick={() => setEditing(true)}
-              className="bg-white/20 backdrop-blur text-white text-sm px-4 py-1.5 rounded-full font-medium border border-white/40">
+              className="bg-black/30 backdrop-blur-sm text-white text-xs px-4 py-1.5 rounded-full font-semibold border border-white/30">
               Edit Profile
             </button>
           ) : (
             <button onClick={handleFollow}
-              className={`text-sm px-5 py-1.5 rounded-full font-bold shadow ${following
-                ? 'bg-white/20 backdrop-blur text-white border border-white/40'
+              className={`text-xs px-5 py-2 rounded-full font-bold shadow-lg ${following
+                ? 'bg-white/20 backdrop-blur-sm text-white border border-white/40'
                 : 'bg-white text-faith-700'}`}>
               {following ? 'Following' : 'Follow'}
             </button>
@@ -135,22 +131,28 @@ export default function Profile() {
       {/* Profile Info */}
       <div className="mt-14 px-4 mb-4">
         <h2 className="text-xl font-bold text-gray-900">{profile.name}</h2>
-        {profile.churchName && <p className="text-faith-600 text-sm mt-0.5">⛪ {profile.churchName}</p>}
-        {profile.location && <p className="text-gray-400 text-sm">📍 {profile.location}</p>}
-        {profile.bio && <p className="text-gray-600 text-sm mt-2 leading-relaxed">{profile.bio}</p>}
+        {profile.churchName && (
+          <p className="text-faith-600 text-sm mt-0.5 font-medium">{profile.churchName}</p>
+        )}
+        {profile.location && (
+          <p className="text-gray-400 text-xs mt-0.5">{profile.location}</p>
+        )}
+        {profile.bio && (
+          <p className="text-gray-600 text-sm mt-2 leading-relaxed">{profile.bio}</p>
+        )}
 
         {/* Counts */}
-        <div className="flex gap-5 mt-3">
+        <div className="flex gap-6 mt-4">
           <button onClick={() => setFollowModal('followers')} className="text-center">
-            <p className="text-lg font-bold text-gray-900">{profile._count?.followers || 0}</p>
+            <p className="text-lg font-bold text-gray-900 leading-tight">{profile._count?.followers || 0}</p>
             <p className="text-xs text-gray-400">Believers</p>
           </button>
           <button onClick={() => setFollowModal('following')} className="text-center">
-            <p className="text-lg font-bold text-gray-900">{profile._count?.following || 0}</p>
+            <p className="text-lg font-bold text-gray-900 leading-tight">{profile._count?.following || 0}</p>
             <p className="text-xs text-gray-400">Following</p>
           </button>
           <div className="text-center">
-            <p className="text-lg font-bold text-gray-900">{profile._count?.posts || 0}</p>
+            <p className="text-lg font-bold text-gray-900 leading-tight">{profile._count?.posts || 0}</p>
             <p className="text-xs text-gray-400">Posts</p>
           </div>
         </div>
@@ -160,18 +162,18 @@ export default function Profile() {
       {stats && (
         <div className="px-4 mb-4">
           <div className="grid grid-cols-4 gap-2">
-            <StatCard icon="🙏" label="Prayed For" value={stats.totalPeoplePrayedFor} />
+            <StatCard icon="🙏" label="Prayed" value={stats.totalPeoplePrayedFor} />
             <StatCard icon="⏱️" label="Hours" value={formatDuration(stats.totalPrayerSeconds)} />
             <StatCard icon="📊" label="Avg" value={formatDuration(stats.avgSessionSeconds)} />
-            <StatCard icon="🔥" label={`${stats.streak}d`} value="Streak" small />
+            <StatCard icon="🔥" label="Streak" value={`${stats.streak}d`} />
           </div>
           {isOwnProfile && (
-            <div className="mt-2 bg-gradient-to-r from-faith-600 to-faith-500 rounded-2xl p-3 flex items-center justify-between text-white">
+            <div className="mt-2 prayer-gradient rounded-2xl p-4 flex items-center justify-between text-white shadow-sm">
               <div>
                 <p className="text-xs text-white/70">Today's prayer time</p>
-                <p className="text-2xl font-bold">{formatDuration(stats.todaySeconds)}</p>
+                <p className="text-2xl font-bold mt-0.5">{formatDuration(stats.todaySeconds)}</p>
               </div>
-              <span className="text-4xl">🌟</span>
+              <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center text-2xl">🌟</div>
             </div>
           )}
         </div>
@@ -179,13 +181,13 @@ export default function Profile() {
 
       {/* Tabs */}
       <div className="px-4">
-        <div className="flex border-b border-gray-200 mb-3">
+        <div className="flex border-b border-gray-100 mb-3">
           {[
-            { key: 'grid', label: '⊞ Posts' },
-            { key: 'prayers', label: '🙏 Prayers' },
+            { key: 'grid', label: 'Posts' },
+            { key: 'prayers', label: 'Prayers' },
           ].map(({ key, label }) => (
             <button key={key} onClick={() => setActiveTab(key)}
-              className={`flex-1 py-2 text-sm font-medium border-b-2 transition-colors ${
+              className={`flex-1 py-2.5 text-sm font-semibold border-b-2 transition-colors ${
                 activeTab === key ? 'border-faith-600 text-faith-600' : 'border-transparent text-gray-400'}`}>
               {label}
             </button>
@@ -301,12 +303,12 @@ export default function Profile() {
   );
 }
 
-function StatCard({ icon, label, value, small }) {
+function StatCard({ icon, label, value }) {
   return (
-    <div className="bg-white rounded-xl p-2 border border-gray-100 shadow-sm text-center">
-      <span className={small ? 'text-xl' : 'text-2xl'}>{icon}</span>
-      <p className="text-sm font-bold text-gray-900 mt-0.5">{small ? label : value}</p>
-      <p className="text-[10px] text-gray-400">{small ? value : label}</p>
+    <div className="bg-white rounded-xl p-2.5 border border-gray-100 shadow-sm text-center">
+      <span className="text-xl">{icon}</span>
+      <p className="text-sm font-bold text-gray-900 mt-0.5 leading-tight">{value}</p>
+      <p className="text-[10px] text-gray-400 mt-0.5">{label}</p>
     </div>
   );
 }

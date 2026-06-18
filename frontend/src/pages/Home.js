@@ -43,38 +43,49 @@ export default function Home() {
     return <PrayerSession session={activeSession.session} request={activeSession.request} onEnd={onSessionEnd} />;
   }
 
+  const firstName = user?.name?.split(' ')[0];
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+
   return (
-    <div className="px-4 py-4 space-y-4">
-      {/* Pray Now CTA */}
-      <div className="prayer-gradient rounded-2xl p-5 text-white shadow-lg">
-        <p className="text-white/80 text-sm mb-1">Good day, {user?.name?.split(' ')[0]} 🙏</p>
-        <h2 className="text-xl font-bold mb-3">Who will you pray for today?</h2>
+    <div className="bg-gray-50 min-h-full">
+      {/* Hero Banner */}
+      <div className="prayer-gradient px-5 pt-5 pb-8">
+        <p className="text-white/80 text-sm mb-1">{greeting}, {firstName} 🙏</p>
+        <h2 className="text-2xl font-bold text-white mb-4">Who will you pray<br />for today?</h2>
         <button
           onClick={() => setShowNewRequest(true)}
-          className="bg-white text-faith-700 font-bold rounded-xl px-5 py-2.5 text-sm shadow"
+          className="bg-white text-faith-700 font-bold rounded-2xl px-5 py-3 text-sm shadow-lg flex items-center gap-2"
         >
-          + Share a Prayer Request
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          Share a Prayer Request
         </button>
       </div>
 
       {/* Feed */}
-      <div className="space-y-3">
-        <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wide">Prayer Requests</h3>
+      <div className="-mt-3 rounded-t-3xl bg-gray-50 px-4 pt-5 pb-4">
+        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Prayer Requests</h3>
 
         {loading ? (
           <div className="space-y-3">
             {[1, 2, 3].map(i => <SkeletonCard key={i} />)}
           </div>
         ) : feed.length === 0 ? (
-          <div className="text-center py-12 text-gray-400">
-            <div className="text-4xl mb-3">🕊️</div>
-            <p>No prayer requests yet.</p>
-            <p className="text-sm">Be the first to share one!</p>
+          <div className="text-center py-16">
+            <div className="w-16 h-16 prayer-gradient rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+              <span className="text-3xl">🕊️</span>
+            </div>
+            <p className="font-semibold text-gray-700">No prayer requests yet</p>
+            <p className="text-sm text-gray-400 mt-1">Be the first to share one!</p>
           </div>
         ) : (
-          feed.map(request => (
-            <PrayerCard key={request.id} request={request} onPray={() => startPraying(request)} />
-          ))
+          <div className="space-y-3">
+            {feed.map(request => (
+              <PrayerCard key={request.id} request={request} onPray={() => startPraying(request)} />
+            ))}
+          </div>
         )}
       </div>
 
@@ -93,30 +104,34 @@ function PrayerCard({ request, onPray }) {
       <div className="flex items-start gap-3">
         <Avatar user={request.user} size="md" />
         <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between">
-            <p className="font-semibold text-gray-800 text-sm">{request.user?.name}</p>
-            <span className="text-xs text-gray-400">{timeAgo}</span>
+          <div className="flex items-start justify-between gap-2">
+            <div>
+              <p className="font-semibold text-gray-900 text-sm leading-tight">{request.user?.name}</p>
+              {request.user?.churchName && (
+                <p className="text-xs text-faith-500 mt-0.5">{request.user.churchName}</p>
+              )}
+            </div>
+            <span className="text-[10px] text-gray-400 whitespace-nowrap mt-0.5">{timeAgo}</span>
           </div>
-          {request.user?.churchName && (
-            <p className="text-xs text-faith-600 mb-1">⛪ {request.user.churchName}</p>
-          )}
-          <h4 className="font-bold text-gray-900 mt-1 mb-1">{request.title}</h4>
-          <p className="text-sm text-gray-600 leading-relaxed line-clamp-3">{request.body}</p>
 
-          <div className="flex items-center justify-between mt-3">
-            <div className="flex items-center gap-3 text-xs text-gray-400">
-              {request.currentlyPrayingCount > 0 && (
-                <span className="text-green-600 font-medium animate-prayer">
+          <h4 className="font-bold text-gray-900 text-sm mt-2 mb-1">{request.title}</h4>
+          <p className="text-sm text-gray-500 leading-relaxed line-clamp-3">{request.body}</p>
+
+          <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-50">
+            <div className="flex items-center gap-1.5">
+              {request.currentlyPrayingCount > 0 ? (
+                <span className="text-xs text-emerald-600 font-semibold bg-emerald-50 px-2 py-1 rounded-full">
                   🙏 {request.currentlyPrayingCount} praying now
                 </span>
+              ) : (
+                <span className="text-xs text-gray-400">{request.totalPrayerCount} prayers</span>
               )}
-              <span>{request.totalPrayerCount} total prayers</span>
             </div>
             <button
               onClick={onPray}
-              className="prayer-gradient text-white text-xs font-bold rounded-xl px-4 py-2 shadow"
+              className="prayer-gradient text-white text-xs font-bold rounded-xl px-4 py-2 shadow-sm flex items-center gap-1.5"
             >
-              Pray Now
+              <span>🙏</span> Pray Now
             </button>
           </div>
         </div>
@@ -129,12 +144,12 @@ function SkeletonCard() {
   return (
     <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 animate-pulse">
       <div className="flex gap-3">
-        <div className="w-10 h-10 rounded-full bg-gray-200" />
+        <div className="w-10 h-10 rounded-full bg-gray-100 flex-shrink-0" />
         <div className="flex-1 space-y-2">
-          <div className="h-3 bg-gray-200 rounded w-1/3" />
-          <div className="h-4 bg-gray-200 rounded w-2/3" />
-          <div className="h-3 bg-gray-200 rounded w-full" />
-          <div className="h-3 bg-gray-200 rounded w-4/5" />
+          <div className="h-3 bg-gray-100 rounded-full w-1/3" />
+          <div className="h-4 bg-gray-100 rounded-full w-2/3" />
+          <div className="h-3 bg-gray-100 rounded-full w-full" />
+          <div className="h-3 bg-gray-100 rounded-full w-4/5" />
         </div>
       </div>
     </div>
