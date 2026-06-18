@@ -3,6 +3,7 @@ import { useSocket } from '../contexts/SocketContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useState, useEffect } from 'react';
 import Toast from './Toast';
+import Logo from './Logo';
 
 function HomeIcon({ active }) {
   return (
@@ -87,11 +88,11 @@ export default function Layout() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col max-w-md mx-auto relative shadow-xl">
-      <header className="prayer-gradient text-white px-4 py-3 flex items-center justify-between sticky top-0 z-30">
-        <div className="flex items-center gap-2">
-          <span className="text-lg font-bold tracking-wide">✝ FaithFlow</span>
-        </div>
-        <div className="flex items-center gap-4">
+      <header className="prayer-gradient text-white px-4 py-2.5 flex items-center justify-between sticky top-0 z-30">
+        <button onClick={() => { logout(); navigate('/login'); }}
+          className="text-xs text-white/60 hover:text-white font-medium w-16">Logout</button>
+        <Logo size="sm" light={true} />
+        <div className="flex items-center justify-end w-16">
           <button onClick={() => navigate('/notifications')} className="relative">
             <BellIcon />
             {unread > 0 && (
@@ -100,8 +101,6 @@ export default function Layout() {
               </span>
             )}
           </button>
-          <button onClick={() => { logout(); navigate('/login'); }}
-            className="text-xs text-white/70 hover:text-white font-medium">Logout</button>
         </div>
       </header>
 

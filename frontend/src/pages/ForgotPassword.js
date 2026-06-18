@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../utils/api';
+import Logo from '../components/Logo';
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState('');
@@ -26,9 +27,7 @@ export default function ForgotPassword() {
     <div className="min-h-screen flex flex-col prayer-gradient">
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-12">
         <div className="text-white text-center mb-10">
-          <div className="text-6xl mb-4">✝</div>
-          <h1 className="text-3xl font-bold">FaithFlow</h1>
-          <p className="text-white/70 mt-2">United in faith, connected in prayer</p>
+          <Logo size="lg" light={true} />
         </div>
 
         <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl">

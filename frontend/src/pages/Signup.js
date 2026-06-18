@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import Logo from '../components/Logo';
 
 export default function Signup() {
   const [step, setStep] = useState(1);
@@ -33,9 +34,7 @@ export default function Signup() {
     <div className="min-h-screen flex flex-col prayer-gradient">
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-12">
         <div className="text-white text-center mb-8">
-          <div className="text-5xl mb-3">✝</div>
-          <h1 className="text-2xl font-bold">FaithFlow</h1>
-          <p className="text-white/70 text-sm mt-1">Join our community of believers</p>
+          <Logo size="md" light={true} />
         </div>
 
         <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl">
