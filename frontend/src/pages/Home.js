@@ -10,23 +10,23 @@ import TestimonyModal from '../components/TestimonyModal';
 import MyPrayerRequestsDrawer from '../components/MyPrayerRequestsDrawer';
 
 const FILTER_TABS = [
-  { id: 'ALL',          label: 'All',             emoji: '🙏' },
-  { id: 'HEALTH',       label: 'Health',          emoji: '🏥' },
-  { id: 'FAMILY',       label: 'Family',          emoji: '👨‍👩‍👧' },
-  { id: 'CAREER',       label: 'Career',          emoji: '💼' },
-  { id: 'FINANCIAL',    label: 'Financial',       emoji: '💰' },
-  { id: 'RELATIONSHIP', label: 'Relationship',    emoji: '💑' },
-  { id: 'SPIRITUAL',    label: 'Spiritual',       emoji: '✝️' },
+  { id: 'ALL',          label: 'All' },
+  { id: 'HEALTH',       label: 'Health' },
+  { id: 'FAMILY',       label: 'Family' },
+  { id: 'CAREER',       label: 'Career' },
+  { id: 'FINANCIAL',    label: 'Financial' },
+  { id: 'RELATIONSHIP', label: 'Relationship' },
+  { id: 'SPIRITUAL',    label: 'Spiritual' },
 ];
 
 const CATEGORY_LABELS = {
-  GENERAL:      { label: 'General',         emoji: '🙏' },
-  HEALTH:       { label: 'Health',          emoji: '🏥' },
-  FAMILY:       { label: 'Family',          emoji: '👨‍👩‍👧' },
-  CAREER:       { label: 'Career',          emoji: '💼' },
-  FINANCIAL:    { label: 'Financial',       emoji: '💰' },
-  RELATIONSHIP: { label: 'Relationship',    emoji: '💑' },
-  SPIRITUAL:    { label: 'Spiritual',       emoji: '✝️' },
+  GENERAL:      'General',
+  HEALTH:       'Health',
+  FAMILY:       'Family',
+  CAREER:       'Career',
+  FINANCIAL:    'Financial',
+  RELATIONSHIP: 'Relationship',
+  SPIRITUAL:    'Spiritual',
 };
 
 function streakMessage(n) {
@@ -123,7 +123,7 @@ export default function Home() {
       )}
       {/* Hero Banner */}
       <div className="prayer-gradient px-5 pt-5 pb-8">
-        <p className="text-white/80 text-sm mb-1">{greeting}, {firstName} 🙏</p>
+        <p className="text-white/80 text-sm mb-1">{greeting}, {firstName}</p>
         <h2 className="text-2xl font-bold text-white mb-4">Who will you pray<br />for today?</h2>
 
         <div className="flex items-center gap-3">
@@ -134,12 +134,14 @@ export default function Home() {
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
             </svg>
-            Share a Prayer Request
+            + Share a Prayer Request
           </button>
 
           {streak !== null && (
             <div className="bg-white/15 backdrop-blur border border-white/20 rounded-2xl px-4 py-3 flex items-center gap-2 flex-shrink-0">
-              <span className="text-2xl leading-none">🔥</span>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="rgba(255,255,255,0.9)" stroke="none">
+                <path d="M12 2c0 0-6 6-6 11a6 6 0 0 0 12 0c0-5-6-11-6-11zm0 15a2 2 0 0 1-2-2c0-2 2-5 2-5s2 3 2 5a2 2 0 0 1-2 2z"/>
+              </svg>
               <div>
                 <p className="text-white font-extrabold text-lg leading-none">{streak.current}</p>
                 <p className="text-white/70 text-[10px] leading-tight">day streak</p>
@@ -164,7 +166,11 @@ export default function Home() {
       <div className="-mt-3 rounded-t-3xl bg-gray-50 px-4 pt-5 pb-4">
         {streak !== null && streak.current > 0 && (
           <div className="bg-amber-50 border border-amber-100 rounded-2xl px-4 py-3 mb-4 flex items-center gap-3">
-            <span className="text-xl">🔥</span>
+            <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="#d97706" stroke="none">
+                <path d="M12 2c0 0-6 6-6 11a6 6 0 0 0 12 0c0-5-6-11-6-11zm0 15a2 2 0 0 1-2-2c0-2 2-5 2-5s2 3 2 5a2 2 0 0 1-2 2z"/>
+              </svg>
+            </div>
             <div>
               <p className="text-sm font-bold text-amber-800">{streak.current} Day Prayer Streak</p>
               <p className="text-xs text-amber-600">{streakMessage(streak.current)}</p>
@@ -178,14 +184,13 @@ export default function Home() {
             <button
               key={tab.id}
               onClick={() => setActiveCategory(tab.id)}
-              className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${
+              className={`flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-semibold border transition-all tracking-wide ${
                 activeCategory === tab.id
                   ? 'prayer-gradient text-white border-transparent shadow-sm'
                   : 'bg-white text-gray-500 border-gray-200'
               }`}
             >
-              <span>{tab.emoji}</span>
-              <span>{tab.label}</span>
+              {tab.label}
             </button>
           ))}
         </div>
@@ -255,7 +260,7 @@ export default function Home() {
 function PrayerCard({ request, currentUserId, onPray, onUserClick, onMarkAnswered, onViewTestimony }) {
   const timeAgo = getTimeAgo(request.createdAt);
   const isOwner = request.user?.id === currentUserId;
-  const cat = request.category && request.category !== 'GENERAL' ? CATEGORY_LABELS[request.category] : null;
+  const catLabel = request.category && request.category !== 'GENERAL' ? CATEGORY_LABELS[request.category] : null;
 
   return (
     <div className={`bg-white rounded-2xl p-4 shadow-sm border fade-in ${
@@ -263,17 +268,17 @@ function PrayerCard({ request, currentUserId, onPray, onUserClick, onMarkAnswere
       request.isAnswered ? 'border-emerald-100' : 'border-gray-100'
     }`}>
       {/* Top badges */}
-      {(request.isUrgent || request.isAnswered || cat) && (
+      {(request.isUrgent || request.isAnswered || catLabel) && (
         <div className="flex items-center gap-1.5 mb-3 flex-wrap">
           {request.isUrgent && (
-            <span className="bg-red-100 text-red-700 text-xs font-bold px-3 py-1 rounded-full">🚨 Urgent</span>
+            <span className="bg-red-50 text-red-600 text-[11px] font-semibold px-3 py-1 rounded-full border border-red-100 uppercase tracking-wide">Urgent</span>
           )}
           {request.isAnswered && (
-            <span className="bg-emerald-100 text-emerald-700 text-xs font-bold px-3 py-1 rounded-full">🙌 Answered Prayer</span>
+            <span className="bg-emerald-50 text-emerald-700 text-[11px] font-semibold px-3 py-1 rounded-full border border-emerald-100 uppercase tracking-wide">Answered</span>
           )}
-          {cat && (
-            <span className="bg-faith-50 text-faith-600 text-xs font-semibold px-3 py-1 rounded-full">
-              {cat.emoji} {cat.label}
+          {catLabel && (
+            <span className="bg-gray-50 text-gray-500 text-[11px] font-semibold px-3 py-1 rounded-full border border-gray-100 uppercase tracking-wide">
+              {catLabel}
             </span>
           )}
         </div>
@@ -309,7 +314,7 @@ function PrayerCard({ request, currentUserId, onPray, onUserClick, onMarkAnswere
             <div className="flex items-center gap-1.5">
               {request.currentlyPrayingCount > 0 ? (
                 <span className="text-xs text-emerald-600 font-semibold bg-emerald-50 px-2 py-1 rounded-full">
-                  🙏 {request.currentlyPrayingCount} praying now
+                  {request.currentlyPrayingCount} praying now
                 </span>
               ) : (
                 <span className="text-xs text-gray-400">{request.totalPrayerCount} prayers</span>
@@ -327,9 +332,9 @@ function PrayerCard({ request, currentUserId, onPray, onUserClick, onMarkAnswere
               {!request.isAnswered && (
                 <button
                   onClick={onPray}
-                  className="prayer-gradient text-white text-xs font-bold rounded-xl px-4 py-2 shadow-sm flex items-center gap-1.5"
+                  className="prayer-gradient text-white text-xs font-bold rounded-xl px-4 py-2 shadow-sm"
                 >
-                  <span>🙏</span> Pray Now
+                  Pray Now
                 </button>
               )}
             </div>
