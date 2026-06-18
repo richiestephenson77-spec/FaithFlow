@@ -85,6 +85,11 @@ export default function Bible() {
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(null);
   const [showBookPicker, setShowBookPicker] = useState(false);
+  const [pickerStep, setPickerStep] = useState('book'); // 'book' | 'chapter' | 'verse'
+  const [pickerBook, setPickerBook] = useState(null);
+  const [pickerChapter, setPickerChapter] = useState(null);
+  const [pickerVerseCount, setPickerVerseCount] = useState(0);
+  const [loadingVerseCount, setLoadingVerseCount] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [searching, setSearching] = useState(false);
@@ -107,9 +112,46 @@ export default function Bible() {
 
   useEffect(() => { loadChapter(book, chapter); }, [book, chapter, loadChapter]);
 
-  function selectBook(b) {
-    setBook(b);
-    setChapter(1);
+  function openPicker() {
+    setPickerBook(book);
+    setPickerChapter(null);
+    setPickerStep('book');
+    setShowBookPicker(true);
+  }
+
+  async function pickerSelectBook(b) {
+    setPickerBook(b);
+    setPickerStep('chapter');
+  }
+
+  async function pickerSelectChapter(ch) {
+    setPickerChapter(ch);
+    setLoadingVerseCount(true);
+    try {
+      const res = await fetch(`${BASE}/${pickerBook.id}+${ch}?translation=kjv`);
+      const data = await res.json();
+      setPickerVerseCount(data.verses?.length || 0);
+    } catch {
+      setPickerVerseCount(0);
+    }
+    setLoadingVerseCount(false);
+    setPickerStep('verse');
+  }
+
+  function pickerSelectVerse(v) {
+    setBook(pickerBook);
+    setChapter(pickerChapter);
+    setShowBookPicker(false);
+    // After the chapter loads, scroll to that verse
+    setTimeout(() => {
+      const el = document.getElementById(`verse-${v}`);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 800);
+  }
+
+  function pickerSelectChapterOnly() {
+    setBook(pickerBook);
+    setChapter(pickerChapter);
     setShowBookPicker(false);
   }
 
@@ -175,7 +217,7 @@ export default function Bible() {
             {/* Book + Chapter selector */}
             <div className="flex gap-2 mb-5">
               <button
-                onClick={() => setShowBookPicker(true)}
+                onClick={openPicker}
                 className="flex-1 bg-white border border-gray-200 rounded-2xl px-4 py-3 text-sm font-semibold text-gray-800 flex items-center justify-between shadow-sm"
               >
                 <span>{book.name}</span>
@@ -213,7 +255,7 @@ export default function Bible() {
             ) : (
               <div className="space-y-0">
                 {verses.map((v, i) => (
-                  <div key={i} className="group flex gap-2 py-2.5 border-b border-gray-100 last:border-0">
+                  <div key={i} id={`verse-${v.verse}`} className="group flex gap-2 py-2.5 border-b border-gray-100 last:border-0">
                     <span className="text-[10px] font-bold text-faith-400 mt-0.5 w-5 flex-shrink-0 text-right">{v.verse}</span>
                     <p className="text-sm text-gray-800 leading-relaxed flex-1">{v.text.trim()}</p>
                     <button
@@ -328,37 +370,114 @@ export default function Bible() {
         )}
       </div>
 
-      {/* Book Picker Modal */}
+      {/* Book / Chapter / Verse Picker Modal */}
       {showBookPicker && (
         <div className="fixed inset-0 z-50 bg-black/50 flex items-end">
-          <div className="bg-white w-full max-w-md mx-auto rounded-t-3xl max-h-[80vh] flex flex-col">
-            <div className="px-4 py-4 border-b border-gray-100 flex items-center justify-between">
-              <h3 className="font-bold text-gray-900">Select Book</h3>
-              <button onClick={() => setShowBookPicker(false)} className="text-gray-400 text-xl font-bold">✕</button>
+          <div className="bg-white w-full max-w-md mx-auto rounded-t-3xl max-h-[82vh] flex flex-col">
+            {/* Modal header */}
+            <div className="px-4 py-4 border-b border-gray-100 flex items-center gap-3">
+              {pickerStep !== 'book' && (
+                <button
+                  onClick={() => setPickerStep(pickerStep === 'verse' ? 'chapter' : 'book')}
+                  className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="15 18 9 12 15 6"/>
+                  </svg>
+                </button>
+              )}
+              <div className="flex-1">
+                <h3 className="font-bold text-gray-900 text-sm">
+                  {pickerStep === 'book' && 'Select Book'}
+                  {pickerStep === 'chapter' && `${pickerBook?.name} — Select Chapter`}
+                  {pickerStep === 'verse' && `${pickerBook?.name} ${pickerChapter} — Select Verse`}
+                </h3>
+                {/* Step indicator */}
+                <div className="flex items-center gap-1 mt-1">
+                  {['book','chapter','verse'].map((s, i) => (
+                    <div key={s} className={`h-1 rounded-full transition-all ${
+                      pickerStep === s ? 'w-6 bg-faith-500' :
+                      (['book','chapter','verse'].indexOf(pickerStep) > i) ? 'w-3 bg-faith-300' : 'w-3 bg-gray-200'
+                    }`} />
+                  ))}
+                </div>
+              </div>
+              <button onClick={() => setShowBookPicker(false)} className="text-gray-400 text-xl font-bold w-8 h-8 flex items-center justify-center">✕</button>
             </div>
+
             <div className="overflow-y-auto flex-1 px-4 py-3">
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Old Testament</p>
-              <div className="grid grid-cols-2 gap-1.5 mb-4">
-                {BOOKS.slice(0, NT_START).map(b => (
-                  <button key={b.id} onClick={() => selectBook(b)}
-                    className={`text-sm py-2 px-3 rounded-xl text-left font-medium transition-colors ${
-                      b.id === book.id ? 'bg-faith-100 text-faith-700' : 'text-gray-700 hover:bg-gray-50'
-                    }`}>
-                    {b.name}
-                  </button>
-                ))}
-              </div>
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">New Testament</p>
-              <div className="grid grid-cols-2 gap-1.5">
-                {BOOKS.slice(NT_START).map(b => (
-                  <button key={b.id} onClick={() => selectBook(b)}
-                    className={`text-sm py-2 px-3 rounded-xl text-left font-medium transition-colors ${
-                      b.id === book.id ? 'bg-faith-100 text-faith-700' : 'text-gray-700 hover:bg-gray-50'
-                    }`}>
-                    {b.name}
-                  </button>
-                ))}
-              </div>
+              {/* Step 1 — Book */}
+              {pickerStep === 'book' && (
+                <>
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Old Testament</p>
+                  <div className="grid grid-cols-2 gap-1.5 mb-4">
+                    {BOOKS.slice(0, NT_START).map(b => (
+                      <button key={b.id} onClick={() => pickerSelectBook(b)}
+                        className={`text-sm py-2 px-3 rounded-xl text-left font-medium transition-colors ${
+                          b.id === book.id ? 'bg-faith-100 text-faith-700' : 'text-gray-700 hover:bg-gray-50'
+                        }`}>
+                        {b.name}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">New Testament</p>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {BOOKS.slice(NT_START).map(b => (
+                      <button key={b.id} onClick={() => pickerSelectBook(b)}
+                        className={`text-sm py-2 px-3 rounded-xl text-left font-medium transition-colors ${
+                          b.id === book.id ? 'bg-faith-100 text-faith-700' : 'text-gray-700 hover:bg-gray-50'
+                        }`}>
+                        {b.name}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+
+              {/* Step 2 — Chapter */}
+              {pickerStep === 'chapter' && pickerBook && (
+                <div className="grid grid-cols-5 gap-2">
+                  {Array.from({ length: pickerBook.chapters }, (_, i) => i + 1).map(ch => (
+                    <button key={ch} onClick={() => pickerSelectChapter(ch)}
+                      className={`aspect-square rounded-xl text-sm font-bold transition-colors flex items-center justify-center ${
+                        ch === chapter && pickerBook.id === book.id
+                          ? 'prayer-gradient text-white shadow-sm'
+                          : 'bg-gray-50 text-gray-700 hover:bg-faith-50 hover:text-faith-700'
+                      }`}>
+                      {ch}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Step 3 — Verse */}
+              {pickerStep === 'verse' && (
+                <>
+                  {loadingVerseCount ? (
+                    <div className="flex justify-center py-10">
+                      <div className="w-6 h-6 border-2 border-faith-400 border-t-transparent rounded-full animate-spin" />
+                    </div>
+                  ) : (
+                    <>
+                      <button
+                        onClick={pickerSelectChapterOnly}
+                        className="w-full mb-3 py-3 bg-faith-50 border border-faith-200 rounded-2xl text-sm font-bold text-faith-700"
+                      >
+                        Read from beginning of chapter
+                      </button>
+                      <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Or jump to verse</p>
+                      <div className="grid grid-cols-5 gap-2">
+                        {Array.from({ length: pickerVerseCount }, (_, i) => i + 1).map(v => (
+                          <button key={v} onClick={() => pickerSelectVerse(v)}
+                            className="aspect-square rounded-xl text-sm font-bold bg-gray-50 text-gray-700 hover:bg-faith-50 hover:text-faith-700 transition-colors flex items-center justify-center">
+                            {v}
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </>
+              )}
             </div>
           </div>
         </div>
