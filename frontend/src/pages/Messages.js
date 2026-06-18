@@ -22,6 +22,7 @@ export default function Messages() {
   const [searchResults, setSearchResults] = useState([]);
   const [searching, setSearching] = useState(false);
   const [startingConvo, setStartingConvo] = useState(null);
+  const [convoError, setConvoError] = useState(null);
 
   useEffect(() => {
     api.get('/messages/conversations')
@@ -44,11 +45,13 @@ export default function Messages() {
   async function startConvo(userId) {
     if (startingConvo) return;
     setStartingConvo(userId);
+    setConvoError(null);
     try {
       const res = await api.post('/messages/conversations', { userId });
       navigate(`/messages/${res.data.id}`);
     } catch (err) {
-      console.error('startConvo error', err?.response?.data || err.message);
+      const msg = err?.response?.data?.detail || err?.response?.data?.error || err.message || 'Something went wrong';
+      setConvoError(msg);
       setStartingConvo(null);
     }
   }
@@ -74,6 +77,11 @@ export default function Messages() {
         {/* Search results */}
         {search.length >= 2 && (
           <div className="px-4 mb-4">
+            {convoError && (
+              <div className="mb-3 bg-red-50 border border-red-100 rounded-xl px-3 py-2.5 text-xs text-red-600 font-medium">
+                Error: {convoError}
+              </div>
+            )}
             <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Start a conversation</p>
             {searching ? (
               <div className="flex justify-center py-4"><div className="w-5 h-5 border-2 border-faith-400 border-t-transparent rounded-full animate-spin" /></div>

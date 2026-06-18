@@ -60,8 +60,9 @@ async function startConversation(req, res) {
       },
     });
     res.status(201).json({ id: convo.id });
-  } catch {
-    res.status(500).json({ error: 'Failed to start conversation' });
+  } catch (err) {
+    console.error('startConversation error:', err);
+    res.status(500).json({ error: 'Failed to start conversation', detail: err.message });
   }
 }
 
