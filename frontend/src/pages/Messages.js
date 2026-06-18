@@ -21,6 +21,7 @@ export default function Messages() {
   const [search, setSearch] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [searching, setSearching] = useState(false);
+  const [startingConvo, setStartingConvo] = useState(null);
 
   useEffect(() => {
     api.get('/messages/conversations')
@@ -41,10 +42,15 @@ export default function Messages() {
   }
 
   async function startConvo(userId) {
+    if (startingConvo) return;
+    setStartingConvo(userId);
     try {
       const res = await api.post('/messages/conversations', { userId });
       navigate(`/messages/${res.data.id}`);
-    } catch {}
+    } catch (err) {
+      console.error('startConvo error', err?.response?.data || err.message);
+      setStartingConvo(null);
+    }
   }
 
   return (
@@ -77,13 +83,18 @@ export default function Messages() {
               <div className="space-y-2">
                 {searchResults.map(u => (
                   <button key={u.id} onClick={() => startConvo(u.id)}
-                    className="w-full flex items-center gap-3 bg-white rounded-2xl p-3 border border-gray-100 shadow-sm text-left">
+                    disabled={!!startingConvo}
+                    className="w-full flex items-center gap-3 bg-white rounded-2xl p-3 border border-gray-100 shadow-sm text-left active:scale-[0.98] transition-transform disabled:opacity-60">
                     <Avatar user={u} size="md" />
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-gray-900 text-sm">{u.name}</p>
                       {u.churchName && <p className="text-xs text-faith-500">{u.churchName}</p>}
                     </div>
-                    <span className="text-xs text-faith-600 font-semibold">Message</span>
+                    {startingConvo === u.id ? (
+                      <div className="w-4 h-4 border-2 border-faith-400 border-t-transparent rounded-full animate-spin flex-shrink-0" />
+                    ) : (
+                      <span className="text-xs text-faith-600 font-semibold flex-shrink-0">Message</span>
+                    )}
                   </button>
                 ))}
               </div>
