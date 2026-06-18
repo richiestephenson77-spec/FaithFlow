@@ -23,14 +23,14 @@ export default function Logo({ size = 'md', light = true }) {
         {/* "Fai" */}
         <text x="0" y="95" className="logo-text" fill={color}>Fai</text>
 
-        {/* Cross replacing the "t" */}
+        {/* Cross replacing the "t" — nudged left to close gap */}
         {/* Vertical bar of cross */}
-        <rect x="192" y="18" width="11" height="78" rx="5.5" fill={color} />
+        <rect x="178" y="18" width="11" height="78" rx="5.5" fill={color} />
         {/* Horizontal bar of cross */}
-        <rect x="172" y="42" width="51" height="11" rx="5.5" fill={color} />
+        <rect x="158" y="42" width="51" height="11" rx="5.5" fill={color} />
 
         {/* "hFlow" */}
-        <text x="208" y="95" className="logo-text" fill={color}>hFlow</text>
+        <text x="194" y="95" className="logo-text" fill={color}>hFlow</text>
       </svg>
 
       {size !== 'sm' && (
