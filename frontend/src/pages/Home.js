@@ -7,6 +7,7 @@ import Avatar from '../components/Avatar';
 import PrayerSession from '../components/PrayerSession';
 import NewPrayerRequestModal from '../components/NewPrayerRequestModal';
 import TestimonyModal from '../components/TestimonyModal';
+import MyPrayerRequestsDrawer from '../components/MyPrayerRequestsDrawer';
 
 const FILTER_TABS = [
   { id: 'ALL',          label: 'All',             emoji: '🙏' },
@@ -49,6 +50,7 @@ export default function Home() {
   const [answeredFeed, setAnsweredFeed] = useState([]);
   const [testimonyRequest, setTestimonyRequest] = useState(null);
   const [activeCategory, setActiveCategory] = useState('ALL');
+  const [showMyRequests, setShowMyRequests] = useState(false);
 
   // Show in-app toast when someone prays for you
   useEffect(() => {
@@ -144,6 +146,17 @@ export default function Home() {
               </div>
             </div>
           )}
+
+          {/* My Prayer Requests button */}
+          <button
+            onClick={() => setShowMyRequests(true)}
+            className="w-11 h-11 bg-white/15 backdrop-blur border border-white/20 rounded-2xl flex items-center justify-center flex-shrink-0"
+            title="My Prayer Requests"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+            </svg>
+          </button>
         </div>
       </div>
 
@@ -230,6 +243,10 @@ export default function Home() {
           onSave={handleTestimonySaved}
           onClose={() => setTestimonyRequest(null)}
         />
+      )}
+
+      {showMyRequests && (
+        <MyPrayerRequestsDrawer onClose={() => setShowMyRequests(false)} />
       )}
     </div>
   );

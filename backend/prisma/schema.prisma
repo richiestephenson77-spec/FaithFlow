@@ -62,6 +62,7 @@ model PrayerRequest {
   isAnswered        Boolean         @default(false)
   answeredAt        DateTime?
   testimonyMessage  String?
+  updateMessage     String?
   category          PrayerCategory  @default(GENERAL)
   isUrgent          Boolean         @default(false)
   createdAt         DateTime        @default(now())

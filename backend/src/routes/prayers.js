@@ -1,13 +1,20 @@
 const router = require('express').Router();
 const { authenticate } = require('../middleware/auth');
-const { getFeed, createRequest, startSession, endSession, deleteRequest, markAnswered, getAnsweredFeed, getRequest } = require('../controllers/prayerController');
+const {
+  getFeed, createRequest, startSession, endSession, deleteRequest,
+  markAnswered, getAnsweredFeed, getRequest,
+  getMyRequests, editRequest, addUpdate,
+} = require('../controllers/prayerController');
 
 router.get('/feed', authenticate, getFeed);
 router.get('/answered', authenticate, getAnsweredFeed);
+router.get('/mine', authenticate, getMyRequests);
 router.post('/', authenticate, createRequest);
 router.get('/:id', authenticate, getRequest);
+router.put('/:id', authenticate, editRequest);
 router.post('/:id/start', authenticate, startSession);
 router.post('/:id/answered', authenticate, markAnswered);
+router.post('/:id/update', authenticate, addUpdate);
 router.post('/session/:sessionId/end', authenticate, endSession);
 router.delete('/:id', authenticate, deleteRequest);
 

@@ -211,6 +211,59 @@ async function deleteRequest(req, res) {
   }
 }
 
+async function getMyRequests(req, res) {
+  try {
+    const requests = await prisma.prayerRequest.findMany({
+      where: { userId: req.user.id },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        user: { select: { id: true, name: true, profilePhoto: true, churchName: true } },
+        _count: { select: { sessions: true } },
+      },
+    });
+    res.json(requests.map(r => ({ ...r, totalPrayerCount: r._count.sessions })));
+  } catch {
+    res.status(500).json({ error: 'Failed to get your prayer requests' });
+  }
+}
+
+async function editRequest(req, res) {
+  const { id } = req.params;
+  const { title, body } = req.body;
+  try {
+    const request = await prisma.prayerRequest.findUnique({ where: { id } });
+    if (!request || request.userId !== req.user.id)
+      return res.status(403).json({ error: 'Not authorized' });
+    const updated = await prisma.prayerRequest.update({
+      where: { id },
+      data: { title: title || request.title, body: body || request.body },
+      include: { user: { select: { id: true, name: true, profilePhoto: true, churchName: true } }, _count: { select: { sessions: true } } },
+    });
+    res.json({ ...updated, totalPrayerCount: updated._count.sessions });
+  } catch {
+    res.status(500).json({ error: 'Failed to edit prayer request' });
+  }
+}
+
+async function addUpdate(req, res) {
+  const { id } = req.params;
+  const { updateMessage } = req.body;
+  if (!updateMessage?.trim()) return res.status(400).json({ error: 'Update message required' });
+  try {
+    const request = await prisma.prayerRequest.findUnique({ where: { id } });
+    if (!request || request.userId !== req.user.id)
+      return res.status(403).json({ error: 'Not authorized' });
+    const updated = await prisma.prayerRequest.update({
+      where: { id },
+      data: { updateMessage: updateMessage.trim() },
+      include: { user: { select: { id: true, name: true, profilePhoto: true, churchName: true } }, _count: { select: { sessions: true } } },
+    });
+    res.json({ ...updated, totalPrayerCount: updated._count.sessions });
+  } catch {
+    res.status(500).json({ error: 'Failed to add update' });
+  }
+}
+
 async function markAnswered(req, res) {
   const { id } = req.params;
   const { testimonyMessage } = req.body;
@@ -264,4 +317,4 @@ async function getRequest(req, res) {
   }
 }
 
-module.exports = { getFeed, createRequest, startSession, endSession, deleteRequest, markAnswered, getAnsweredFeed, getRequest };
+module.exports = { getFeed, createRequest, startSession, endSession, deleteRequest, markAnswered, getAnsweredFeed, getRequest, getMyRequests, editRequest, addUpdate };
