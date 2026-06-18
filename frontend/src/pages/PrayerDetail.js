@@ -65,6 +65,16 @@ export default function PrayerDetail() {
             <span className="ml-auto text-[10px] text-gray-400">{getTimeAgo(request.createdAt)}</span>
           </div>
 
+          <div className="flex flex-wrap gap-1.5 mb-2">
+            {request.isUrgent && (
+              <span className="bg-red-100 text-red-700 text-xs font-bold px-2.5 py-0.5 rounded-full">🚨 Urgent</span>
+            )}
+            {request.category && request.category !== 'GENERAL' && (
+              <span className="bg-faith-50 text-faith-600 text-xs font-semibold px-2.5 py-0.5 rounded-full">
+                {{ HEALTH:'🏥', FAMILY:'👨‍👩‍👧', CAREER:'💼', FINANCIAL:'💰', RELATIONSHIP:'💑', SPIRITUAL:'✝️' }[request.category]} {request.category.charAt(0) + request.category.slice(1).toLowerCase()}
+              </span>
+            )}
+          </div>
           <h3 className="font-bold text-gray-900 text-base mb-2">{request.title}</h3>
           <p className="text-sm text-gray-600 leading-relaxed">{request.body}</p>
 

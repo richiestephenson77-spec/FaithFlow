@@ -8,6 +8,26 @@ import PrayerSession from '../components/PrayerSession';
 import NewPrayerRequestModal from '../components/NewPrayerRequestModal';
 import TestimonyModal from '../components/TestimonyModal';
 
+const FILTER_TABS = [
+  { id: 'ALL',          label: 'All',             emoji: '🙏' },
+  { id: 'HEALTH',       label: 'Health',          emoji: '🏥' },
+  { id: 'FAMILY',       label: 'Family',          emoji: '👨‍👩‍👧' },
+  { id: 'CAREER',       label: 'Career',          emoji: '💼' },
+  { id: 'FINANCIAL',    label: 'Financial',       emoji: '💰' },
+  { id: 'RELATIONSHIP', label: 'Relationship',    emoji: '💑' },
+  { id: 'SPIRITUAL',    label: 'Spiritual',       emoji: '✝️' },
+];
+
+const CATEGORY_LABELS = {
+  GENERAL:      { label: 'General',         emoji: '🙏' },
+  HEALTH:       { label: 'Health',          emoji: '🏥' },
+  FAMILY:       { label: 'Family',          emoji: '👨‍👩‍👧' },
+  CAREER:       { label: 'Career',          emoji: '💼' },
+  FINANCIAL:    { label: 'Financial',       emoji: '💰' },
+  RELATIONSHIP: { label: 'Relationship',    emoji: '💑' },
+  SPIRITUAL:    { label: 'Spiritual',       emoji: '✝️' },
+};
+
 function streakMessage(n) {
   if (n >= 100) return 'Incredible commitment to prayer.';
   if (n >= 30) return '30 days of consistency. Keep going.';
@@ -28,6 +48,7 @@ export default function Home() {
   const [streak, setStreak] = useState(null);
   const [answeredFeed, setAnsweredFeed] = useState([]);
   const [testimonyRequest, setTestimonyRequest] = useState(null);
+  const [activeCategory, setActiveCategory] = useState('ALL');
 
   // Show in-app toast when someone prays for you
   useEffect(() => {
@@ -39,15 +60,16 @@ export default function Home() {
     }
   }, [notifications]);
 
-  const loadFeed = useCallback(async () => {
+  const loadFeed = useCallback(async (category = 'ALL') => {
+    setLoading(true);
     try {
-      const res = await api.get('/prayers/feed');
+      const res = await api.get(`/prayers/feed${category !== 'ALL' ? `?category=${category}` : ''}`);
       setFeed(res.data);
     } catch {}
     setLoading(false);
   }, []);
 
-  useEffect(() => { loadFeed(); }, [loadFeed]);
+  useEffect(() => { loadFeed(activeCategory); }, [loadFeed, activeCategory]);
 
   useEffect(() => {
     api.get('/users/me/dashboard').then(res => {
@@ -71,11 +93,11 @@ export default function Home() {
 
   function onSessionEnd() {
     setActiveSession(null);
-    loadFeed();
+    loadFeed(activeCategory);
   }
 
   function onNewRequest(request) {
-    setFeed(prev => [{ ...request, currentlyPrayingCount: 0, totalPrayerCount: 0 }, ...prev]);
+    setFeed(prev => [request, ...prev]);
     setShowNewRequest(false);
   }
 
@@ -136,6 +158,25 @@ export default function Home() {
             </div>
           </div>
         )}
+
+        {/* Category filter tabs */}
+        <div className="flex gap-2 overflow-x-auto pb-2 mb-4 scrollbar-hide -mx-4 px-4">
+          {FILTER_TABS.map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveCategory(tab.id)}
+              className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${
+                activeCategory === tab.id
+                  ? 'prayer-gradient text-white border-transparent shadow-sm'
+                  : 'bg-white text-gray-500 border-gray-200'
+              }`}
+            >
+              <span>{tab.emoji}</span>
+              <span>{tab.label}</span>
+            </button>
+          ))}
+        </div>
+
         <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Prayer Requests</h3>
 
         {loading ? (
@@ -197,12 +238,27 @@ export default function Home() {
 function PrayerCard({ request, currentUserId, onPray, onUserClick, onMarkAnswered, onViewTestimony }) {
   const timeAgo = getTimeAgo(request.createdAt);
   const isOwner = request.user?.id === currentUserId;
+  const cat = request.category && request.category !== 'GENERAL' ? CATEGORY_LABELS[request.category] : null;
 
   return (
-    <div className={`bg-white rounded-2xl p-4 shadow-sm border fade-in ${request.isAnswered ? 'border-emerald-100' : 'border-gray-100'}`}>
-      {request.isAnswered && (
-        <div className="flex items-center gap-1.5 mb-3">
-          <span className="bg-emerald-100 text-emerald-700 text-xs font-bold px-3 py-1 rounded-full">🙌 Answered Prayer</span>
+    <div className={`bg-white rounded-2xl p-4 shadow-sm border fade-in ${
+      request.isUrgent ? 'border-red-200 ring-1 ring-red-100' :
+      request.isAnswered ? 'border-emerald-100' : 'border-gray-100'
+    }`}>
+      {/* Top badges */}
+      {(request.isUrgent || request.isAnswered || cat) && (
+        <div className="flex items-center gap-1.5 mb-3 flex-wrap">
+          {request.isUrgent && (
+            <span className="bg-red-100 text-red-700 text-xs font-bold px-3 py-1 rounded-full">🚨 Urgent</span>
+          )}
+          {request.isAnswered && (
+            <span className="bg-emerald-100 text-emerald-700 text-xs font-bold px-3 py-1 rounded-full">🙌 Answered Prayer</span>
+          )}
+          {cat && (
+            <span className="bg-faith-50 text-faith-600 text-xs font-semibold px-3 py-1 rounded-full">
+              {cat.emoji} {cat.label}
+            </span>
+          )}
         </div>
       )}
 

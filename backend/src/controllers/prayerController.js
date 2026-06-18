@@ -7,46 +7,62 @@ async function getFeed(req, res) {
   const page = parseInt(req.query.page) || 1;
   const limit = 20;
   const skip = (page - 1) * limit;
+  const { category } = req.query;
+
+  const where = { isActive: true, isAnswered: false };
+  if (category && category !== 'ALL') where.category = category;
 
   try {
-    const requests = await prisma.prayerRequest.findMany({
-      where: { isActive: true },
-      orderBy: { createdAt: 'desc' },
-      skip,
-      take: limit,
-      include: {
-        user: { select: { id: true, name: true, profilePhoto: true, churchName: true } },
-        _count: { select: { sessions: true } },
-        sessions: {
-          where: { endedAt: null },
-          select: { userId: true },
+    const [urgent, regular] = await Promise.all([
+      prisma.prayerRequest.findMany({
+        where: { ...where, isUrgent: true },
+        orderBy: { createdAt: 'desc' },
+        take: 5,
+        include: {
+          user: { select: { id: true, name: true, profilePhoto: true, churchName: true } },
+          _count: { select: { sessions: true } },
+          sessions: { where: { endedAt: null }, select: { userId: true } },
         },
-      },
-    });
+      }),
+      prisma.prayerRequest.findMany({
+        where: { ...where, isUrgent: false },
+        orderBy: { createdAt: 'desc' },
+        skip,
+        take: limit,
+        include: {
+          user: { select: { id: true, name: true, profilePhoto: true, churchName: true } },
+          _count: { select: { sessions: true } },
+          sessions: { where: { endedAt: null }, select: { userId: true } },
+        },
+      }),
+    ]);
 
-    const feed = requests.map((r) => ({
+    const format = (r) => ({
       ...r,
       currentlyPrayingCount: r.sessions.length,
       totalPrayerCount: r._count.sessions,
       sessions: undefined,
-    }));
+    });
 
-    res.json(feed);
+    res.json([...urgent.map(format), ...regular.map(format)]);
   } catch {
     res.status(500).json({ error: 'Failed to get feed' });
   }
 }
 
 async function createRequest(req, res) {
-  const { title, body } = req.body;
+  const { title, body, category, isUrgent } = req.body;
   if (!title || !body) return res.status(400).json({ error: 'Title and body required' });
+
+  const validCategories = ['GENERAL','HEALTH','FAMILY','CAREER','FINANCIAL','RELATIONSHIP','SPIRITUAL'];
+  const safeCategory = validCategories.includes(category) ? category : 'GENERAL';
 
   try {
     const request = await prisma.prayerRequest.create({
-      data: { userId: req.user.id, title, body },
-      include: { user: { select: { id: true, name: true, profilePhoto: true } } },
+      data: { userId: req.user.id, title, body, category: safeCategory, isUrgent: Boolean(isUrgent) },
+      include: { user: { select: { id: true, name: true, profilePhoto: true, churchName: true } } },
     });
-    res.status(201).json(request);
+    res.status(201).json({ ...request, currentlyPrayingCount: 0, totalPrayerCount: 0 });
   } catch {
     res.status(500).json({ error: 'Failed to create prayer request' });
   }
