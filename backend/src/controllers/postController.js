@@ -70,7 +70,7 @@ async function createPost(req, res) {
         media: files.length
           ? {
               create: files.map((f, i) => ({
-                url: `/uploads/${f.filename}`,
+                url: f.path,
                 type: f.mimetype.startsWith('video') ? 'VIDEO' : 'IMAGE',
                 order: i,
               })),

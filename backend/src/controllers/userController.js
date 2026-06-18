@@ -63,12 +63,8 @@ async function getMe(req, res) {
 
 async function updateProfile(req, res) {
   const { name, bio, churchName, location } = req.body;
-  const profilePhoto = req.files?.profilePhoto?.[0]
-    ? `/uploads/${req.files.profilePhoto[0].filename}`
-    : undefined;
-  const coverPhoto = req.files?.coverPhoto?.[0]
-    ? `/uploads/${req.files.coverPhoto[0].filename}`
-    : undefined;
+  const profilePhoto = req.files?.profilePhoto?.[0]?.path || undefined;
+  const coverPhoto = req.files?.coverPhoto?.[0]?.path || undefined;
 
   try {
     const data = { name, bio, churchName, location };
