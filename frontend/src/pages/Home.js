@@ -6,6 +6,7 @@ import { useSocket } from '../contexts/SocketContext';
 import Avatar from '../components/Avatar';
 import PrayerSession from '../components/PrayerSession';
 import NewPrayerRequestModal from '../components/NewPrayerRequestModal';
+import TestimonyModal from '../components/TestimonyModal';
 
 function streakMessage(n) {
   if (n >= 100) return 'Incredible commitment to prayer.';
@@ -25,6 +26,8 @@ export default function Home() {
   const [showNewRequest, setShowNewRequest] = useState(false);
   const [prayerToast, setPrayerToast] = useState(null);
   const [streak, setStreak] = useState(null);
+  const [answeredFeed, setAnsweredFeed] = useState([]);
+  const [testimonyRequest, setTestimonyRequest] = useState(null);
 
   // Show in-app toast when someone prays for you
   useEffect(() => {
@@ -50,7 +53,14 @@ export default function Home() {
     api.get('/users/me/dashboard').then(res => {
       setStreak({ current: res.data.streak || 0, longest: res.data.longestStreak || 0 });
     }).catch(() => {});
+    api.get('/prayers/answered').then(res => setAnsweredFeed(res.data)).catch(() => {});
   }, []);
+
+  function handleTestimonySaved(updatedRequest) {
+    setTestimonyRequest(null);
+    setFeed(prev => prev.map(r => r.id === updatedRequest.id ? { ...r, ...updatedRequest } : r));
+    setAnsweredFeed(prev => [updatedRequest, ...prev].slice(0, 5));
+  }
 
   async function startPraying(request) {
     try {
@@ -143,24 +153,59 @@ export default function Home() {
         ) : (
           <div className="space-y-3">
             {feed.map(request => (
-              <PrayerCard key={request.id} request={request} onPray={() => startPraying(request)} onUserClick={() => navigate(`/profile/${request.user.id}`)} />
+              <PrayerCard
+                key={request.id}
+                request={request}
+                currentUserId={user?.id}
+                onPray={() => startPraying(request)}
+                onUserClick={() => navigate(`/profile/${request.user.id}`)}
+                onMarkAnswered={() => setTestimonyRequest(request)}
+                onViewTestimony={() => navigate(`/prayer/${request.id}`)}
+              />
             ))}
           </div>
         )}
       </div>
 
+      {/* Answered Prayers section */}
+      {answeredFeed.length > 0 && (
+        <div className="px-4 pb-6">
+          <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Answered Prayers 🙌</h3>
+          <div className="space-y-3">
+            {answeredFeed.map(r => (
+              <AnsweredCard key={r.id} request={r} onView={() => navigate(`/prayer/${r.id}`)} onUserClick={() => navigate(`/profile/${r.user.id}`)} />
+            ))}
+          </div>
+        </div>
+      )}
+
       {showNewRequest && (
         <NewPrayerRequestModal onClose={() => setShowNewRequest(false)} onCreate={onNewRequest} />
+      )}
+
+      {testimonyRequest && (
+        <TestimonyModal
+          request={testimonyRequest}
+          onSave={handleTestimonySaved}
+          onClose={() => setTestimonyRequest(null)}
+        />
       )}
     </div>
   );
 }
 
-function PrayerCard({ request, onPray, onUserClick }) {
+function PrayerCard({ request, currentUserId, onPray, onUserClick, onMarkAnswered, onViewTestimony }) {
   const timeAgo = getTimeAgo(request.createdAt);
+  const isOwner = request.user?.id === currentUserId;
 
   return (
-    <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 fade-in">
+    <div className={`bg-white rounded-2xl p-4 shadow-sm border fade-in ${request.isAnswered ? 'border-emerald-100' : 'border-gray-100'}`}>
+      {request.isAnswered && (
+        <div className="flex items-center gap-1.5 mb-3">
+          <span className="bg-emerald-100 text-emerald-700 text-xs font-bold px-3 py-1 rounded-full">🙌 Answered Prayer</span>
+        </div>
+      )}
+
       <div className="flex items-start gap-3">
         <button onClick={onUserClick} className="flex-shrink-0">
           <Avatar user={request.user} size="md" />
@@ -181,6 +226,12 @@ function PrayerCard({ request, onPray, onUserClick }) {
           <h4 className="font-bold text-gray-900 text-sm mt-2 mb-1">{request.title}</h4>
           <p className="text-sm text-gray-500 leading-relaxed line-clamp-3">{request.body}</p>
 
+          {request.isAnswered && request.testimonyMessage && (
+            <button onClick={onViewTestimony} className="mt-2 text-xs font-semibold text-emerald-600 hover:underline">
+              View Testimony →
+            </button>
+          )}
+
           <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-50">
             <div className="flex items-center gap-1.5">
               {request.currentlyPrayingCount > 0 ? (
@@ -191,11 +242,50 @@ function PrayerCard({ request, onPray, onUserClick }) {
                 <span className="text-xs text-gray-400">{request.totalPrayerCount} prayers</span>
               )}
             </div>
-            <button
-              onClick={onPray}
-              className="prayer-gradient text-white text-xs font-bold rounded-xl px-4 py-2 shadow-sm flex items-center gap-1.5"
-            >
-              <span>🙏</span> Pray Now
+            <div className="flex items-center gap-2">
+              {isOwner && !request.isAnswered && (
+                <button
+                  onClick={onMarkAnswered}
+                  className="text-xs font-semibold text-emerald-600 border border-emerald-200 bg-emerald-50 rounded-xl px-3 py-1.5"
+                >
+                  ✓ Answered
+                </button>
+              )}
+              {!request.isAnswered && (
+                <button
+                  onClick={onPray}
+                  className="prayer-gradient text-white text-xs font-bold rounded-xl px-4 py-2 shadow-sm flex items-center gap-1.5"
+                >
+                  <span>🙏</span> Pray Now
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AnsweredCard({ request, onView, onUserClick }) {
+  return (
+    <div className="bg-white rounded-2xl p-4 shadow-sm border border-emerald-100 fade-in">
+      <div className="flex items-start gap-3">
+        <button onClick={onUserClick} className="flex-shrink-0">
+          <Avatar user={request.user} size="md" />
+        </button>
+        <div className="flex-1 min-w-0">
+          <button onClick={onUserClick} className="font-semibold text-gray-900 text-sm hover:underline text-left">
+            {request.user?.name}
+          </button>
+          <h4 className="font-bold text-gray-900 text-sm mt-1">{request.title}</h4>
+          {request.testimonyMessage && (
+            <p className="text-sm text-gray-500 leading-relaxed line-clamp-2 mt-1">{request.testimonyMessage}</p>
+          )}
+          <div className="flex items-center justify-between mt-2">
+            <span className="text-xs text-emerald-600 font-semibold">🙌 {request._count?.sessions || 0} prayed for this</span>
+            <button onClick={onView} className="text-xs font-bold text-faith-600">
+              Read Testimony →
             </button>
           </div>
         </div>

@@ -54,13 +54,16 @@ model Follow {
 }
 
 model PrayerRequest {
-  id          String    @id @default(cuid())
-  userId      String
-  title       String
-  body        String
-  isActive    Boolean   @default(true)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id                String    @id @default(cuid())
+  userId            String
+  title             String
+  body              String
+  isActive          Boolean   @default(true)
+  isAnswered        Boolean   @default(false)
+  answeredAt        DateTime?
+  testimonyMessage  String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   sessions    PrayerSession[]

@@ -195,4 +195,57 @@ async function deleteRequest(req, res) {
   }
 }
 
-module.exports = { getFeed, createRequest, startSession, endSession, deleteRequest };
+async function markAnswered(req, res) {
+  const { id } = req.params;
+  const { testimonyMessage } = req.body;
+  try {
+    const request = await prisma.prayerRequest.findUnique({ where: { id } });
+    if (!request || request.userId !== req.user.id)
+      return res.status(403).json({ error: 'Not authorized' });
+
+    const updated = await prisma.prayerRequest.update({
+      where: { id },
+      data: { isAnswered: true, answeredAt: new Date(), testimonyMessage: testimonyMessage || null },
+      include: { user: { select: { id: true, name: true, profilePhoto: true, churchName: true } }, _count: { select: { sessions: true } } },
+    });
+    res.json(updated);
+  } catch {
+    res.status(500).json({ error: 'Failed to mark as answered' });
+  }
+}
+
+async function getAnsweredFeed(req, res) {
+  try {
+    const requests = await prisma.prayerRequest.findMany({
+      where: { isAnswered: true },
+      orderBy: { answeredAt: 'desc' },
+      take: 5,
+      include: {
+        user: { select: { id: true, name: true, profilePhoto: true, churchName: true } },
+        _count: { select: { sessions: true } },
+      },
+    });
+    res.json(requests);
+  } catch {
+    res.status(500).json({ error: 'Failed to get answered prayers' });
+  }
+}
+
+async function getRequest(req, res) {
+  const { id } = req.params;
+  try {
+    const request = await prisma.prayerRequest.findUnique({
+      where: { id },
+      include: {
+        user: { select: { id: true, name: true, profilePhoto: true, churchName: true } },
+        _count: { select: { sessions: true } },
+      },
+    });
+    if (!request) return res.status(404).json({ error: 'Not found' });
+    res.json(request);
+  } catch {
+    res.status(500).json({ error: 'Failed to get prayer request' });
+  }
+}
+
+module.exports = { getFeed, createRequest, startSession, endSession, deleteRequest, markAnswered, getAnsweredFeed, getRequest };
