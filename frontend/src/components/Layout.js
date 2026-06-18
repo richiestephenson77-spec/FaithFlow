@@ -34,12 +34,11 @@ function SearchIcon({ active }) {
   );
 }
 
-function ChurchIcon({ active }) {
+function ExploreIcon({ active }) {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill={active ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 2L12 7M9 4.5L15 4.5" />
-      <path d="M5 10h14l1 11H4L5 10z" />
-      <rect x="9" y="14" width="6" height="7" />
+      <circle cx="12" cy="12" r="10" />
+      <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
     </svg>
   );
 }
@@ -66,16 +65,15 @@ const navItems = [
   { to: '/', label: 'Home', Icon: HomeIcon },
   { to: '/community', label: 'Feed', Icon: FeedIcon },
   { to: '/search', label: 'Search', Icon: SearchIcon },
-  { to: '/churches', label: 'Churches', Icon: ChurchIcon },
+  { to: '/explore', label: 'Explore', Icon: ExploreIcon },
   { to: '/profile', label: 'Profile', Icon: ProfileIcon },
 ];
 
 export default function Layout() {
-  const { unreadCount } = useSocket();
+  const { notifications, unreadCount } = useSocket();
   const { logout } = useAuth();
   const navigate = useNavigate();
   const [latestToast, setLatestToast] = useState(null);
-  const { notifications, unreadCount } = useSocket();
   const [prevCount, setPrevCount] = useState(0);
 
   useEffect(() => {

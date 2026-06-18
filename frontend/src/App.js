@@ -15,6 +15,8 @@ import Notifications from './pages/Notifications';
 import Community from './pages/Community';
 import Churches from './pages/Churches';
 import ChurchPage from './pages/ChurchPage';
+import Explore from './pages/Explore';
+import Bible from './pages/Bible';
 import BibleBot from './pages/BibleBot';
 import Layout from './components/Layout';
 import LoadingScreen from './components/LoadingScreen';
@@ -52,6 +54,8 @@ function AppRoutes() {
         <Route path="community" element={<Community />} />
         <Route path="churches" element={<Churches />} />
         <Route path="churches/:id" element={<ChurchPage />} />
+        <Route path="explore" element={<Explore />} />
+        <Route path="bible" element={<Bible />} />
         <Route path="search" element={<Search />} />
         <Route path="settings" element={<Settings />} />
         <Route path="bible-bot" element={<BibleBot />} />
