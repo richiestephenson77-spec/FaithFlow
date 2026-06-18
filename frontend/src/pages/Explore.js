@@ -50,6 +50,40 @@ const features = [
     active: true,
   },
   {
+    id: 'confessions',
+    label: 'Confession Wall',
+    subtitle: 'Anonymous, no judgment',
+    route: '/confessions',
+    color: 'from-slate-500 to-gray-600',
+    bg: 'bg-slate-50',
+    border: 'border-slate-100',
+    textColor: 'text-slate-700',
+    icon: (
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+        <path d="M23 11l-4.5 4.5M18.5 11L23 15.5"/>
+      </svg>
+    ),
+    active: true,
+  },
+  {
+    id: 'pastors',
+    label: 'Pray With a Pastor',
+    subtitle: 'Connect with verified pastors',
+    route: '/pastors',
+    color: 'from-teal-500 to-emerald-600',
+    bg: 'bg-teal-50',
+    border: 'border-teal-100',
+    textColor: 'text-teal-700',
+    icon: (
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 2L12 7M9 4.5L15 4.5" />
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+      </svg>
+    ),
+    active: true,
+  },
+  {
     id: 'answered',
     label: 'Answered Prayers',
     subtitle: 'Celebrate God\'s faithfulness',

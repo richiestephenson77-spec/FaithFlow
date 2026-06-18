@@ -12,6 +12,9 @@ const postRoutes = require('./routes/posts');
 const notificationRoutes = require('./routes/notifications');
 const churchRoutes = require('./routes/churches');
 const bibleBotRoutes = require('./routes/bibleBot');
+const messageRoutes = require('./routes/messages');
+const confessionRoutes = require('./routes/confessions');
+const pastorRoutes = require('./routes/pastors');
 
 const app = express();
 const server = http.createServer(app);
@@ -44,6 +47,9 @@ app.use('/api/posts', postRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/churches', churchRoutes);
 app.use('/api/bible-bot', bibleBotRoutes);
+app.use('/api/messages', messageRoutes);
+app.use('/api/confessions', confessionRoutes);
+app.use('/api/pastors', pastorRoutes);
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 

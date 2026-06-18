@@ -34,10 +34,102 @@ model User {
   resetTokens     PasswordResetToken[]
   churchFollows   ChurchFollow[]
 
+  isVerifiedPastor  Boolean  @default(false)
+  pastorBio         String?
+  pastorChurch      String?
+  pastorTitle       String?
+
   followers       Follow[]  @relation("Following")
   following       Follow[]  @relation("Followers")
+  conversationParticipants ConversationParticipant[]
+  sentMessages    Message[]
+  confessions     Confession[]
+  confessionEncouragements ConfessionEncouragement[]
+  confessionComments ConfessionComment[]
+  pastorRequests  PastorPrayerRequest[] @relation("PastorRequests")
+  userPastorRequests PastorPrayerRequest[] @relation("UserPastorRequests")
 
   @@map("users")
+}
+
+model Conversation {
+  id           String    @id @default(cuid())
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  participants ConversationParticipant[]
+  messages     Message[]
+  @@map("conversations")
+}
+
+model ConversationParticipant {
+  id             String       @id @default(cuid())
+  conversationId String
+  userId         String
+  lastReadAt     DateTime?
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([conversationId, userId])
+  @@map("conversation_participants")
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String
+  senderId       String
+  content        String
+  createdAt      DateTime     @default(now())
+  isRead         Boolean      @default(false)
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender         User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  @@map("messages")
+}
+
+model Confession {
+  id             String    @id @default(cuid())
+  content        String
+  category       String    @default("General")
+  createdAt      DateTime  @default(now())
+  userId         String
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  encouragements ConfessionEncouragement[]
+  comments       ConfessionComment[]
+  @@map("confessions")
+}
+
+model ConfessionEncouragement {
+  id           String     @id @default(cuid())
+  confessionId String
+  userId       String
+  confession   Confession @relation(fields: [confessionId], references: [id], onDelete: Cascade)
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([confessionId, userId])
+  @@map("confession_encouragements")
+}
+
+model ConfessionComment {
+  id           String     @id @default(cuid())
+  confessionId String
+  userId       String
+  content      String
+  createdAt    DateTime   @default(now())
+  confession   Confession @relation(fields: [confessionId], references: [id], onDelete: Cascade)
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@map("confession_comments")
+}
+
+model PastorPrayerRequest {
+  id          String   @id @default(cuid())
+  userId      String
+  pastorId    String
+  request     String
+  isAnonymous Boolean  @default(false)
+  status      String   @default("PENDING")
+  response    String?
+  createdAt   DateTime @default(now())
+  respondedAt DateTime?
+  user        User     @relation("UserPastorRequests", fields: [userId], references: [id], onDelete: Cascade)
+  pastor      User     @relation("PastorRequests", fields: [pastorId], references: [id], onDelete: Cascade)
+  @@map("pastor_prayer_requests")
 }
 
 model Follow {
@@ -185,6 +277,7 @@ enum NotificationType {
   POST_LIKE
   POST_COMMENT
   CHURCH_POST
+  NEW_MESSAGE
 }
 
 model Church {

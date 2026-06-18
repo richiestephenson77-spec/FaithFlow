@@ -10,15 +10,16 @@ export function SocketProvider({ children }) {
   const socketRef = useRef(null);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [unreadMessages, setUnreadMessages] = useState(0);
 
-  // Load unread count from DB on mount
+  // Load unread counts on mount
   useEffect(() => {
     if (!user) return;
     api.get('/notifications')
-      .then(res => {
-        const unread = res.data.filter(n => !n.isRead).length;
-        setUnreadCount(unread);
-      })
+      .then(res => setUnreadCount(res.data.filter(n => !n.isRead).length))
+      .catch(() => {});
+    api.get('/messages/unread')
+      .then(res => setUnreadMessages(res.data.count || 0))
       .catch(() => {});
   }, [user]);
 
@@ -30,7 +31,11 @@ export function SocketProvider({ children }) {
 
     socket.on('notification', (data) => {
       setNotifications((prev) => [{ ...data, id: Date.now(), isRead: false }, ...prev]);
-      setUnreadCount(c => c + 1);
+      if (data.type === 'NEW_MESSAGE') {
+        setUnreadMessages(c => c + 1);
+      } else {
+        setUnreadCount(c => c + 1);
+      }
     });
 
     socket.on('prayerStarted', (data) => {
@@ -48,12 +53,16 @@ export function SocketProvider({ children }) {
     setUnreadCount(0);
   }
 
+  function markMessagesRead() {
+    setUnreadMessages(0);
+  }
+
   function clearNotification(id) {
     setNotifications((prev) => prev.filter((n) => n.id !== id));
   }
 
   return (
-    <SocketContext.Provider value={{ socket: socketRef.current, notifications, unreadCount, markAllRead, clearNotification }}>
+    <SocketContext.Provider value={{ socket: socketRef.current, notifications, unreadCount, unreadMessages, markAllRead, markMessagesRead, clearNotification }}>
       {children}
     </SocketContext.Provider>
   );

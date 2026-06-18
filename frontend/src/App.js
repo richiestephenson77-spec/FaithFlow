@@ -19,6 +19,12 @@ import Explore from './pages/Explore';
 import Bible from './pages/Bible';
 import PrayerDetail from './pages/PrayerDetail';
 import BibleBot from './pages/BibleBot';
+import Messages from './pages/Messages';
+import ChatThread from './pages/ChatThread';
+import Confessions from './pages/Confessions';
+import Pastors from './pages/Pastors';
+import MyPastorRequests from './pages/MyPastorRequests';
+import PastorDashboard from './pages/PastorDashboard';
 import Layout from './components/Layout';
 import LoadingScreen from './components/LoadingScreen';
 
@@ -64,6 +70,12 @@ function AppRoutes() {
         <Route path="notifications" element={<Notifications />} />
         <Route path="profile" element={<Profile />} />
         <Route path="profile/:id" element={<Profile />} />
+        <Route path="messages" element={<Messages />} />
+        <Route path="messages/:conversationId" element={<ChatThread />} />
+        <Route path="confessions" element={<Confessions />} />
+        <Route path="pastors" element={<Pastors />} />
+        <Route path="my-pastor-requests" element={<MyPastorRequests />} />
+        <Route path="pastor-dashboard" element={<PastorDashboard />} />
       </Route>
     </Routes>
   );

@@ -1,0 +1,170 @@
+const { PrismaClient } = require('@prisma/client');
+const { notifyUser } = require('../services/socketService');
+const prisma = new PrismaClient();
+
+const PARTICIPANT_SELECT = {
+  user: { select: { id: true, name: true, profilePhoto: true } },
+};
+
+async function getConversations(req, res) {
+  try {
+    const convos = await prisma.conversation.findMany({
+      where: { participants: { some: { userId: req.user.id } } },
+      orderBy: { updatedAt: 'desc' },
+      include: {
+        participants: PARTICIPANT_SELECT,
+        messages: { orderBy: { createdAt: 'desc' }, take: 1 },
+      },
+    });
+
+    const result = await Promise.all(convos.map(async (c) => {
+      const other = c.participants.find(p => p.user.id !== req.user.id)?.user;
+      const me = c.participants.find(p => p.user.id === req.user.id);
+      const unread = await prisma.message.count({
+        where: {
+          conversationId: c.id,
+          senderId: { not: req.user.id },
+          isRead: false,
+        },
+      });
+      return { id: c.id, other, lastMessage: c.messages[0] || null, unread, updatedAt: c.updatedAt };
+    }));
+
+    res.json(result);
+  } catch {
+    res.status(500).json({ error: 'Failed to get conversations' });
+  }
+}
+
+async function startConversation(req, res) {
+  const { userId } = req.body;
+  if (!userId || userId === req.user.id) return res.status(400).json({ error: 'Invalid user' });
+  try {
+    // Check if conversation already exists
+    const existing = await prisma.conversation.findFirst({
+      where: {
+        AND: [
+          { participants: { some: { userId: req.user.id } } },
+          { participants: { some: { userId } } },
+        ],
+      },
+      include: { participants: PARTICIPANT_SELECT },
+    });
+    if (existing) return res.json({ id: existing.id, existing: true });
+
+    const convo = await prisma.conversation.create({
+      data: {
+        participants: {
+          create: [{ userId: req.user.id }, { userId }],
+        },
+      },
+    });
+    res.status(201).json({ id: convo.id });
+  } catch {
+    res.status(500).json({ error: 'Failed to start conversation' });
+  }
+}
+
+async function getMessages(req, res) {
+  const { conversationId } = req.params;
+  try {
+    const participant = await prisma.conversationParticipant.findUnique({
+      where: { conversationId_userId: { conversationId, userId: req.user.id } },
+    });
+    if (!participant) return res.status(403).json({ error: 'Not in this conversation' });
+
+    const messages = await prisma.message.findMany({
+      where: { conversationId },
+      orderBy: { createdAt: 'asc' },
+      include: { sender: { select: { id: true, name: true, profilePhoto: true } } },
+    });
+    res.json(messages);
+  } catch {
+    res.status(500).json({ error: 'Failed to get messages' });
+  }
+}
+
+async function sendMessage(req, res) {
+  const { conversationId } = req.params;
+  const { content } = req.body;
+  if (!content?.trim()) return res.status(400).json({ error: 'Message content required' });
+  try {
+    const participant = await prisma.conversationParticipant.findUnique({
+      where: { conversationId_userId: { conversationId, userId: req.user.id } },
+    });
+    if (!participant) return res.status(403).json({ error: 'Not in this conversation' });
+
+    const [message] = await prisma.$transaction([
+      prisma.message.create({
+        data: { conversationId, senderId: req.user.id, content: content.trim() },
+        include: { sender: { select: { id: true, name: true, profilePhoto: true } } },
+      }),
+      prisma.conversation.update({ where: { id: conversationId }, data: { updatedAt: new Date() } }),
+    ]);
+
+    // Notify the other participant
+    const others = await prisma.conversationParticipant.findMany({
+      where: { conversationId, userId: { not: req.user.id } },
+    });
+    const io = req.app.get('io');
+    for (const p of others) {
+      io.to(`conversation:${conversationId}`).emit('message_received', message);
+      // Bell notification
+      await prisma.notification.create({
+        data: {
+          userId: p.userId,
+          type: 'NEW_MESSAGE',
+          message: `New message from ${message.sender.name}`,
+          fromUser: req.user.id,
+          refId: conversationId,
+        },
+      });
+      notifyUser(io, p.userId, 'notification', {
+        type: 'NEW_MESSAGE',
+        message: `New message from ${message.sender.name}`,
+      });
+    }
+
+    res.status(201).json(message);
+  } catch {
+    res.status(500).json({ error: 'Failed to send message' });
+  }
+}
+
+async function markRead(req, res) {
+  const { conversationId } = req.params;
+  try {
+    await prisma.message.updateMany({
+      where: { conversationId, senderId: { not: req.user.id }, isRead: false },
+      data: { isRead: true },
+    });
+    await prisma.conversationParticipant.update({
+      where: { conversationId_userId: { conversationId, userId: req.user.id } },
+      data: { lastReadAt: new Date() },
+    });
+    res.json({ ok: true });
+  } catch {
+    res.status(500).json({ error: 'Failed to mark read' });
+  }
+}
+
+async function getTotalUnread(req, res) {
+  try {
+    const convos = await prisma.conversationParticipant.findMany({
+      where: { userId: req.user.id },
+      select: { conversationId: true },
+    });
+    const count = await prisma.message.count({
+      where: {
+        conversationId: { in: convos.map(c => c.conversationId) },
+        senderId: { not: req.user.id },
+        isRead: false,
+      },
+    });
+    res.json({ count });
+  } catch {
+    res.status(500).json({ error: 'Failed' });
+  }
+}
+
+module.exports = { getConversations, startConversation, getMessages, sendMessage, markRead, getTotalUnread };
