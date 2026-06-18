@@ -14,7 +14,7 @@ export default function Logo({ size = 'md', light = true }) {
       <div className="relative flex items-center justify-center">
         <svg width={s.cross} height={s.cross} viewBox="0 0 40 40" fill="none">
           {/* Glow effect */}
-          <ellipse cx="20" cy="20" rx="14" ry="14" fill={light ? 'rgba(255,255,255,0.08)'} />
+          <ellipse cx="20" cy="20" rx="14" ry="14" fill={light ? 'rgba(255,255,255,0.08)' : 'rgba(30,58,138,0.06)'} />
           {/* Cross arms */}
           <rect x="17" y="4" width="6" height="32" rx="3" fill={light ? 'white' : '#1e3a8a'} />
           <rect x="6" y="13" width="28" height="6" rx="3" fill={light ? 'white' : '#1e3a8a'} />
