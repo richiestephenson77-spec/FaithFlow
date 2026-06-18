@@ -1,0 +1,231 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String    @id @default(cuid())
+  email           String    @unique
+  password        String
+  name            String
+  bio             String?
+  churchName      String?
+  location        String?
+  profilePhoto    String?
+  coverPhoto      String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  prayerRequests  PrayerRequest[]
+  prayerSessions  PrayerSession[]
+  posts           Post[]
+  postLikes       PostLike[]
+  comments        Comment[]
+  notifications   Notification[]
+  botMessages     BibleBotMessage[]
+  churchFollows   ChurchFollow[]
+
+  followers       Follow[]  @relation("Following")
+  following       Follow[]  @relation("Followers")
+
+  @@map("users")
+}
+
+model Follow {
+  id          String   @id @default(cuid())
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+
+  follower    User @relation("Followers", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@map("follows")
+}
+
+model PrayerRequest {
+  id          String    @id @default(cuid())
+  userId      String
+  title       String
+  body        String
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessions    PrayerSession[]
+
+  @@map("prayer_requests")
+}
+
+model PrayerSession {
+  id              String    @id @default(cuid())
+  userId          String
+  prayerRequestId String
+  startedAt       DateTime  @default(now())
+  endedAt         DateTime?
+  durationSeconds Int?
+
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  prayerRequest   PrayerRequest @relation(fields: [prayerRequestId], references: [id], onDelete: Cascade)
+
+  @@map("prayer_sessions")
+}
+
+model Post {
+  id          String     @id @default(cuid())
+  userId      String
+  content     String
+  type        PostType   @default(UPDATE)
+  bibleVerse  String?
+  media       PostMedia[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  likes       PostLike[]
+  comments    Comment[]
+
+  @@map("posts")
+}
+
+model PostMedia {
+  id        String    @id @default(cuid())
+  postId    String
+  url       String
+  type      MediaType
+  order     Int       @default(0)
+
+  post      Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@map("post_media")
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+}
+
+enum PostType {
+  UPDATE
+  TESTIMONY
+  VERSE
+}
+
+model PostLike {
+  id        String   @id @default(cuid())
+  userId    String
+  postId    String
+  createdAt DateTime @default(now())
+
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post      Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+  @@map("post_likes")
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  userId    String
+  postId    String
+  content   String
+  createdAt DateTime @default(now())
+
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post      Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@map("comments")
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  type      NotificationType
+  message   String
+  fromUser  String?
+  refId     String?
+  isRead    Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+enum NotificationType {
+  PRAYER_STARTED
+  NEW_FOLLOWER
+  POST_LIKE
+  POST_COMMENT
+  CHURCH_POST
+}
+
+model Church {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  location    String?
+  website     String?
+  logo        String?
+  coverPhoto  String?
+  adminId     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  followers   ChurchFollow[]
+  posts       ChurchPost[]
+
+  @@map("churches")
+}
+
+model ChurchFollow {
+  id        String   @id @default(cuid())
+  userId    String
+  churchId  String
+  createdAt DateTime @default(now())
+
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  church    Church @relation(fields: [churchId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, churchId])
+  @@map("church_follows")
+}
+
+model ChurchPost {
+  id        String   @id @default(cuid())
+  churchId  String
+  title     String?
+  content   String
+  type      ChurchPostType @default(UPDATE)
+  imageUrl  String?
+  eventDate DateTime?
+  createdAt DateTime @default(now())
+
+  church    Church @relation(fields: [churchId], references: [id], onDelete: Cascade)
+
+  @@map("church_posts")
+}
+
+enum ChurchPostType {
+  UPDATE
+  EVENT
+  SERVICE
+}
+
+model BibleBotMessage {
+  id        String   @id @default(cuid())
+  userId    String
+  role      String
+  content   String
+  createdAt DateTime @default(now())
+
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("bible_bot_messages")
+}
