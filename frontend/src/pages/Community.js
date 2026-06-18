@@ -5,11 +5,16 @@ import Avatar from '../components/Avatar';
 import { useNavigate } from 'react-router-dom';
 
 const POST_TYPES = ['UPDATE', 'TESTIMONY', 'VERSE'];
-const TYPE_LABELS = { UPDATE: '📢 Update', TESTIMONY: '🌟 Testimony', VERSE: '📖 Verse' };
-const TYPE_COLORS = {
-  UPDATE: 'bg-blue-50 text-blue-700',
-  TESTIMONY: 'bg-yellow-50 text-yellow-700',
-  VERSE: 'bg-green-50 text-green-700',
+const TYPE_LABELS = { UPDATE: 'Update', TESTIMONY: 'Testimony', VERSE: 'Scripture' };
+const TYPE_STYLES = {
+  UPDATE:    'bg-blue-50 text-blue-600 border border-blue-100',
+  TESTIMONY: 'bg-amber-50 text-amber-600 border border-amber-100',
+  VERSE:     'bg-emerald-50 text-emerald-600 border border-emerald-100',
+};
+const TYPE_DOT = {
+  UPDATE: 'bg-blue-500',
+  TESTIMONY: 'bg-amber-500',
+  VERSE: 'bg-emerald-500',
 };
 
 export default function Community() {
@@ -44,16 +49,15 @@ export default function Community() {
   }
 
   return (
-    <div className="px-4 py-4">
-      {/* Composer trigger */}
-      <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 mb-4 cursor-pointer"
-        onClick={() => setShowNew(true)}>
-        <div className="flex items-center gap-3">
+    <div className="bg-gray-50 min-h-full">
+      {/* Composer */}
+      <div className="bg-white border-b border-gray-100 px-4 py-3">
+        <div className="flex items-center gap-3 cursor-pointer" onClick={() => setShowNew(true)}>
           <Avatar user={user} size="md" />
-          <div className="flex-1 bg-gray-50 rounded-xl px-4 py-2.5 text-sm text-gray-400 border border-gray-200">
-            Share a testimony, verse, or update...
+          <div className="flex-1 bg-gray-100 rounded-full px-4 py-2.5 text-sm text-gray-400">
+            What's on your heart?
           </div>
-          <button className="prayer-gradient text-white w-9 h-9 rounded-full flex items-center justify-center text-xl font-bold shadow flex-shrink-0">
+          <button className="prayer-gradient text-white w-9 h-9 rounded-full flex items-center justify-center text-lg font-light shadow-md flex-shrink-0">
             +
           </button>
         </div>
@@ -61,22 +65,29 @@ export default function Community() {
 
       {showNew && <NewPostModal onClose={() => setShowNew(false)} onCreate={onNewPost} />}
 
-      {loading ? (
-        <div className="text-center text-gray-400 py-12">Loading...</div>
-      ) : posts.length === 0 ? (
-        <div className="text-center py-12 text-gray-400">
-          <div className="text-4xl mb-3">✨</div>
-          <p>Be the first to share something!</p>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {posts.map(post => (
-            <PostCard key={post.id} post={post}
-              onLike={() => toggleLike(post.id)}
-              onUserClick={() => navigate(`/profile/${post.user.id}`)} />
-          ))}
-        </div>
-      )}
+      <div className="px-0 py-2">
+        {loading ? (
+          <div className="space-y-2 px-4 pt-2">
+            {[1, 2, 3].map(i => <SkeletonCard key={i} />)}
+          </div>
+        ) : posts.length === 0 ? (
+          <div className="text-center py-16 text-gray-400 px-4">
+            <div className="w-16 h-16 bg-faith-50 rounded-full flex items-center justify-center mx-auto mb-4">
+              <span className="text-3xl">✨</span>
+            </div>
+            <p className="font-semibold text-gray-600">Nothing posted yet</p>
+            <p className="text-sm mt-1">Be the first to share something!</p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {posts.map(post => (
+              <PostCard key={post.id} post={post}
+                onLike={() => toggleLike(post.id)}
+                onUserClick={() => navigate(`/profile/${post.user.id}`)} />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -112,78 +123,94 @@ function NewPostModal({ onClose, onCreate }) {
 
   return (
     <div className="fixed inset-0 bg-black/60 z-50 flex items-end" onClick={onClose}>
-      <div className="bg-white rounded-t-3xl w-full max-w-md mx-auto p-6 pb-8 fade-in max-h-[90vh] overflow-y-auto"
+      <div className="bg-white rounded-t-3xl w-full max-w-md mx-auto pb-8 fade-in max-h-[92vh] overflow-y-auto"
         onClick={e => e.stopPropagation()}>
-        <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-4" />
 
-        {/* Type selector */}
-        <div className="flex gap-2 mb-4 overflow-x-auto pb-1">
-          {POST_TYPES.map(t => (
-            <button key={t} onClick={() => setForm(p => ({ ...p, type: t }))}
-              className={`text-xs px-3 py-1.5 rounded-full font-medium border whitespace-nowrap transition-colors ${
-                form.type === t ? 'border-faith-500 bg-faith-50 text-faith-700' : 'border-gray-200 text-gray-500'}`}>
-              {TYPE_LABELS[t]}
+        {/* Handle + Header */}
+        <div className="sticky top-0 bg-white pt-3 pb-3 px-5 border-b border-gray-100 z-10">
+          <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-3" />
+          <div className="flex items-center justify-between">
+            <button onClick={onClose} className="text-sm text-gray-400 font-medium">Cancel</button>
+            <h3 className="text-base font-bold text-gray-900">New Post</h3>
+            <button
+              onClick={submit}
+              disabled={posting || !form.content.trim()}
+              className="prayer-gradient text-white text-sm font-bold px-4 py-1.5 rounded-full disabled:opacity-40 shadow-sm"
+            >
+              {posting ? 'Posting...' : 'Share'}
             </button>
-          ))}
+          </div>
         </div>
 
-        {/* Media previews */}
-        {previews.length > 0 && (
-          <div className="flex gap-2 mb-3 overflow-x-auto pb-1">
-            {previews.map((p, i) => (
-              <div key={i} className="relative flex-shrink-0">
-                {p.type === 'VIDEO'
-                  ? <video src={p.url} className="w-24 h-24 rounded-xl object-cover" muted />
-                  : <img src={p.url} alt="" className="w-24 h-24 rounded-xl object-cover" />
-                }
-                <button onClick={() => {
-                  const next = previews.filter((_, j) => j !== i);
-                  const nextFiles = files.filter((_, j) => j !== i);
-                  setPreviews(next);
-                  setFiles(nextFiles);
-                }} className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
-                  ✕
-                </button>
-              </div>
+        <div className="px-5 pt-4 space-y-4">
+          {/* Type selector */}
+          <div className="flex gap-2">
+            {POST_TYPES.map(t => (
+              <button key={t} onClick={() => setForm(p => ({ ...p, type: t }))}
+                className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full font-semibold transition-all ${
+                  form.type === t ? TYPE_STYLES[t] + ' shadow-sm' : 'bg-gray-100 text-gray-400'}`}>
+                <span className={`w-1.5 h-1.5 rounded-full ${form.type === t ? TYPE_DOT[t] : 'bg-gray-300'}`} />
+                {TYPE_LABELS[t]}
+              </button>
             ))}
           </div>
-        )}
 
-        <form onSubmit={submit} className="space-y-3">
+          {/* Text area */}
           <textarea
             autoFocus
             value={form.content}
             onChange={e => setForm(p => ({ ...p, content: e.target.value }))}
             placeholder="What's on your heart?"
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-faith-500 resize-none"
-            rows={4}
+            className="w-full text-gray-800 text-sm leading-relaxed focus:outline-none resize-none placeholder:text-gray-300"
+            rows={5}
           />
 
           {form.type === 'VERSE' && (
-            <input
-              value={form.bibleVerse}
-              onChange={e => setForm(p => ({ ...p, bibleVerse: e.target.value }))}
-              placeholder="e.g. John 3:16"
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-faith-500"
-            />
+            <div className="flex items-center gap-2 bg-emerald-50 rounded-xl px-4 py-3 border border-emerald-100">
+              <span className="text-emerald-500 text-sm">📖</span>
+              <input
+                value={form.bibleVerse}
+                onChange={e => setForm(p => ({ ...p, bibleVerse: e.target.value }))}
+                placeholder="Bible reference (e.g. John 3:16)"
+                className="flex-1 bg-transparent text-sm text-emerald-800 focus:outline-none placeholder:text-emerald-300"
+              />
+            </div>
+          )}
+
+          {/* Media previews */}
+          {previews.length > 0 && (
+            <div className="flex gap-2 overflow-x-auto pb-1">
+              {previews.map((p, i) => (
+                <div key={i} className="relative flex-shrink-0">
+                  {p.type === 'VIDEO'
+                    ? <video src={p.url} className="w-24 h-24 rounded-xl object-cover" muted />
+                    : <img src={p.url} alt="" className="w-24 h-24 rounded-xl object-cover" />
+                  }
+                  <button onClick={() => {
+                    setPreviews(prev => prev.filter((_, j) => j !== i));
+                    setFiles(prev => prev.filter((_, j) => j !== i));
+                  }} className="absolute -top-1.5 -right-1.5 bg-gray-800 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
           )}
 
           {/* Media button */}
           <button type="button" onClick={() => fileRef.current?.click()}
-            className="flex items-center gap-2 text-sm text-faith-600 font-medium">
-            <span className="text-lg">📷</span> Add Photos / Videos
+            className="flex items-center gap-2 text-sm text-faith-600 font-semibold py-2">
+            <div className="w-8 h-8 rounded-full bg-faith-50 flex items-center justify-center">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                <circle cx="8.5" cy="8.5" r="1.5"/>
+                <polyline points="21 15 16 10 5 21"/>
+              </svg>
+            </div>
+            Add Photo / Video
           </button>
           <input ref={fileRef} type="file" multiple accept="image/*,video/*" className="hidden" onChange={handleFiles} />
-
-          <div className="flex gap-3">
-            <button type="button" onClick={onClose}
-              className="flex-1 border border-gray-200 text-gray-600 rounded-xl py-3 text-sm">Cancel</button>
-            <button type="submit" disabled={posting || !form.content.trim()}
-              className="flex-1 prayer-gradient text-white rounded-xl py-3 text-sm font-bold disabled:opacity-60">
-              {posting ? 'Posting...' : 'Share'}
-            </button>
-          </div>
-        </form>
+        </div>
       </div>
     </div>
   );
@@ -197,7 +224,6 @@ function PostCard({ post, onLike, onUserClick }) {
   const { user } = useAuth();
   const videoRef = useRef();
 
-  // Autoplay video when in view
   useEffect(() => {
     if (!videoRef.current) return;
     const observer = new IntersectionObserver(
@@ -226,59 +252,58 @@ function PostCard({ post, onLike, onUserClick }) {
   const timeAgo = getTimeAgo(post.createdAt);
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 fade-in overflow-hidden">
+    <div className="bg-white border-b border-gray-100 fade-in">
       {/* Header */}
-      <div className="flex items-center gap-3 p-4 pb-2">
+      <div className="flex items-center gap-3 px-4 pt-4 pb-3">
         <div onClick={onUserClick} className="cursor-pointer flex-shrink-0">
           <Avatar user={post.user} size="md" />
         </div>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <p className="font-semibold text-gray-800 text-sm cursor-pointer" onClick={onUserClick}>
+          <div className="flex items-center gap-2">
+            <p className="font-semibold text-gray-900 text-sm cursor-pointer leading-tight" onClick={onUserClick}>
               {post.user?.name}
             </p>
-            <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${TYPE_COLORS[post.type]}`}>
+            <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold ${TYPE_STYLES[post.type]}`}>
               {TYPE_LABELS[post.type]}
             </span>
           </div>
-          <p className="text-xs text-gray-400">{timeAgo}</p>
+          <p className="text-xs text-gray-400 mt-0.5">{timeAgo}</p>
         </div>
       </div>
 
-      {/* Caption */}
-      <p className="px-4 text-sm text-gray-700 leading-relaxed mb-2">{post.content}</p>
-      {post.bibleVerse && (
-        <p className="mx-4 mb-2 text-xs text-faith-600 bg-faith-50 px-3 py-2 rounded-lg italic">📖 {post.bibleVerse}</p>
-      )}
+      {/* Content */}
+      <div className="px-4 pb-3">
+        <p className="text-sm text-gray-800 leading-relaxed">{post.content}</p>
+        {post.bibleVerse && (
+          <div className="mt-2 flex items-center gap-2 bg-emerald-50 px-3 py-2 rounded-xl border border-emerald-100">
+            <span className="text-emerald-500 text-xs">📖</span>
+            <p className="text-xs text-emerald-700 font-medium italic">{post.bibleVerse}</p>
+          </div>
+        )}
+      </div>
 
       {/* Media */}
       {media.length > 0 && (
-        <div className="relative bg-black">
+        <div className="relative bg-gray-100">
           {current?.type === 'VIDEO' ? (
-            <video
-              ref={videoRef}
-              src={current.url}
-              muted
-              loop
-              playsInline
-              className="w-full max-h-80 object-contain"
-            />
+            <video ref={videoRef} src={current.url} muted loop playsInline
+              className="w-full max-h-96 object-cover" />
           ) : (
-            <img src={current.url} alt="" className="w-full max-h-80 object-contain" />
+            <img src={current.url} alt="" className="w-full max-h-96 object-cover" />
           )}
           {media.length > 1 && (
             <>
               <button onClick={() => setMediaIdx(i => Math.max(0, i - 1))}
-                className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 text-white w-7 h-7 rounded-full flex items-center justify-center text-xs">
+                className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 backdrop-blur-sm text-white w-8 h-8 rounded-full flex items-center justify-center text-sm">
                 ‹
               </button>
               <button onClick={() => setMediaIdx(i => Math.min(media.length - 1, i + 1))}
-                className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 text-white w-7 h-7 rounded-full flex items-center justify-center text-xs">
+                className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 backdrop-blur-sm text-white w-8 h-8 rounded-full flex items-center justify-center text-sm">
                 ›
               </button>
               <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1">
                 {media.map((_, i) => (
-                  <div key={i} className={`w-1.5 h-1.5 rounded-full ${i === mediaIdx ? 'bg-white' : 'bg-white/40'}`} />
+                  <div key={i} className={`h-1 rounded-full transition-all ${i === mediaIdx ? 'w-4 bg-white' : 'w-1 bg-white/50'}`} />
                 ))}
               </div>
             </>
@@ -287,38 +312,63 @@ function PostCard({ post, onLike, onUserClick }) {
       )}
 
       {/* Actions */}
-      <div className="flex items-center gap-4 px-4 py-3 border-t border-gray-50">
+      <div className="flex items-center gap-5 px-4 py-3">
         <button onClick={onLike}
-          className={`flex items-center gap-1.5 text-sm font-medium ${post.likedByMe ? 'text-red-500' : 'text-gray-400'}`}>
-          <span className="text-lg">{post.likedByMe ? '❤️' : '🤍'}</span>
-          {post._count?.likes || 0}
+          className={`flex items-center gap-1.5 text-sm font-semibold transition-colors ${post.likedByMe ? 'text-red-500' : 'text-gray-400'}`}>
+          <svg width="19" height="19" viewBox="0 0 24 24"
+            fill={post.likedByMe ? 'currentColor' : 'none'}
+            stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+          </svg>
+          <span>{post._count?.likes || 0}</span>
         </button>
         <button onClick={() => setShowComments(p => !p)}
-          className="flex items-center gap-1.5 text-sm text-gray-400 font-medium">
-          <span className="text-lg">💬</span>
-          {comments.length}
+          className="flex items-center gap-1.5 text-sm font-semibold text-gray-400">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+          </svg>
+          <span>{comments.length}</span>
         </button>
       </div>
 
+      {/* Comments */}
       {showComments && (
-        <div className="px-4 pb-4 space-y-2">
+        <div className="px-4 pb-4 border-t border-gray-50 pt-3 space-y-3">
           {comments.map(c => (
-            <div key={c.id} className="flex gap-2">
+            <div key={c.id} className="flex gap-2.5">
               <Avatar user={c.user} size="sm" />
-              <div className="bg-gray-50 rounded-xl px-3 py-2 flex-1">
-                <p className="text-xs font-semibold">{c.user?.name}</p>
-                <p className="text-xs text-gray-600">{c.content}</p>
+              <div className="bg-gray-50 rounded-2xl px-3 py-2 flex-1">
+                <p className="text-xs font-semibold text-gray-800">{c.user?.name}</p>
+                <p className="text-xs text-gray-600 mt-0.5">{c.content}</p>
               </div>
             </div>
           ))}
-          <form onSubmit={submitComment} className="flex gap-2 mt-2">
+          <form onSubmit={submitComment} className="flex gap-2 mt-1">
             <Avatar user={user} size="sm" />
             <input value={comment} onChange={e => setComment(e.target.value)}
               placeholder="Add a comment..."
-              className="flex-1 bg-gray-50 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-faith-400 border border-gray-100" />
+              className="flex-1 bg-gray-50 rounded-full px-4 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-faith-300 border border-gray-100" />
           </form>
         </div>
       )}
+    </div>
+  );
+}
+
+function SkeletonCard() {
+  return (
+    <div className="bg-white px-4 py-4 animate-pulse border-b border-gray-100">
+      <div className="flex gap-3 mb-3">
+        <div className="w-10 h-10 rounded-full bg-gray-200" />
+        <div className="space-y-1.5 flex-1">
+          <div className="h-3 bg-gray-200 rounded w-1/3" />
+          <div className="h-2.5 bg-gray-200 rounded w-1/5" />
+        </div>
+      </div>
+      <div className="space-y-2">
+        <div className="h-3 bg-gray-200 rounded w-full" />
+        <div className="h-3 bg-gray-200 rounded w-4/5" />
+      </div>
     </div>
   );
 }
