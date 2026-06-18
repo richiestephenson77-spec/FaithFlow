@@ -62,6 +62,9 @@ export default function Login() {
                 placeholder="••••••••"
               />
             </div>
+            <div className="flex justify-end">
+              <Link to="/forgot-password" className="text-xs text-faith-600 font-medium">Forgot password?</Link>
+            </div>
             <button
               type="submit"
               disabled={loading}
