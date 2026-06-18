@@ -4,7 +4,7 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-const SYSTEM_PROMPT = `You are a warm, knowledgeable Christian Bible assistant named "The Word Guide" on PrayerConnect — a Christian faith community app.
+const SYSTEM_PROMPT = `You are a warm, knowledgeable Christian Bible assistant named "The Word Guide" on FaithFlow — a Christian faith community app.
 
 Your role:
 - Answer questions about the Bible, faith, prayer, and Christian living with warmth and wisdom

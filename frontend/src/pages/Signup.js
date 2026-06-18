@@ -34,7 +34,7 @@ export default function Signup() {
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-12">
         <div className="text-white text-center mb-8">
           <div className="text-5xl mb-3">✝</div>
-          <h1 className="text-2xl font-bold">PrayerConnect</h1>
+          <h1 className="text-2xl font-bold">FaithFlow</h1>
           <p className="text-white/70 text-sm mt-1">Join our community of believers</p>
         </div>
 
@@ -82,7 +82,7 @@ export default function Signup() {
               disabled={loading}
               className="w-full prayer-gradient text-white rounded-xl py-3 font-semibold text-sm disabled:opacity-60 mt-2"
             >
-              {step === 1 ? 'Continue' : loading ? 'Creating account...' : 'Join PrayerConnect'}
+              {step === 1 ? 'Continue' : loading ? 'Creating account...' : 'Join FaithFlow'}
             </button>
 
             {step === 2 && (

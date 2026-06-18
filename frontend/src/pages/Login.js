@@ -28,7 +28,7 @@ export default function Login() {
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-12">
         <div className="text-white text-center mb-10">
           <div className="text-6xl mb-4">✝</div>
-          <h1 className="text-3xl font-bold">PrayerConnect</h1>
+          <h1 className="text-3xl font-bold">FaithFlow</h1>
           <p className="text-white/70 mt-2">United in faith, connected in prayer</p>
         </div>
 
