@@ -217,4 +217,28 @@ async function getTodayPrayerTime(userId) {
   return result._sum.durationSeconds || 0;
 }
 
-module.exports = { getProfile, getMe, updateProfile, follow, getFollowers, getFollowing, getDashboard };
+async function searchUsers(req, res) {
+  const { q } = req.query;
+  if (!q || q.trim().length < 2) return res.json([]);
+  try {
+    const users = await prisma.user.findMany({
+      where: {
+        OR: [
+          { name: { contains: q, mode: 'insensitive' } },
+          { churchName: { contains: q, mode: 'insensitive' } },
+          { location: { contains: q, mode: 'insensitive' } },
+        ],
+        NOT: { id: req.user.id },
+      },
+      select: { id: true, name: true, profilePhoto: true, churchName: true, location: true,
+        _count: { select: { followers: true } } },
+      take: 20,
+      orderBy: { name: 'asc' },
+    });
+    res.json(users);
+  } catch {
+    res.status(500).json({ error: 'Search failed' });
+  }
+}
+
+module.exports = { getProfile, getMe, updateProfile, follow, getFollowers, getFollowing, getDashboard, searchUsers };

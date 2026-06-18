@@ -237,9 +237,27 @@ export default function Profile() {
                 <img src={previewCover || profile.coverPhoto} alt="cover" className="w-full h-full object-cover" />
               )}
               <div className="absolute inset-0 flex items-center justify-center bg-black/30 text-white text-sm font-medium">
-                {previewCover || profile.coverPhoto ? 'Change Cover Photo' : '+ Add Cover Photo'}
+                {previewCover || profile.coverPhoto ? '📷 Change Cover Photo' : '📷 Add Cover Photo'}
               </div>
             </div>
+
+            {/* Profile Photo Picker */}
+            <div className="flex items-center gap-3 mb-4 p-3 bg-gray-50 rounded-xl border border-gray-200 cursor-pointer"
+              onClick={() => profilePhotoRef.current?.click()}>
+              <div className="w-12 h-12 rounded-full overflow-hidden bg-faith-100 flex-shrink-0">
+                {(previewProfile || profile.profilePhoto)
+                  ? <img src={previewProfile || profile.profilePhoto} alt="profile" className="w-full h-full object-cover" />
+                  : <div className="w-full h-full flex items-center justify-center text-faith-600 font-bold text-lg">
+                      {profile.name?.[0]?.toUpperCase()}
+                    </div>
+                }
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-gray-800">Profile Photo</p>
+                <p className="text-xs text-faith-600">{previewProfile ? 'Photo selected ✓' : 'Tap to change'}</p>
+              </div>
+            </div>
+
             <input ref={coverPhotoRef} type="file" accept="image/*" className="hidden"
               onChange={e => setPreviewCover(URL.createObjectURL(e.target.files[0]))} />
             <input ref={profilePhotoRef} type="file" accept="image/*" className="hidden"

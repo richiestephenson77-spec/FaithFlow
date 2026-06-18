@@ -46,12 +46,16 @@ export default function Community() {
   return (
     <div className="px-4 py-4">
       {/* Composer trigger */}
-      <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 mb-4">
-        <div className="flex items-center gap-3" onClick={() => setShowNew(true)}>
+      <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 mb-4 cursor-pointer"
+        onClick={() => setShowNew(true)}>
+        <div className="flex items-center gap-3">
           <Avatar user={user} size="md" />
-          <div className="flex-1 bg-gray-50 rounded-xl px-4 py-2.5 text-sm text-gray-400 cursor-text border border-gray-200">
+          <div className="flex-1 bg-gray-50 rounded-xl px-4 py-2.5 text-sm text-gray-400 border border-gray-200">
             Share a testimony, verse, or update...
           </div>
+          <button className="prayer-gradient text-white w-9 h-9 rounded-full flex items-center justify-center text-xl font-bold shadow flex-shrink-0">
+            +
+          </button>
         </div>
       </div>
 

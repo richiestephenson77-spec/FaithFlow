@@ -4,7 +4,7 @@ const path = require('path');
 const { authenticate } = require('../middleware/auth');
 const {
   getProfile, getMe, updateProfile, follow,
-  getFollowers, getFollowing, getDashboard,
+  getFollowers, getFollowing, getDashboard, searchUsers,
 } = require('../controllers/userController');
 
 const storage = multer.diskStorage({
@@ -13,6 +13,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage, limits: { fileSize: 10 * 1024 * 1024 } });
 
+router.get('/search', authenticate, searchUsers);
 router.get('/me', authenticate, getMe);
 router.get('/me/dashboard', authenticate, getDashboard);
 router.put('/me', authenticate, upload.fields([

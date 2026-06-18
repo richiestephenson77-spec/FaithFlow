@@ -7,8 +7,8 @@ import Toast from './Toast';
 const navItems = [
   { to: '/', label: 'Home', icon: '🏠' },
   { to: '/community', label: 'Feed', icon: '✝️' },
+  { to: '/search', label: 'Search', icon: '🔍' },
   { to: '/churches', label: 'Churches', icon: '⛪' },
-  { to: '/bible-bot', label: 'Ask Word', icon: '📖' },
   { to: '/profile', label: 'Profile', icon: '👤' },
 ];
 
