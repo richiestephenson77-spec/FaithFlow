@@ -19,6 +19,7 @@ import Explore from './pages/Explore';
 import Bible from './pages/Bible';
 import PrayerDetail from './pages/PrayerDetail';
 import BibleBot from './pages/BibleBot';
+import PrayerPage from './pages/PrayerPage';
 import Messages from './pages/Messages';
 import ChatThread from './pages/ChatThread';
 import Confessions from './pages/Confessions';
@@ -70,6 +71,7 @@ function AppRoutes() {
         <Route path="notifications" element={<Notifications />} />
         <Route path="profile" element={<Profile />} />
         <Route path="profile/:id" element={<Profile />} />
+        <Route path="prayer" element={<PrayerPage />} />
         <Route path="messages" element={<Messages />} />
         <Route path="messages/:conversationId" element={<ChatThread />} />
         <Route path="confessions" element={<Confessions />} />

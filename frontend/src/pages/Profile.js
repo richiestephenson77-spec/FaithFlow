@@ -30,6 +30,8 @@ export default function Profile() {
   const [saving, setSaving] = useState(false);
   const [following, setFollowing] = useState(false);
   const [followModal, setFollowModal] = useState(null); // 'followers' | 'following'
+  const [showBadgeModal, setShowBadgeModal] = useState(false);
+  const [quotaStats, setQuotaStats] = useState(null);
 
   const profilePhotoRef = useRef();
   const coverPhotoRef = useRef();
@@ -57,6 +59,16 @@ export default function Profile() {
     }
     if (profileId) load();
   }, [profileId]);
+
+  useEffect(() => {
+    if (!isOwnProfile) return;
+    // Load quota completion count for own profile
+    Promise.all([
+      api.get('/quota/today').catch(() => null),
+    ]).then(([quotaRes]) => {
+      if (quotaRes) setQuotaStats(quotaRes.data);
+    });
+  }, [isOwnProfile]);
 
   async function handleFollow() {
     try {
@@ -205,6 +217,41 @@ export default function Profile() {
         </div>
       )}
 
+      {/* Prayer Warrior Badge */}
+      <div className="px-4 mb-4">
+        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Prayer Warrior</p>
+        {profile.prayerWarriorBadge ? (
+          <button onClick={() => setShowBadgeModal(true)}
+            className="w-full flex items-center gap-4 bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200 rounded-2xl p-4 text-left"
+            style={{ boxShadow: '0 0 16px rgba(245,200,66,0.25)' }}>
+            <div className="w-14 h-14 rounded-full bg-amber-400 flex items-center justify-center flex-shrink-0 shadow-md"
+              style={{ boxShadow: '0 0 12px rgba(245,200,66,0.5)' }}>
+              <span className="text-2xl">🏆</span>
+            </div>
+            <div className="flex-1">
+              <p className="font-bold text-amber-800 text-sm">Prayer Warrior</p>
+              <p className="text-amber-600 text-xs mt-0.5">Level 1 · Tap to view stats</p>
+              {profile.totalPeoplesPrayedFor > 0 && (
+                <p className="text-amber-500 text-xs mt-1">Prayed for {profile.totalPeoplesPrayedFor} people</p>
+              )}
+            </div>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </button>
+        ) : (
+          <div className="flex items-center gap-4 bg-gray-50 border border-gray-200 rounded-2xl p-4">
+            <div className="w-14 h-14 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
+              <span className="text-2xl grayscale opacity-50">🏆</span>
+            </div>
+            <div>
+              <p className="font-semibold text-gray-500 text-sm">Prayer Warrior</p>
+              <p className="text-gray-400 text-xs mt-0.5 leading-relaxed">Complete your first daily quota to earn this badge</p>
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Tabs */}
       <div className="px-4">
         <div className="flex border-b border-gray-100 mb-3">
@@ -248,6 +295,53 @@ export default function Profile() {
           onClose={() => setFollowModal(null)}
           onUserClick={(uid) => { setFollowModal(null); navigate(`/profile/${uid}`); }}
         />
+      )}
+
+      {/* Badge Stats Modal */}
+      {showBadgeModal && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex flex-col justify-end" onClick={() => setShowBadgeModal(false)}>
+          <div className="bg-white rounded-t-3xl w-full max-w-md mx-auto pb-10 fade-in" onClick={e => e.stopPropagation()}>
+            <div className="pt-4 px-4 pb-3 border-b border-gray-100 flex items-center justify-between">
+              <h3 className="font-bold text-gray-900">Prayer Warrior Stats</h3>
+              <button onClick={() => setShowBadgeModal(false)} className="w-7 h-7 rounded-full bg-gray-100 flex items-center justify-center">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
+            <div className="px-4 py-5">
+              {/* Badge */}
+              <div className="flex flex-col items-center mb-6">
+                <div className="w-20 h-20 rounded-full bg-amber-400 flex items-center justify-center shadow-xl mb-2"
+                  style={{ boxShadow: '0 0 24px rgba(245,200,66,0.6)' }}>
+                  <span className="text-4xl">🏆</span>
+                </div>
+                <p className="font-extrabold text-amber-700 text-lg">Prayer Warrior</p>
+                <p className="text-amber-500 text-xs">Level 1</p>
+                {profile.prayerWarriorEarnedAt && (
+                  <p className="text-gray-400 text-xs mt-1">
+                    Since {new Date(profile.prayerWarriorEarnedAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                  </p>
+                )}
+              </div>
+              <div className="space-y-3">
+                {[
+                  { icon: '🙏', label: 'Total People Prayed For', value: profile.totalPeoplesPrayedFor || 0 },
+                  { icon: '🔥', label: 'Current Prayer Streak', value: `${stats?.streak || 0} days` },
+                  { icon: '🏅', label: 'Longest Streak', value: `${stats?.longestStreak || 0} days` },
+                ].map(({ icon, label, value }) => (
+                  <div key={label} className="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-3">
+                    <div className="flex items-center gap-3">
+                      <span className="text-lg">{icon}</span>
+                      <p className="text-sm text-gray-600">{label}</p>
+                    </div>
+                    <p className="font-bold text-gray-900 text-sm">{value}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Edit Modal */}

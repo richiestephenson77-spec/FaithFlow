@@ -15,6 +15,7 @@ const bibleBotRoutes = require('./routes/bibleBot');
 const messageRoutes = require('./routes/messages');
 const confessionRoutes = require('./routes/confessions');
 const pastorRoutes = require('./routes/pastors');
+const quotaRoutes = require('./routes/quota');
 
 const app = express();
 const server = http.createServer(app);
@@ -50,6 +51,7 @@ app.use('/api/bible-bot', bibleBotRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/confessions', confessionRoutes);
 app.use('/api/pastors', pastorRoutes);
+app.use('/api/quota', quotaRoutes);
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 

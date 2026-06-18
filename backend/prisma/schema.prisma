@@ -34,6 +34,11 @@ model User {
   resetTokens     PasswordResetToken[]
   churchFollows   ChurchFollow[]
 
+  dailyPrayerQuota      Int       @default(5)
+  prayerWarriorBadge    Boolean   @default(false)
+  totalPeoplesPrayedFor Int       @default(0)
+  prayerWarriorEarnedAt DateTime?
+
   isVerifiedPastor  Boolean  @default(false)
   pastorBio         String?
   pastorChurch      String?
@@ -41,6 +46,7 @@ model User {
 
   followers       Follow[]  @relation("Following")
   following       Follow[]  @relation("Followers")
+  dailyQuotaLogs  DailyQuotaLog[]
   conversationParticipants ConversationParticipant[]
   sentMessages    Message[]
   confessions     Confession[]
@@ -355,4 +361,18 @@ model BibleBotMessage {
   user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("bible_bot_messages")
+}
+
+model DailyQuotaLog {
+  id         String   @id @default(cuid())
+  userId     String
+  date       String
+  target     Int
+  completed  Int      @default(0)
+  isComplete Boolean  @default(false)
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@map("daily_quota_logs")
 }

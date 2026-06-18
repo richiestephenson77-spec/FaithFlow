@@ -8,6 +8,7 @@ import PrayerSession from '../components/PrayerSession';
 import NewPrayerRequestModal from '../components/NewPrayerRequestModal';
 import TestimonyModal from '../components/TestimonyModal';
 import MyPrayerRequestsDrawer from '../components/MyPrayerRequestsDrawer';
+import PrayerQueue from './PrayerQueue';
 
 const FILTER_TABS = [
   { id: 'ALL',          label: 'All' },
@@ -51,6 +52,8 @@ export default function Home() {
   const [testimonyRequest, setTestimonyRequest] = useState(null);
   const [activeCategory, setActiveCategory] = useState('ALL');
   const [showMyRequests, setShowMyRequests] = useState(false);
+  const [quota, setQuota] = useState(null);
+  const [showQueue, setShowQueue] = useState(false);
 
   // Show in-app toast when someone prays for you
   useEffect(() => {
@@ -78,6 +81,7 @@ export default function Home() {
       setStreak({ current: res.data.streak || 0, longest: res.data.longestStreak || 0 });
     }).catch(() => {});
     api.get('/prayers/answered').then(res => setAnsweredFeed(res.data)).catch(() => {});
+    api.get('/quota/today').then(res => setQuota(res.data)).catch(() => {});
   }, []);
 
   function handleTestimonySaved(updatedRequest) {
@@ -107,6 +111,18 @@ export default function Home() {
     return <PrayerSession session={activeSession.session} request={activeSession.request} onEnd={onSessionEnd} />;
   }
 
+  if (showQueue) {
+    return (
+      <PrayerQueue
+        onClose={() => setShowQueue(false)}
+        onComplete={() => {
+          api.get('/quota/today').then(res => setQuota(res.data)).catch(() => {});
+          loadFeed(activeCategory);
+        }}
+      />
+    );
+  }
+
   const firstName = user?.name?.split(' ')[0];
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
@@ -126,15 +142,21 @@ export default function Home() {
         <p className="text-white/80 text-sm mb-1">{greeting}, {firstName}</p>
         <h2 className="text-2xl font-bold text-white mb-4">Who will you pray<br />for today?</h2>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <button
             onClick={() => setShowNewRequest(true)}
-            className="bg-white text-faith-700 font-bold rounded-2xl px-5 py-3 text-sm shadow-lg flex items-center gap-2"
+            className="bg-white text-faith-700 font-bold rounded-2xl px-4 py-2.5 text-sm shadow-lg flex items-center gap-1.5"
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
             </svg>
-            + Share a Prayer Request
+            Share Request
+          </button>
+          <button
+            onClick={() => setShowQueue(true)}
+            className="bg-amber-400 text-gray-900 font-bold rounded-2xl px-4 py-2.5 text-sm shadow-lg flex items-center gap-1.5"
+          >
+            🙏 Start Daily Prayers
           </button>
 
           {streak !== null && (
@@ -177,6 +199,9 @@ export default function Home() {
             </div>
           </div>
         )}
+
+        {/* Prayer Room tile */}
+        <PrayerRoomTile quota={quota} onTap={() => setShowQueue(true)} />
 
         {/* Category filter tabs */}
         <div className="flex gap-2 overflow-x-auto pb-2 mb-4 scrollbar-hide -mx-4 px-4">
@@ -385,6 +410,47 @@ function SkeletonCard() {
         </div>
       </div>
     </div>
+  );
+}
+
+function PrayerRoomTile({ quota, onTap }) {
+  const pct = quota ? Math.min((quota.completed / quota.target) * 100, 100) : 0;
+  return (
+    <button
+      onClick={onTap}
+      className="w-full text-left rounded-2xl mb-4 overflow-hidden shadow-md active:scale-[0.98] transition-transform"
+      style={{ background: 'linear-gradient(135deg, #7c3aed 0%, #a855f7 40%, #f97316 100%)', minHeight: 130 }}
+    >
+      <div className="px-5 py-4 flex flex-col justify-between h-full">
+        <div className="flex items-start justify-between">
+          <div>
+            <p className="text-white/70 text-xs font-semibold uppercase tracking-widest mb-1">Daily Prayer Room</p>
+            <h3 className="text-white text-xl font-extrabold leading-tight">Prayer Room</h3>
+            <p className="text-white/70 text-xs mt-0.5">Pray for others · See who needs prayer</p>
+          </div>
+          <span className="text-3xl mt-0.5">🙏</span>
+        </div>
+        <div className="mt-4">
+          {quota ? (
+            <>
+              <div className="flex items-center justify-between mb-1.5">
+                <p className="text-white/80 text-xs font-semibold">
+                  {quota.completed} / {quota.target} prayers today
+                </p>
+                {quota.isComplete && (
+                  <span className="text-[10px] font-bold text-amber-300 bg-amber-400/20 px-2 py-0.5 rounded-full">Complete!</span>
+                )}
+              </div>
+              <div className="w-full h-1.5 bg-white/20 rounded-full overflow-hidden">
+                <div className="h-full bg-amber-400 rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
+              </div>
+            </>
+          ) : (
+            <div className="w-32 h-3 bg-white/20 rounded-full animate-pulse" />
+          )}
+        </div>
+      </div>
+    </button>
   );
 }
 
