@@ -3,7 +3,7 @@ const { notifyUser } = require('../services/socketService');
 const prisma = new PrismaClient();
 
 const PARTICIPANT_SELECT = {
-  user: { select: { id: true, name: true, profilePhoto: true } },
+  include: { user: { select: { id: true, name: true, profilePhoto: true } } },
 };
 
 async function getConversations(req, res) {
