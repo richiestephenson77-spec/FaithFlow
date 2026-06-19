@@ -29,6 +29,7 @@ import PrayerPage from './pages/PrayerPage';
 import Messages from './pages/Messages';
 import ChatThread from './pages/ChatThread';
 import Confessions from './pages/Confessions';
+import ConfessionDetail from './pages/ConfessionDetail';
 import Pastors from './pages/Pastors';
 import MyPastorRequests from './pages/MyPastorRequests';
 import PastorDashboard from './pages/PastorDashboard';
@@ -93,6 +94,7 @@ function AppRoutes() {
         <Route path="messages" element={<Messages />} />
         <Route path="messages/:conversationId" element={<ChatThread />} />
         <Route path="confessions" element={<Confessions />} />
+        <Route path="confessions/:id" element={<ConfessionDetail />} />
         <Route path="pastors" element={<Pastors />} />
         <Route path="my-pastor-requests" element={<MyPastorRequests />} />
         <Route path="pastor-dashboard" element={<PastorDashboard />} />
