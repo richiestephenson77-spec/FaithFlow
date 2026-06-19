@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { HandHeart, Clock, Users, Globe, Lock, Shield, MoreHorizontal } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { HandHeart, Clock, Users, Globe, Lock, Shield, MoreHorizontal, Trophy, Flame, Award } from 'lucide-react';
 import api from '../utils/api';
 import { track } from '../utils/analytics';
 import { useAuth } from '../contexts/AuthContext';
@@ -137,9 +138,12 @@ export default function Profile() {
 
   const { stats } = profile;
 
+  const staggerChildren = { animate: { transition: { staggerChildren: 0.08 } } };
+  const fadeUpItem = { initial: { opacity: 0, y: 12 }, animate: { opacity: 1, y: 0, transition: { duration: 0.3 } } };
+
   return (
-    <div className="pb-4 bg-gray-50 min-h-full relative">
-      {/* Settings gear — absolute top-right (visible since header is hidden) */}
+    <div className="pb-8 bg-gray-50 min-h-full relative">
+      {/* Settings gear — absolute top-right */}
       {isOwnProfile && (
         <Link
           to="/settings"
@@ -150,232 +154,307 @@ export default function Profile() {
           </svg>
         </Link>
       )}
-      {/* Profile Header — white card */}
-      <div className="bg-white border-b border-gray-100 px-4 pt-12 pb-5">
-        {/* Top row: photo + name block + action buttons */}
-        <div className="flex items-start gap-4">
-          {/* Profile photo — tappable on own profile */}
-          <button
+
+      {/* ── PROFILE HEADER ── */}
+      <motion.div
+        initial={{ opacity: 0, y: -8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="bg-white px-4 pt-12 pb-5"
+      >
+        {/* Row 1: Photo + Stats */}
+        <div className="flex items-center gap-5">
+          {/* Photo with gradient border */}
+          <motion.button
+            initial={{ scale: 0.85, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 22, delay: 0.05 }}
             onClick={isOwnProfile ? () => profilePhotoRef.current?.click() : undefined}
-            className="relative flex-shrink-0 group"
+            className="relative flex-shrink-0"
           >
-            <div className="w-[70px] h-[70px] rounded-full overflow-hidden ring-2 ring-gray-100 shadow-sm">
-              {(previewProfile || profile.profilePhoto)
-                ? <img src={previewProfile || profile.profilePhoto} alt="profile" className="w-full h-full object-cover" />
-                : <div className="w-full h-full flex items-center justify-center bg-faith-100 text-faith-600 font-bold text-2xl">
-                    {profile.name?.[0]?.toUpperCase()}
-                  </div>
-              }
+            <div
+              className="rounded-full p-[3px] flex-shrink-0"
+              style={{ background: 'linear-gradient(135deg, #f59e0b, #a855f7)' }}
+            >
+              <div className="w-[80px] h-[80px] rounded-full overflow-hidden bg-gray-100 ring-2 ring-white">
+                {(previewProfile || profile.profilePhoto)
+                  ? <img src={previewProfile || profile.profilePhoto} alt="profile" className="w-full h-full object-cover" />
+                  : <div className="w-full h-full flex items-center justify-center bg-amber-50 text-amber-600 font-bold text-2xl">
+                      {profile.name?.[0]?.toUpperCase()}
+                    </div>
+                }
+              </div>
             </div>
             {isOwnProfile && (
-              <div className="absolute bottom-0 right-0 w-5 h-5 bg-faith-600 rounded-full flex items-center justify-center shadow">
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <div className="absolute bottom-0.5 right-0.5 w-5 h-5 bg-gray-900 rounded-full flex items-center justify-center shadow border-2 border-white">
+                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
                   <circle cx="12" cy="13" r="4"/>
                 </svg>
               </div>
             )}
-          </button>
+          </motion.button>
 
-          {/* Name + church + location */}
-          <div className="flex-1 min-w-0">
-            <h2 className="text-lg font-extrabold text-gray-900 leading-tight">{profile.name}</h2>
-            {profile.churchName && (
-              <p className="text-faith-600 text-sm mt-0.5 font-medium">{profile.churchName}</p>
-            )}
-            {profile.location && (
-              <p className="text-gray-400 text-xs mt-0.5">{profile.location}</p>
-            )}
-            {profile.bio && (
-              <p className="text-gray-500 text-xs mt-1.5 leading-snug line-clamp-2">{profile.bio}</p>
-            )}
-          </div>
+          {/* Stats — 3 columns */}
+          <motion.div
+            variants={staggerChildren}
+            initial="initial"
+            animate="animate"
+            className="flex-1 flex justify-around"
+          >
+            {[
+              { value: stats?.totalSessions ?? 0, label: 'Total Prayers' },
+              { value: profile._count?.followers ?? 0, label: 'Believers', onTap: () => setFollowModal('followers') },
+              { value: profile._count?.posts ?? 0, label: 'Posts' },
+            ].map(({ value, label, onTap }) => (
+              <motion.button
+                key={label}
+                variants={fadeUpItem}
+                onClick={onTap}
+                className="flex flex-col items-center"
+              >
+                <span className="text-xl font-bold text-gray-900 leading-tight">{value}</span>
+                <span className="text-xs text-gray-400 mt-0.5 text-center leading-tight">{label}</span>
+              </motion.button>
+            ))}
+          </motion.div>
+        </div>
 
-          {/* Action buttons — top-right */}
-          <div className="flex-shrink-0 flex gap-2 mt-0.5">
-            {isOwnProfile ? (
-              <>
-                <button onClick={() => setEditing(true)}
-                  className="border border-gray-200 text-gray-700 text-xs px-3 py-1.5 rounded-full font-semibold bg-white">
-                  Edit Profile
-                </button>
-              </>
-            ) : (
-              <button onClick={handleFollow}
-                className={`text-sm px-5 py-2 rounded-full font-bold shadow-sm ${following
-                  ? 'bg-gray-100 text-gray-600 border border-gray-200'
-                  : 'bg-amber-400 text-white'}`}>
-                {following ? 'Following ✓' : 'Follow 🙏'}
+        {/* Row 2: Name + bio */}
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.1 }}
+          className="mt-3"
+        >
+          <p className="text-base font-bold text-gray-900">{profile.name}</p>
+          {profile.churchName && (
+            <p className="text-sm text-amber-500 font-medium mt-0.5">{profile.churchName}</p>
+          )}
+          {profile.location && (
+            <p className="text-xs text-gray-400 mt-0.5">{profile.location}</p>
+          )}
+          {profile.bio && (
+            <p className="text-sm text-gray-600 mt-1.5 leading-snug">{profile.bio}</p>
+          )}
+        </motion.div>
+
+        {/* Row 3: Action buttons */}
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.15 }}
+          className="mt-3"
+        >
+          {isOwnProfile ? (
+            <div className="flex gap-2">
+              <button
+                onClick={() => setEditing(true)}
+                className="flex-1 bg-gray-100 text-gray-900 text-sm font-medium py-2 rounded-xl"
+              >
+                Edit Profile
               </button>
-            )}
-          </div>
-        </div>
+              <button
+                onClick={() => navigate('/search')}
+                className="flex-1 bg-gray-100 text-gray-900 text-sm font-medium py-2 rounded-xl"
+              >
+                Find Believers
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={handleFollow}
+              className={`w-full py-2 rounded-xl text-sm font-semibold transition-colors ${
+                following ? 'bg-gray-100 text-gray-700' : 'bg-amber-400 text-white'
+              }`}
+            >
+              {following ? 'Following' : 'Follow'}
+            </button>
+          )}
+        </motion.div>
+      </motion.div>
 
-        {/* Stats row */}
-        <div className="flex gap-8 mt-4 pt-4 border-t border-gray-50">
-          <button onClick={() => setFollowModal('followers')} className="text-center">
-            <p className="text-lg font-bold text-gray-900 leading-tight">{profile._count?.followers || 0}</p>
-            <p className="text-xs text-gray-400">Believers</p>
-          </button>
-          <button onClick={() => setFollowModal('following')} className="text-center">
-            <p className="text-lg font-bold text-gray-900 leading-tight">{profile._count?.following || 0}</p>
-            <p className="text-xs text-gray-400">Following</p>
-          </button>
-          <div className="text-center">
-            <p className="text-lg font-bold text-gray-900 leading-tight">{profile._count?.posts || 0}</p>
-            <p className="text-xs text-gray-400">Posts</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Find Believers button — own profile only */}
-      {isOwnProfile && (
-        <div className="px-4 mt-3 mb-1">
-          <button onClick={() => navigate('/search')}
-            className="w-full border border-gray-200 text-gray-600 rounded-2xl py-2.5 text-sm font-semibold flex items-center justify-center gap-2 bg-white">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
-              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-            </svg>
-            Find Believers
-          </button>
-        </div>
-      )}
-
-      {/* Prayer Stats */}
+      {/* ── PRAYER STATS ── */}
       {stats && (
-        <div className="px-4 mt-4 mb-4">
-          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Prayer Statistics</p>
+        <div className="px-4 mt-4">
+          {/* 3 pills */}
+          <motion.div
+            variants={staggerChildren}
+            initial="initial"
+            animate="animate"
+            className="grid grid-cols-3 gap-2 mb-3"
+          >
+            {[
+              { icon: <Flame size={16} color="#f59e0b" strokeWidth={1.8} />, value: stats.streak ?? 0, label: 'Streak' },
+              { icon: <Award size={16} color="#f59e0b" strokeWidth={1.8} />, value: stats.longestStreak ?? 0, label: 'Best' },
+              { icon: <HandHeart size={16} color="#f59e0b" strokeWidth={1.8} />, value: stats.totalSessions ?? 0, label: 'Prayers' },
+            ].map(({ icon, value, label }) => (
+              <motion.div
+                key={label}
+                variants={fadeUpItem}
+                className="bg-gray-50 rounded-2xl p-3 text-center"
+              >
+                <div className="flex justify-center mb-1">{icon}</div>
+                <p className="text-lg font-bold text-gray-900 leading-none">{value}</p>
+                <p className="text-xs text-gray-400 mt-0.5">{label}</p>
+              </motion.div>
+            ))}
+          </motion.div>
 
-          {/* Streak highlight card */}
-          <div className="prayer-gradient rounded-2xl p-4 mb-3 flex items-center justify-between text-white shadow-sm">
-            <div>
-              <p className="text-xs text-white/70 mb-1">🔥 Current Streak</p>
-              <p className="text-3xl font-extrabold leading-none">{stats.streak || 0}
-                <span className="text-base font-semibold ml-1">days</span>
-              </p>
-            </div>
-            <div className="text-right">
-              <p className="text-xs text-white/70 mb-1">🏆 Longest Streak</p>
-              <p className="text-3xl font-extrabold leading-none">{stats.longestStreak || 0}
-                <span className="text-base font-semibold ml-1">days</span>
-              </p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-3 gap-2">
-            <StatCard Icon={HandHeart} iconColor="#f59e0b" label="Total Prayers" value={stats.totalSessions || stats.totalPeoplePrayedFor || 0} />
-            <StatCard Icon={Clock} iconColor="#3b82f6" label="Prayer Time" value={formatDuration(stats.totalPrayerSeconds)} />
-            <StatCard Icon={Users} iconColor="#a855f7" label="Prayed For" value={stats.totalPeoplePrayedFor} />
-          </div>
-
-          {isOwnProfile && stats.todaySeconds > 0 && (
-            <div className="mt-2 bg-amber-50 border border-amber-100 rounded-2xl p-3 flex items-center gap-3">
-              <span className="text-xl">🌟</span>
+          {/* 2 stat cards */}
+          <div className="grid grid-cols-2 gap-2">
+            <div className="bg-gray-50 rounded-2xl p-4 flex items-center gap-3">
+              <Clock size={18} color="#f59e0b" strokeWidth={1.8} />
               <div>
-                <p className="text-xs text-amber-700 font-semibold">Today's prayer time</p>
-                <p className="text-sm font-bold text-amber-900">{formatDuration(stats.todaySeconds)}</p>
+                <p className="text-sm font-bold text-gray-900">{formatDuration(stats.totalPrayerSeconds)}</p>
+                <p className="text-xs text-gray-400">Prayer Time</p>
               </div>
             </div>
-          )}
+            <div className="bg-gray-50 rounded-2xl p-4 flex items-center gap-3">
+              <Users size={18} color="#f59e0b" strokeWidth={1.8} />
+              <div>
+                <p className="text-sm font-bold text-gray-900">{stats.totalPeoplePrayedFor ?? 0}</p>
+                <p className="text-xs text-gray-400">Prayed For</p>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
-      {/* Prayer Warrior Badge */}
-      <div className="px-4 mb-4">
-        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Prayer Warrior</p>
-        {profile.prayerWarriorBadge ? (
-          <button onClick={() => setShowBadgeModal(true)}
-            className="w-full flex items-center gap-4 bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200 rounded-2xl p-4 text-left"
-            style={{ boxShadow: '0 0 16px rgba(245,200,66,0.25)' }}>
-            <div className="w-14 h-14 rounded-full bg-amber-400 flex items-center justify-center flex-shrink-0 shadow-md"
-              style={{ boxShadow: '0 0 12px rgba(245,200,66,0.5)' }}>
-              <span className="text-2xl">🏆</span>
-            </div>
-            <div className="flex-1">
-              <p className="font-bold text-amber-800 text-sm">Prayer Warrior</p>
-              <p className="text-amber-600 text-xs mt-0.5">Level 1 · Tap to view stats</p>
-              {profile.totalPeoplesPrayedFor > 0 && (
-                <p className="text-amber-500 text-xs mt-1">Prayed for {profile.totalPeoplesPrayedFor} people</p>
-              )}
-            </div>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="9 18 15 12 9 6"/>
-            </svg>
-          </button>
-        ) : (
-          <div className="flex items-center gap-4 bg-gray-50 border border-gray-200 rounded-2xl p-4">
-            <div className="w-14 h-14 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
-              <span className="text-2xl grayscale opacity-50">🏆</span>
-            </div>
-            <div>
-              <p className="font-semibold text-gray-500 text-sm">Prayer Warrior</p>
-              <p className="text-gray-400 text-xs mt-0.5 leading-relaxed">Complete your first daily quota to earn this badge</p>
+      {/* ── PRAYER WARRIOR ── */}
+      <div className="px-4 mt-4">
+        <button
+          onClick={() => setShowBadgeModal(true)}
+          className="w-full flex items-center gap-4 rounded-2xl p-4 text-left"
+          style={{
+            background: profile.prayerWarriorBadge
+              ? 'linear-gradient(135deg, #fffbeb, #fef3c7)'
+              : '#F9FAFB',
+            border: `1px solid ${profile.prayerWarriorBadge ? '#fde68a' : '#e5e7eb'}`,
+          }}
+        >
+          {/* Trophy circle */}
+          <div
+            className="w-13 h-13 rounded-full flex items-center justify-center flex-shrink-0"
+            style={{
+              width: 52, height: 52,
+              background: profile.prayerWarriorBadge ? '#fffbeb' : '#f3f4f6',
+              border: `2px solid ${profile.prayerWarriorBadge ? '#fcd34d' : '#e5e7eb'}`,
+            }}
+          >
+            <Trophy
+              size={24}
+              strokeWidth={1.8}
+              color={profile.prayerWarriorBadge ? '#f59e0b' : '#d1d5db'}
+            />
+          </div>
+
+          <div className="flex-1 min-w-0">
+            <p className={`text-sm font-bold ${profile.prayerWarriorBadge ? 'text-amber-800' : 'text-gray-400'}`}>
+              Prayer Warrior
+            </p>
+            <p className={`text-xs mt-0.5 ${profile.prayerWarriorBadge ? 'text-amber-600' : 'text-gray-400'}`}>
+              {profile.prayerWarriorBadge ? 'Level 1 · Seeker' : 'Complete daily quota to unlock'}
+            </p>
+            {/* Progress bar */}
+            <div className="mt-2 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+              <div
+                className="h-full rounded-full transition-all duration-700"
+                style={{
+                  width: profile.prayerWarriorBadge ? '100%' : `${Math.min(((stats?.totalSessions ?? 0) / 10) * 100, 90)}%`,
+                  background: profile.prayerWarriorBadge ? '#f59e0b' : '#d1d5db',
+                }}
+              />
             </div>
           </div>
-        )}
+        </button>
       </div>
 
-      {/* Tabs */}
-      <div className="px-4">
-        <div className="flex border-b border-gray-100 mb-3">
+      {/* ── TABS ── */}
+      <div className="mt-4">
+        <div className="flex border-b border-gray-100">
           {[
             { key: 'grid', label: 'Posts' },
             { key: 'prayers', label: 'Prayers' },
           ].map(({ key, label }) => (
-            <button key={key} onClick={() => setActiveTab(key)}
-              className={`flex-1 py-2.5 text-sm font-semibold border-b-2 transition-colors ${
-                activeTab === key ? 'border-faith-600 text-faith-600' : 'border-transparent text-gray-400'}`}>
+            <button
+              key={key}
+              onClick={() => setActiveTab(key)}
+              className={`flex-1 py-3 text-sm transition-colors relative ${
+                activeTab === key ? 'font-semibold text-gray-900' : 'text-gray-400'
+              }`}
+            >
               {label}
+              {activeTab === key && (
+                <motion.div
+                  layoutId="tabUnderline"
+                  className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-900"
+                />
+              )}
             </button>
           ))}
         </div>
 
-        {activeTab === 'grid' && (
-          <PostGrid posts={posts} onPostClick={(p) => {}} />
-        )}
-
-        {activeTab === 'prayers' && (
-          <div className="space-y-3">
-            {profile.prayerRequests?.length === 0 ? (
-              <p className="text-center text-gray-400 py-6">No prayer requests yet</p>
-            ) : (
-              profile.prayerRequests?.map(r => (
-                <div key={r.id} className={`bg-white rounded-2xl p-4 border shadow-sm ${r.isAnswered ? 'border-emerald-100' : 'border-gray-100'}`}>
-                  <div className="flex items-start gap-2">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap mb-1">
-                        <VisibilityBadge visibility={r.visibility || 'PUBLIC'} />
-                        {r.isAnswered && (
-                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">Answered</span>
-                        )}
-                        {r.isUrgent && (
-                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-red-50 text-red-600 uppercase tracking-wide">Urgent</span>
-                        )}
+        <AnimatePresence mode="wait">
+          {activeTab === 'grid' ? (
+            <motion.div
+              key="grid"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+            >
+              <PostGrid posts={posts} onPostClick={() => {}} />
+            </motion.div>
+          ) : (
+            <motion.div
+              key="prayers"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              className="px-4 pt-4 space-y-3"
+            >
+              {(profile.prayerRequests?.length ?? 0) === 0 ? (
+                <p className="text-center text-gray-400 py-8 text-sm">No prayer requests yet</p>
+              ) : (
+                profile.prayerRequests?.map(r => (
+                  <div key={r.id} className={`bg-white rounded-2xl p-4 border shadow-sm ${r.isAnswered ? 'border-emerald-100' : 'border-gray-100'}`}>
+                    <div className="flex items-start gap-2">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap mb-1">
+                          <VisibilityBadge visibility={r.visibility || 'PUBLIC'} />
+                          {r.isAnswered && (
+                            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">Answered</span>
+                          )}
+                          {r.isUrgent && (
+                            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-red-50 text-red-600 uppercase tracking-wide">Urgent</span>
+                          )}
+                        </div>
+                        <p className="font-semibold text-gray-800 text-sm">{r.title}</p>
+                        <p className="text-gray-400 text-xs mt-1 line-clamp-2">{r.body}</p>
+                        <div className="flex items-center gap-3 mt-2">
+                          <span className="text-xs text-gray-400">{getTimeAgo(r.createdAt)}</span>
+                          {r._count?.sessions != null && (
+                            <span className="text-xs text-gray-400">{r._count.sessions} prayed</span>
+                          )}
+                        </div>
                       </div>
-                      <p className="font-semibold text-gray-800 text-sm">{r.title}</p>
-                      <p className="text-gray-400 text-xs mt-1 line-clamp-2">{r.body}</p>
-                      <div className="flex items-center gap-3 mt-2">
-                        <span className="text-xs text-gray-400">{getTimeAgo(r.createdAt)}</span>
-                        {r._count?.sessions != null && (
-                          <span className="text-xs text-gray-400">🙏 {r._count.sessions} prayed</span>
-                        )}
-                      </div>
+                      {isOwnProfile && (
+                        <button
+                          onClick={() => setPrayerMenu(r)}
+                          className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 flex-shrink-0 -mt-1"
+                        >
+                          <MoreHorizontal size={16} color="#9ca3af" />
+                        </button>
+                      )}
                     </div>
-                    {isOwnProfile && (
-                      <button
-                        onClick={() => setPrayerMenu(r)}
-                        className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 flex-shrink-0 -mt-1"
-                      >
-                        <MoreHorizontal size={16} color="#9ca3af" />
-                      </button>
-                    )}
                   </div>
-                </div>
-              ))
-            )}
-          </div>
-        )}
+                ))
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       {/* Follower/Following Modal */}
@@ -546,14 +625,3 @@ export default function Profile() {
   );
 }
 
-function StatCard({ Icon, iconColor, label, value }) {
-  return (
-    <div className="bg-white rounded-xl p-2.5 border border-gray-100 shadow-sm text-center">
-      <div className="flex justify-center mb-1">
-        <Icon size={20} strokeWidth={1.5} color={iconColor} />
-      </div>
-      <p className="text-sm font-bold text-gray-900 leading-tight">{value}</p>
-      <p className="text-[10px] text-gray-400 mt-0.5">{label}</p>
-    </div>
-  );
-}
