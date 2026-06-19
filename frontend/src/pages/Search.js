@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, UserX } from 'lucide-react';
+import { Search as SearchIcon, UserX } from 'lucide-react';
 import api from '../utils/api';
 import UserRow from '../components/UserRow';
 import { fadeUp, staggerItem } from '../utils/animations';
@@ -93,7 +93,7 @@ export default function Search() {
         className="px-4 mb-4"
       >
         <div className="relative">
-          <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" strokeWidth={1.8} />
+          <SearchIcon size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" strokeWidth={1.8} />
           <input
             type="text"
             value={query}
