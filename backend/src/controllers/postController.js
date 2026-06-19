@@ -55,7 +55,7 @@ async function getUserPosts(req, res) {
 }
 
 async function createPost(req, res) {
-  const { content, type, bibleVerse } = req.body;
+  const { content, type, bibleVerse, location } = req.body;
   if (!content) return res.status(400).json({ error: 'Content required' });
 
   const files = req.files || [];
@@ -67,6 +67,7 @@ async function createPost(req, res) {
         content,
         type: type || 'UPDATE',
         bibleVerse: bibleVerse || null,
+        location: location || null,
         media: files.length
           ? {
               create: files.map((f, i) => ({

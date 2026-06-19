@@ -16,13 +16,15 @@ function getTimeAgo(dateStr) {
   return `${Math.floor(h / 24)}d ago`;
 }
 
-const POST_TYPE_BADGE = {
-  TESTIMONY: { label: 'Testimony 🙌', cls: 'bg-emerald-50 text-emerald-700 border-emerald-100' },
-  VERSE:     { label: 'Scripture ✝️',  cls: 'bg-indigo-50 text-indigo-700 border-indigo-100' },
+
+const POST_TYPE_BADGE_ALL = {
+  UPDATE:    { label: '📢 Update',    cls: 'bg-blue-50 text-blue-700 border-blue-100' },
+  TESTIMONY: { label: '🙌 Testimony', cls: 'bg-emerald-50 text-emerald-700 border-emerald-100' },
+  VERSE:     { label: '📖 Verse',     cls: 'bg-indigo-50 text-indigo-700 border-indigo-100' },
 };
 
 function PostCard({ post, onLike, onUserClick }) {
-  const badge = POST_TYPE_BADGE[post.type];
+  const badge = POST_TYPE_BADGE_ALL[post.type];
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden fade-in">
       <div className="flex items-center gap-3 px-4 pt-4 pb-2">
@@ -33,7 +35,10 @@ function PostCard({ post, onLike, onUserClick }) {
           <button onClick={onUserClick} className="font-semibold text-gray-900 text-sm hover:underline text-left leading-tight">
             {post.user?.name}
           </button>
-          <p className="text-xs text-gray-400 mt-0.5">{getTimeAgo(post.createdAt)}</p>
+          <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+            <p className="text-xs text-gray-400">{getTimeAgo(post.createdAt)}</p>
+            {post.location && <p className="text-xs text-gray-400">📍 {post.location}</p>}
+          </div>
         </div>
         {badge && (
           <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full border flex-shrink-0 ${badge.cls}`}>
@@ -145,6 +150,14 @@ export default function Home() {
       .then(res => setPosts(res.data))
       .catch(() => {})
       .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    const handler = (e) => {
+      setPosts(prev => [e.detail, ...prev]);
+    };
+    window.addEventListener('post_created', handler);
+    return () => window.removeEventListener('post_created', handler);
   }, []);
 
   async function handleLike(postId) {

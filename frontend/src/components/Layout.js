@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useState, useEffect } from 'react';
 import Toast from './Toast';
 import Logo from './Logo';
+import CreatePostModal from './CreatePostModal';
 
 function HomeIcon({ active }) {
   return (
@@ -75,6 +76,7 @@ export default function Layout() {
   const location = useLocation();
   const [latestToast, setLatestToast] = useState(null);
   const [prevCount, setPrevCount] = useState(0);
+  const [showCreatePost, setShowCreatePost] = useState(false);
 
   useEffect(() => {
     if (notifications.length > prevCount) {
@@ -88,7 +90,7 @@ export default function Layout() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col max-w-md mx-auto relative shadow-xl">
       <header className="prayer-gradient text-white px-4 py-2.5 flex items-center justify-between sticky top-0 z-30">
-        <button onClick={() => navigate('/profile')} className="flex-shrink-0">
+        <button onClick={() => setShowCreatePost(true)} className="flex-shrink-0">
           {user?.profilePhoto ? (
             <img src={user.profilePhoto} alt={user.name} className="w-9 h-9 rounded-full object-cover" />
           ) : (
@@ -125,6 +127,16 @@ export default function Layout() {
         >
           Pray
         </button>
+      )}
+
+      {showCreatePost && (
+        <CreatePostModal
+          onClose={() => setShowCreatePost(false)}
+          onCreate={(post) => {
+            setShowCreatePost(false);
+            window.dispatchEvent(new CustomEvent('post_created', { detail: post }));
+          }}
+        />
       )}
 
       <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white border-t border-gray-100 flex z-30 shadow-lg">

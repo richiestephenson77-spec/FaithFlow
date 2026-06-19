@@ -209,6 +209,7 @@ model Post {
   content     String
   type        PostType   @default(UPDATE)
   bibleVerse  String?
+  location    String?
   media       PostMedia[]
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
