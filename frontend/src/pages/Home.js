@@ -120,7 +120,7 @@ export default function Home() {
     if (!nearMe) return;
     const t = setTimeout(() => loadFeed(false, { nearMe, radius, coords: userCoords }), 500);
     return () => clearTimeout(t);
-  }, [radius]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [radius]); // eslint-disable-line
 
   useEffect(() => {
     api.get('/users/me/dashboard').then(res => {
