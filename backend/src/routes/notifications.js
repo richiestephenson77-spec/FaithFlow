@@ -1,8 +1,8 @@
 const router = require('express').Router();
 const { authenticate } = require('../middleware/auth');
-const { PrismaClient } = require('@prisma/client');
 
-const prisma = new PrismaClient();
+
+const prisma = require('../db');
 
 router.get('/', authenticate, async (req, res) => {
   const notifications = await prisma.notification.findMany({

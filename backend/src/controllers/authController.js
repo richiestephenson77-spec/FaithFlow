@@ -1,10 +1,10 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
-const { PrismaClient } = require('@prisma/client');
+
 const { Resend } = require('resend');
 
-const prisma = new PrismaClient();
+const prisma = require('../db');
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 async function signup(req, res) {

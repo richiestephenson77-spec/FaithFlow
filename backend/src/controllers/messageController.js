@@ -1,6 +1,6 @@
-const { PrismaClient } = require('@prisma/client');
+
 const { notifyUser } = require('../services/socketService');
-const prisma = new PrismaClient();
+const prisma = require('../db');
 
 const PARTICIPANT_SELECT = {
   include: { user: { select: { id: true, name: true, profilePhoto: true } } },

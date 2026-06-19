@@ -1,5 +1,5 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+
+const prisma = require('../db');
 
 function todayStr() {
   return new Date().toISOString().slice(0, 10); // "YYYY-MM-DD"

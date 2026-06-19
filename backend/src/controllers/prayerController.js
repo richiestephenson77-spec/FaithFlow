@@ -1,7 +1,7 @@
-const { PrismaClient } = require('@prisma/client');
+
 const { notifyUser } = require('../services/socketService');
 
-const prisma = new PrismaClient();
+const prisma = require('../db');
 
 function haversineKm(lat1, lon1, lat2, lon2) {
   const R = 6371;

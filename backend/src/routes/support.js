@@ -1,8 +1,8 @@
 const router = require('express').Router();
 const { authenticate } = require('../middleware/auth');
 const { Resend } = require('resend');
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+
+const prisma = require('../db');
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
