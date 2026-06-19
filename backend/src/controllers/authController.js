@@ -70,8 +70,8 @@ async function forgotPassword(req, res) {
 
     const resetUrl = `${process.env.CLIENT_URL}/reset-password?token=${token}`;
 
-    await resend.emails.send({
-      from: 'FaithFlow <onboarding@resend.dev>',
+    const { data, error: resendError } = await resend.emails.send({
+      from: process.env.RESEND_FROM_EMAIL || 'FaithFlow <onboarding@resend.dev>',
       to: email,
       subject: 'Reset your FaithFlow password',
       html: `
@@ -92,6 +92,11 @@ async function forgotPassword(req, res) {
         </div>
       `,
     });
+
+    if (resendError) {
+      console.error('Resend error:', resendError);
+      return res.status(500).json({ error: 'email_send_failed' });
+    }
 
     res.json({ message: 'If that email exists, a reset link has been sent.' });
   } catch (err) {

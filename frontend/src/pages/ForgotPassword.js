@@ -17,7 +17,12 @@ export default function ForgotPassword() {
       await api.post('/auth/forgot-password', { email });
       setSent(true);
     } catch (err) {
-      setError(err.response?.data?.error || 'Something went wrong. Please try again.');
+      const code = err.response?.data?.error;
+      if (code === 'email_send_failed') {
+        setError(`We couldn't send the reset email to this address. Please contact support at richiestephenson.77@gmail.com and we'll reset it manually.`);
+      } else {
+        setError(err.response?.data?.error || 'Something went wrong. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
