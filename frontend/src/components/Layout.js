@@ -117,11 +117,7 @@ export default function Layout() {
       {latestToast && <Toast key={latestToast.id} message={latestToast.message} />}
 
       <main className="flex-1 overflow-y-auto pb-20">
-        <AnimatePresence mode="wait">
-          <motion.div key={location.pathname} {...pageTransition} className="min-h-full">
-            <Outlet />
-          </motion.div>
-        </AnimatePresence>
+        <Outlet />
       </main>
 
       {/* FAB Pray button */}
