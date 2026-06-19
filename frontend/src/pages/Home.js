@@ -4,9 +4,7 @@ import api from '../utils/api';
 import { useAuth } from '../contexts/AuthContext';
 import { useSocket } from '../contexts/SocketContext';
 import Avatar from '../components/Avatar';
-import NewPrayerRequestModal from '../components/NewPrayerRequestModal';
 import MyPrayerRequestsDrawer from '../components/MyPrayerRequestsDrawer';
-import PrayerQueue from './PrayerQueue';
 
 function getTimeAgo(dateStr) {
   const diff = Date.now() - new Date(dateStr);
@@ -18,50 +16,6 @@ function getTimeAgo(dateStr) {
   return `${Math.floor(h / 24)}d ago`;
 }
 
-function streakMessage(n) {
-  if (n >= 30) return '30 days of faithful prayer!';
-  if (n >= 7) return 'One week streak — keep going!';
-  if (n >= 1) return 'Every prayer matters.';
-  return 'Start your streak today!';
-}
-
-// ── Prayer Room entry banner ──────────────────────────────────────────────────
-function PrayerRoomBanner({ quota, onClick }) {
-  const pct = quota ? Math.min((quota.completed / quota.target) * 100, 100) : 0;
-  return (
-    <button
-      onClick={onClick}
-      className="w-full text-left rounded-2xl overflow-hidden shadow-md active:scale-[0.98] transition-transform mb-4"
-      style={{ background: 'linear-gradient(135deg, #1e3a8a 0%, #3b5bdb 45%, #a855f7 80%, #f97316 100%)' }}
-    >
-      <div className="px-5 py-4 flex items-center gap-4">
-        <span className="text-4xl flex-shrink-0">🙏</span>
-        <div className="flex-1 min-w-0">
-          <p className="text-white font-extrabold text-base leading-tight">Prayer Room</p>
-          <p className="text-white/70 text-xs mt-0.5">See who needs prayer today →</p>
-          {quota && (
-            <div className="mt-2">
-              <div className="flex items-center justify-between mb-1">
-                <p className="text-white/80 text-[11px] font-semibold">
-                  {quota.completed}/{quota.target} today
-                  {quota.isComplete && <span className="ml-1.5 text-amber-300">✓ Done!</span>}
-                </p>
-              </div>
-              <div className="w-full h-1 bg-white/20 rounded-full overflow-hidden">
-                <div className="h-full bg-amber-400 rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
-              </div>
-            </div>
-          )}
-        </div>
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.7)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
-          <polyline points="9 18 15 12 9 6"/>
-        </svg>
-      </div>
-    </button>
-  );
-}
-
-// ── Post card ─────────────────────────────────────────────────────────────────
 const POST_TYPE_BADGE = {
   TESTIMONY: { label: 'Testimony 🙌', cls: 'bg-emerald-50 text-emerald-700 border-emerald-100' },
   VERSE:     { label: 'Scripture ✝️',  cls: 'bg-indigo-50 text-indigo-700 border-indigo-100' },
@@ -71,7 +25,6 @@ function PostCard({ post, onLike, onUserClick }) {
   const badge = POST_TYPE_BADGE[post.type];
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden fade-in">
-      {/* Author row */}
       <div className="flex items-center gap-3 px-4 pt-4 pb-2">
         <button onClick={onUserClick} className="flex-shrink-0">
           <Avatar user={post.user} size="md" />
@@ -89,7 +42,6 @@ function PostCard({ post, onLike, onUserClick }) {
         )}
       </div>
 
-      {/* Content */}
       <div className="px-4 pb-3">
         {post.bibleVerse && (
           <p className="text-xs font-semibold text-faith-600 mb-1">{post.bibleVerse}</p>
@@ -97,7 +49,6 @@ function PostCard({ post, onLike, onUserClick }) {
         <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line">{post.content}</p>
       </div>
 
-      {/* Media */}
       {post.media?.length > 0 && (
         <div className={`grid gap-0.5 ${post.media.length > 1 ? 'grid-cols-2' : ''}`}>
           {post.media.slice(0, 4).map((m, i) => (
@@ -116,20 +67,17 @@ function PostCard({ post, onLike, onUserClick }) {
         </div>
       )}
 
-      {/* Actions */}
       <div className="flex items-center gap-4 px-4 py-3 border-t border-gray-50">
         <button
           onClick={onLike}
-          className={`flex items-center gap-1.5 text-sm font-semibold transition-colors ${
-            post.likedByMe ? 'text-red-500' : 'text-gray-400'
-          }`}
+          className={`flex items-center gap-1.5 text-sm font-semibold transition-colors ${post.likedByMe ? 'text-red-500' : 'text-gray-400'}`}
         >
           <svg width="17" height="17" viewBox="0 0 24 24" fill={post.likedByMe ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
           </svg>
           {post._count?.likes > 0 && post._count.likes}
         </button>
-        <div className="flex items-center gap-1.5 text-sm font-semibold text-gray-400">
+        <div className="flex items-center gap-1.5 text-sm text-gray-400">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
           </svg>
@@ -137,7 +85,6 @@ function PostCard({ post, onLike, onUserClick }) {
         </div>
       </div>
 
-      {/* Top 3 comments */}
       {post.comments?.length > 0 && (
         <div className="px-4 pb-4 space-y-2">
           {post.comments.map(c => (
@@ -174,22 +121,16 @@ function SkeletonCard() {
   );
 }
 
-// ── Main component ────────────────────────────────────────────────────────────
 export default function Home() {
   const { user } = useAuth();
   const { notifications } = useSocket();
   const navigate = useNavigate();
 
   const [posts, setPosts] = useState([]);
-  const [postsLoading, setPostsLoading] = useState(true);
-  const [streak, setStreak] = useState(null);
-  const [quota, setQuota] = useState(null);
-  const [showNewRequest, setShowNewRequest] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [showMyRequests, setShowMyRequests] = useState(false);
-  const [showQueue, setShowQueue] = useState(false);
   const [prayerToast, setPrayerToast] = useState(null);
 
-  // Prayer-started toast
   useEffect(() => {
     const latest = notifications[0];
     if (latest?.type === 'PRAYER_STARTED') {
@@ -203,13 +144,7 @@ export default function Home() {
     api.get('/posts/feed')
       .then(res => setPosts(res.data))
       .catch(() => {})
-      .finally(() => setPostsLoading(false));
-    api.get('/users/me/dashboard')
-      .then(res => setStreak({ current: res.data.streak || 0, longest: res.data.longestStreak || 0 }))
-      .catch(() => {});
-    api.get('/quota/today')
-      .then(res => setQuota(res.data))
-      .catch(() => {});
+      .finally(() => setLoading(false));
   }, []);
 
   async function handleLike(postId) {
@@ -217,28 +152,11 @@ export default function Home() {
       await api.post(`/posts/${postId}/like`);
       setPosts(prev => prev.map(p =>
         p.id === postId
-          ? {
-              ...p,
-              likedByMe: !p.likedByMe,
-              _count: { ...p._count, likes: p._count.likes + (p.likedByMe ? -1 : 1) },
-            }
+          ? { ...p, likedByMe: !p.likedByMe, _count: { ...p._count, likes: p._count.likes + (p.likedByMe ? -1 : 1) } }
           : p
       ));
     } catch {}
   }
-
-  if (showQueue) {
-    return (
-      <PrayerQueue
-        onClose={() => setShowQueue(false)}
-        onComplete={() => api.get('/quota/today').then(res => setQuota(res.data)).catch(() => {})}
-      />
-    );
-  }
-
-  const firstName = user?.name?.split(' ')[0];
-  const hour = new Date().getHours();
-  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
 
   return (
     <div className="bg-gray-50 min-h-full">
@@ -251,84 +169,28 @@ export default function Home() {
         </div>
       )}
 
-      {/* Hero banner */}
-      <div className="prayer-gradient px-5 pt-5 pb-8">
-        <p className="text-white/80 text-sm mb-1">{greeting}, {firstName}</p>
-        <h2 className="text-2xl font-bold text-white mb-4">What's on your<br />heart today?</h2>
+      <div className="px-4 pt-4 pb-24">
+        {/* Prayer Room entry button */}
+        <button
+          onClick={() => navigate('/prayer')}
+          className="w-full flex items-center justify-between px-5 rounded-xl mb-5 active:scale-[0.98] transition-transform"
+          style={{ background: 'linear-gradient(135deg, #f59e0b 0%, #f97316 60%, #a855f7 100%)', height: 60 }}
+        >
+          <span className="text-white font-bold text-base">🙏 Prayer Room</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="9 18 15 12 9 6"/>
+          </svg>
+        </button>
 
-        <div className="flex items-center gap-3 flex-wrap">
-          <button
-            onClick={() => navigate('/prayer')}
-            className="bg-white text-faith-700 font-bold rounded-2xl px-4 py-2.5 text-sm shadow-lg flex items-center gap-1.5"
-          >
-            🙏 Prayer Room
-          </button>
-
-          <button
-            onClick={() => setShowNewRequest(true)}
-            className="bg-white/20 backdrop-blur border border-white/30 text-white font-bold rounded-2xl px-4 py-2.5 text-sm flex items-center gap-1.5"
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-            </svg>
-            Share Request
-          </button>
-
-          {streak !== null && streak.current > 0 && (
-            <div className="bg-white/15 backdrop-blur border border-white/20 rounded-2xl px-4 py-3 flex items-center gap-2 flex-shrink-0">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="rgba(255,255,255,0.9)" stroke="none">
-                <path d="M12 2c0 0-6 6-6 11a6 6 0 0 0 12 0c0-5-6-11-6-11zm0 15a2 2 0 0 1-2-2c0-2 2-5 2-5s2 3 2 5a2 2 0 0 1-2 2z"/>
-              </svg>
-              <div>
-                <p className="text-white font-extrabold text-lg leading-none">{streak.current}</p>
-                <p className="text-white/70 text-[10px] leading-tight">day streak</p>
-              </div>
-            </div>
-          )}
-
-          <button
-            onClick={() => setShowMyRequests(true)}
-            className="w-11 h-11 bg-white/15 backdrop-blur border border-white/20 rounded-2xl flex items-center justify-center flex-shrink-0"
-            title="My Prayer Requests"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
-            </svg>
-          </button>
-        </div>
-      </div>
-
-      {/* Feed area */}
-      <div className="-mt-3 rounded-t-3xl bg-gray-50 px-4 pt-5 pb-24">
-
-        {/* Streak banner */}
-        {streak !== null && streak.current > 0 && (
-          <div className="bg-amber-50 border border-amber-100 rounded-2xl px-4 py-3 mb-4 flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="#d97706" stroke="none">
-                <path d="M12 2c0 0-6 6-6 11a6 6 0 0 0 12 0c0-5-6-11-6-11zm0 15a2 2 0 0 1-2-2c0-2 2-5 2-5s2 3 2 5a2 2 0 0 1-2 2z"/>
-              </svg>
-            </div>
-            <div>
-              <p className="text-sm font-bold text-amber-800">{streak.current} Day Prayer Streak 🔥</p>
-              <p className="text-xs text-amber-600">{streakMessage(streak.current)}</p>
-            </div>
-          </div>
-        )}
-
-        {/* Prayer Room entry banner */}
-        <PrayerRoomBanner quota={quota} onClick={() => navigate('/prayer')} />
-
-        {/* Community feed */}
+        {/* Community label */}
         <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Community</p>
 
-        {postsLoading ? (
+        {/* Posts */}
+        {loading ? (
           <div className="space-y-3">{[1,2,3].map(i => <SkeletonCard key={i} />)}</div>
         ) : posts.length === 0 ? (
-          <div className="text-center py-16">
-            <div className="w-16 h-16 prayer-gradient rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-              <span className="text-3xl">🕊️</span>
-            </div>
+          <div className="text-center py-20">
+            <p className="text-4xl mb-3">🕊️</p>
             <p className="font-semibold text-gray-700">No posts yet</p>
             <p className="text-sm text-gray-400 mt-1">Be the first to share something!</p>
           </div>
@@ -346,13 +208,7 @@ export default function Home() {
         )}
       </div>
 
-      {/* Modals */}
-      {showNewRequest && (
-        <NewPrayerRequestModal onClose={() => setShowNewRequest(false)} onCreate={() => setShowNewRequest(false)} />
-      )}
-      {showMyRequests && (
-        <MyPrayerRequestsDrawer onClose={() => setShowMyRequests(false)} />
-      )}
+      {showMyRequests && <MyPrayerRequestsDrawer onClose={() => setShowMyRequests(false)} />}
     </div>
   );
 }

@@ -6,6 +6,7 @@ import PrayerQueue from './PrayerQueue';
 export default function PrayerPage() {
   const navigate = useNavigate();
   const [quota, setQuota] = useState(null);
+  const [streak, setStreak] = useState(null);
   const [showQueue, setShowQueue] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [target, setTarget] = useState('5');
@@ -15,6 +16,9 @@ export default function PrayerPage() {
     api.get('/quota/today').then(res => {
       setQuota(res.data);
       setTarget(String(res.data.target));
+    }).catch(() => {});
+    api.get('/users/me/dashboard').then(res => {
+      setStreak(res.data.streak || 0);
     }).catch(() => {});
   }, []);
 
@@ -54,7 +58,15 @@ export default function PrayerPage() {
           </svg>
         </button>
         <p className="text-white/70 text-sm mb-1">Prayer Room</p>
-        <h2 className="text-2xl font-bold text-white mb-4">Who will you pray<br />for today?</h2>
+        <h2 className="text-2xl font-bold text-white mb-2">Who will you pray<br />for today?</h2>
+        {streak !== null && streak > 0 && (
+          <div className="flex items-center gap-2 mb-4">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="rgba(255,255,255,0.9)" stroke="none">
+              <path d="M12 2c0 0-6 6-6 11a6 6 0 0 0 12 0c0-5-6-11-6-11zm0 15a2 2 0 0 1-2-2c0-2 2-5 2-5s2 3 2 5a2 2 0 0 1-2 2z"/>
+            </svg>
+            <p className="text-white/80 text-sm font-semibold">{streak} day streak</p>
+          </div>
+        )}
 
         {/* Quota widget */}
         <div className="bg-white/15 backdrop-blur border border-white/20 rounded-2xl px-4 py-3">
