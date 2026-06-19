@@ -9,6 +9,10 @@ import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import Search from './pages/Search';
 import Settings from './pages/Settings';
+import AccountSettings from './pages/AccountSettings';
+import NotificationSettings from './pages/NotificationSettings';
+import PrayerReminders from './pages/PrayerReminders';
+import ContactUs from './pages/ContactUs';
 import Home from './pages/Home';
 import Profile from './pages/Profile';
 import Notifications from './pages/Notifications';
@@ -67,6 +71,10 @@ function AppRoutes() {
         <Route path="prayer/:id" element={<PrayerDetail />} />
         <Route path="search" element={<Search />} />
         <Route path="settings" element={<Settings />} />
+        <Route path="settings/account" element={<AccountSettings />} />
+        <Route path="settings/notifications" element={<NotificationSettings />} />
+        <Route path="settings/reminders" element={<PrayerReminders />} />
+        <Route path="settings/contact" element={<ContactUs />} />
         <Route path="bible-bot" element={<BibleBot />} />
         <Route path="notifications" element={<Notifications />} />
         <Route path="profile" element={<Profile />} />

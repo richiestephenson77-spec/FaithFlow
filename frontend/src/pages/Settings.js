@@ -49,9 +49,9 @@ export default function Settings() {
         <div>
           <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 px-1">Account</p>
           <div className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm">
-            <SettingsRow icon="👤" label="Account Settings" sublabel="Email, password, personal info" onClick={() => {}} />
+            <SettingsRow icon="👤" label="Account Settings" sublabel="Email, password, personal info" onClick={() => navigate('account')} />
             <div className="h-px bg-gray-100 mx-5" />
-            <SettingsRow icon="🔔" label="Notifications" sublabel="Prayer alerts, followers, comments" onClick={() => {}} />
+            <SettingsRow icon="🔔" label="Notifications" sublabel="Prayer alerts, followers, comments" onClick={() => navigate('notifications')} />
             <div className="h-px bg-gray-100 mx-5" />
             <SettingsRow icon="🔒" label="Privacy" sublabel="Who can see your profile" onClick={() => {}} />
           </div>
@@ -61,7 +61,7 @@ export default function Settings() {
         <div>
           <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 px-1">App</p>
           <div className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm">
-            <SettingsRow icon="🙏" label="Prayer Reminders" sublabel="Set daily prayer time reminders" onClick={() => {}} />
+            <SettingsRow icon="🙏" label="Prayer Reminders" sublabel="Set daily prayer time reminders" onClick={() => navigate('reminders')} />
             <div className="h-px bg-gray-100 mx-5" />
             <SettingsRow icon="📖" label="Bible Version" sublabel="KJV, NIV, ESV and more" onClick={() => {}} />
           </div>
@@ -71,7 +71,7 @@ export default function Settings() {
         <div>
           <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 px-1">Support</p>
           <div className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm">
-            <SettingsRow icon="💬" label="Contact Us" sublabel="Get help or send feedback" onClick={() => {}} />
+            <SettingsRow icon="💬" label="Contact Us" sublabel="Get help or send feedback" onClick={() => navigate('contact')} />
             <div className="h-px bg-gray-100 mx-5" />
             <SettingsRow icon="⭐" label="Rate FaithFlow" sublabel="Support us with a review" onClick={() => {}} />
           </div>

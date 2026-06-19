@@ -59,6 +59,14 @@ model User {
   userPastorRequests PastorPrayerRequest[] @relation("UserPastorRequests")
   prayerPastorAccess PrayerPastorAccess[]
 
+  notifyPrayerStarted  Boolean @default(true)
+  notifyNewFollower    Boolean @default(true)
+  notifyPostLike       Boolean @default(true)
+  notifyPostComment    Boolean @default(true)
+
+  prayerReminderEnabled Boolean @default(false)
+  prayerReminderTime    String?
+
   @@map("users")
 }
 
