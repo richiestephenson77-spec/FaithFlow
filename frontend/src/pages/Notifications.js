@@ -1,82 +1,121 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Bell, Heart, MessageCircle, UserPlus, Sparkles } from 'lucide-react';
 import api from '../utils/api';
 import { useSocket } from '../contexts/SocketContext';
-import { staggerContainerFast, staggerItem } from '../utils/animations';
+import Avatar from '../components/Avatar';
 
-const TYPE_ICON = {
-  PRAYER_STARTED: '🙏',
-  NEW_FOLLOWER: '👥',
-  POST_LIKE: '❤️',
-  POST_COMMENT: '💬',
+function getTimeAgo(dateStr) {
+  const diff = Date.now() - new Date(dateStr);
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return 'just now';
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  return `${Math.floor(h / 24)}d ago`;
+}
+
+const TYPE_META = {
+  PRAYER_STARTED:  { Icon: Sparkles,      color: '#f59e0b', bg: '#fffbeb' },
+  PRAYER_ANSWERED: { Icon: Sparkles,      color: '#10b981', bg: '#f0fdf4' },
+  NEW_FOLLOWER:    { Icon: UserPlus,      color: '#6366f1', bg: '#eef2ff' },
+  POST_LIKE:       { Icon: Heart,         color: '#ef4444', bg: '#fef2f2' },
+  POST_COMMENT:    { Icon: MessageCircle, color: '#3b82f6', bg: '#eff6ff' },
 };
 
-function NotificationRow({ n }) {
+function NotificationCard({ n, onFollowBack }) {
   const navigate = useNavigate();
+  const meta = TYPE_META[n.type] || { Icon: Bell, color: '#9ca3af', bg: '#f9fafb' };
+  const { Icon, color, bg } = meta;
   const senderName = n.sender?.name;
   const senderId = n.sender?.id;
 
-  // Split message to make sender name clickable
-  // Typical messages: "John started praying for you", "John followed you", "John liked your post"
   let content;
   if (senderName && senderId && n.message.startsWith(senderName)) {
     const rest = n.message.slice(senderName.length);
     content = (
       <span>
-        <Link
-          to={`/profile/${senderId}`}
-          className="font-bold text-faith-600"
-          onClick={e => e.stopPropagation()}
-        >
+        <Link to={`/profile/${senderId}`} className="font-semibold text-gray-900" onClick={e => e.stopPropagation()}>
           {senderName}
         </Link>
-        {rest}
+        <span className="text-gray-600">{rest}</span>
       </span>
     );
   } else {
-    content = <span>{n.message}</span>;
+    content = <span className="text-gray-700">{n.message}</span>;
   }
 
   return (
-    <button
+    <motion.div
+      layout
+      initial={{ opacity: 0, x: n.isRead ? 0 : -14 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ type: 'spring', stiffness: 300, damping: 28 }}
       onClick={() => senderId && navigate(`/profile/${senderId}`)}
-      className={`w-full flex items-center gap-3 p-4 rounded-2xl border text-left fade-in transition-colors active:scale-[0.98] ${
-        !n.isRead ? 'bg-faith-50 border-faith-100' : 'bg-white border-gray-100'
-      }`}
+      className="relative flex items-start gap-3 px-4 py-3.5 cursor-pointer active:bg-gray-100/60 transition-colors"
+      style={{ background: !n.isRead ? 'rgba(251,191,36,0.06)' : 'transparent' }}
     >
-      {/* Avatar or emoji icon */}
-      <div className="flex-shrink-0">
-        {n.sender?.profilePhoto ? (
-          <img
-            src={n.sender.profilePhoto}
-            alt={senderName}
-            className="w-10 h-10 rounded-full object-cover"
-          />
-        ) : senderName ? (
-          <div className="w-10 h-10 rounded-full bg-faith-100 flex items-center justify-center text-faith-600 font-bold text-sm">
-            {senderName[0].toUpperCase()}
-          </div>
+      {!n.isRead && (
+        <div className="absolute left-0 top-4 bottom-4 w-[3px] rounded-r-full bg-amber-400" />
+      )}
+
+      <div className="flex-shrink-0 relative">
+        {n.sender ? (
+          <Avatar user={n.sender} size="md" />
         ) : (
-          <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-xl">
-            {TYPE_ICON[n.type] || '🔔'}
+          <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: bg }}>
+            <Icon size={18} color={color} strokeWidth={1.8} />
+          </div>
+        )}
+        {n.sender && (
+          <div
+            className="absolute -bottom-0.5 -right-0.5 w-5 h-5 rounded-full flex items-center justify-center border-2 border-white"
+            style={{ background: bg }}
+          >
+            <Icon size={10} color={color} strokeWidth={2.5} />
           </div>
         )}
       </div>
 
       <div className="flex-1 min-w-0">
-        <p className="text-sm text-gray-700 leading-snug">{content}</p>
-        {n.createdAt && (
-          <p className="text-xs text-gray-400 mt-0.5">{getTimeAgo(n.createdAt)}</p>
+        <p className="text-sm leading-snug">{content}</p>
+        <p className="text-xs text-gray-400 mt-0.5">{getTimeAgo(n.createdAt)}</p>
+
+        {n.type === 'NEW_FOLLOWER' && !n.isFollowedByMe && (
+          <motion.button
+            whileTap={{ scale: 0.95 }}
+            onClick={e => { e.stopPropagation(); onFollowBack(n); }}
+            className="mt-2 text-xs font-semibold px-3.5 py-1.5 rounded-full text-white"
+            style={{ background: '#111827' }}
+          >
+            Follow Back
+          </motion.button>
+        )}
+        {n.type === 'NEW_FOLLOWER' && n.isFollowedByMe && (
+          <span className="mt-1.5 inline-block text-xs text-gray-400">Following</span>
         )}
       </div>
-
-      {!n.isRead && (
-        <div className="w-2 h-2 bg-faith-500 rounded-full flex-shrink-0" />
-      )}
-    </button>
+    </motion.div>
   );
 }
+
+function Section({ title, items, onFollowBack }) {
+  if (!items.length) return null;
+  return (
+    <div className="mb-5">
+      <p className="text-xs font-bold text-gray-400 uppercase tracking-widest px-5 mb-2">{title}</p>
+      <div className="bg-white rounded-2xl mx-4 overflow-hidden divide-y divide-gray-100" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.05)' }}>
+        {items.map((n, i) => (
+          <NotificationCard key={n.id || i} n={n} onFollowBack={onFollowBack} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+const PRAYER_TYPES = new Set(['PRAYER_STARTED', 'PRAYER_ANSWERED', 'LEVEL_UP']);
+const PEOPLE_TYPES = new Set(['NEW_FOLLOWER', 'POST_LIKE', 'POST_COMMENT']);
 
 export default function Notifications() {
   const [notifications, setNotifications] = useState([]);
@@ -92,47 +131,86 @@ export default function Notifications() {
     markAllRead();
   }, []);
 
-  const all = [...live, ...notifications];
+  const merged = [...live, ...notifications];
   const seen = new Set();
-  const deduped = all.filter(n => {
+  const deduped = merged.filter(n => {
     const key = n.id || `${n.type}-${n.message}`;
     if (seen.has(key)) return false;
     seen.add(key);
     return true;
   });
 
+  const DAY = 86400000;
+  const now = Date.now();
+  const newGroup = deduped.filter(n => !n.isRead && (now - new Date(n.createdAt)) < DAY);
+  const newIds = new Set(newGroup.map(n => n.id));
+  const rest = deduped.filter(n => !newIds.has(n.id));
+  const prayerGroup = rest.filter(n => PRAYER_TYPES.has(n.type));
+  const peopleGroup = rest.filter(n => PEOPLE_TYPES.has(n.type));
+  const otherGroup = rest.filter(n => !PRAYER_TYPES.has(n.type) && !PEOPLE_TYPES.has(n.type));
+
+  const hasUnread = deduped.some(n => !n.isRead);
+
+  async function handleMarkAllRead() {
+    setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+    markAllRead();
+    await api.post('/notifications/read-all').catch(() => {});
+  }
+
+  async function handleFollowBack(n) {
+    if (!n.sender?.id) return;
+    setNotifications(prev => prev.map(x => x.id === n.id ? { ...x, isFollowedByMe: true } : x));
+    await api.post(`/users/${n.sender.id}/follow`).catch(() => {
+      setNotifications(prev => prev.map(x => x.id === n.id ? { ...x, isFollowedByMe: false } : x));
+    });
+  }
+
   return (
-    <div className="px-4 py-4">
-      <h2 className="text-lg font-bold text-gray-800 mb-4">Notifications</h2>
+    <div className="bg-gray-50 min-h-full pb-28">
+      <div className="flex items-center justify-between px-5 pt-5 pb-4">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900">Notifications</h2>
+          <p className="text-sm text-gray-400 mt-0.5">Your faith community activity</p>
+        </div>
+        <AnimatePresence>
+          {hasUnread && (
+            <motion.button
+              initial={{ opacity: 0, scale: 0.85 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.85 }}
+              onClick={handleMarkAllRead}
+              className="text-xs font-semibold px-3 py-1.5 rounded-full bg-amber-50 text-amber-600 border border-amber-200"
+            >
+              Mark all read
+            </motion.button>
+          )}
+        </AnimatePresence>
+      </div>
 
       {loading ? (
-        <div className="space-y-2">
-          {[1,2,3].map(i => <div key={i} className="h-16 bg-gray-100 rounded-2xl animate-pulse" />)}
+        <div className="space-y-3 px-4">
+          {[1, 2, 3, 4].map(i => (
+            <div key={i} className="h-20 bg-white rounded-2xl animate-pulse" />
+          ))}
         </div>
       ) : deduped.length === 0 ? (
-        <div className="text-center py-12 text-gray-400">
-          <div className="text-4xl mb-3">🔔</div>
-          <p>No notifications yet</p>
+        <div className="flex flex-col items-center justify-center py-24 px-8">
+          <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
+            <Bell size={28} color="#d1d5db" strokeWidth={1.5} />
+          </div>
+          <p className="font-semibold text-gray-600 text-center">No notifications yet</p>
+          <p className="text-sm text-gray-400 text-center mt-1">
+            When someone prays for you or follows you, you'll see it here.
+          </p>
         </div>
       ) : (
-        <motion.div className="space-y-2" {...staggerContainerFast} initial="initial" animate="animate">
-          {deduped.map((n, i) => (
-            <motion.div key={n.id || i} variants={staggerItem}>
-              <NotificationRow n={n} />
-            </motion.div>
-          ))}
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2 }}>
+          <Section title="New" items={newGroup} onFollowBack={handleFollowBack} />
+          <Section title="Prayer Activity" items={prayerGroup} onFollowBack={handleFollowBack} />
+          <Section title="People" items={peopleGroup} onFollowBack={handleFollowBack} />
+          <Section title="Other" items={otherGroup} onFollowBack={handleFollowBack} />
         </motion.div>
       )}
     </div>
   );
-}
-
-function getTimeAgo(dateStr) {
-  const diff = Date.now() - new Date(dateStr);
-  const m = Math.floor(diff / 60000);
-  if (m < 1) return 'just now';
-  if (m < 60) return `${m}m ago`;
-  const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h ago`;
-  return `${Math.floor(h / 24)}d ago`;
 }

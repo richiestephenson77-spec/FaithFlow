@@ -11,7 +11,6 @@ router.get('/', authenticate, async (req, res) => {
     take: 50,
   });
 
-  // Attach sender info via fromUser field (batch lookup)
   const senderIds = [...new Set(notifications.map(n => n.fromUser).filter(Boolean))];
   let senderMap = {};
   if (senderIds.length > 0) {
@@ -22,9 +21,23 @@ router.get('/', authenticate, async (req, res) => {
     senderMap = Object.fromEntries(senders.map(s => [s.id, s]));
   }
 
+  // Check which NEW_FOLLOWER senders the current user follows back
+  const followerSenderIds = notifications
+    .filter(n => n.type === 'NEW_FOLLOWER' && n.fromUser)
+    .map(n => n.fromUser);
+  let followedBackSet = new Set();
+  if (followerSenderIds.length > 0) {
+    const followedBack = await prisma.follow.findMany({
+      where: { followerId: req.user.id, followingId: { in: followerSenderIds } },
+      select: { followingId: true },
+    });
+    followedBackSet = new Set(followedBack.map(f => f.followingId));
+  }
+
   res.json(notifications.map(n => ({
     ...n,
     sender: n.fromUser ? (senderMap[n.fromUser] || null) : null,
+    isFollowedByMe: n.type === 'NEW_FOLLOWER' && n.fromUser ? followedBackSet.has(n.fromUser) : undefined,
   })));
 });
 

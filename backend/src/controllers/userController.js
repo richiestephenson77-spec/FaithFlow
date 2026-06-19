@@ -108,14 +108,21 @@ async function follow(req, res) {
     await prisma.follow.create({ data: { followerId: req.user.id, followingId: id } });
 
     const me = await prisma.user.findUnique({ where: { id: req.user.id }, select: { name: true } });
-    await prisma.notification.create({
-      data: {
-        userId: id,
-        type: 'NEW_FOLLOWER',
-        message: `${me.name} started following you`,
-        fromUser: req.user.id,
-      },
+
+    // Deduplicate: only create notification if no unread NEW_FOLLOWER from this user exists
+    const existingNotif = await prisma.notification.findFirst({
+      where: { userId: id, type: 'NEW_FOLLOWER', fromUser: req.user.id, isRead: false },
     });
+    if (!existingNotif) {
+      await prisma.notification.create({
+        data: {
+          userId: id,
+          type: 'NEW_FOLLOWER',
+          message: `${me.name} started following you`,
+          fromUser: req.user.id,
+        },
+      });
+    }
 
     const io = req.app.get('io');
     const { notifyUser } = require('../services/socketService');
