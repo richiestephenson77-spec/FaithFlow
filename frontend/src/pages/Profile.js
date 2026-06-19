@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import api from '../utils/api';
 import { useAuth } from '../contexts/AuthContext';
-import Avatar from '../components/Avatar';
 import PostGrid from '../components/PostGrid';
 import FollowListModal from '../components/FollowListModal';
 
@@ -34,9 +33,7 @@ export default function Profile() {
   const [quotaStats, setQuotaStats] = useState(null);
 
   const profilePhotoRef = useRef();
-  const coverPhotoRef = useRef();
   const [previewProfile, setPreviewProfile] = useState(null);
-  const [previewCover, setPreviewCover] = useState(null);
 
   useEffect(() => {
     async function load() {
@@ -87,14 +84,12 @@ export default function Profile() {
       const formData = new FormData();
       Object.entries(editForm).forEach(([k, v]) => formData.append(k, v));
       if (profilePhotoRef.current?.files[0]) formData.append('profilePhoto', profilePhotoRef.current.files[0]);
-      if (coverPhotoRef.current?.files[0]) formData.append('coverPhoto', coverPhotoRef.current.files[0]);
 
       const res = await api.put('/users/me', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
       setProfile(p => ({ ...p, ...res.data }));
       updateUser(res.data);
       setEditing(false);
       setPreviewProfile(null);
-      setPreviewCover(null);
     } catch {}
     setSaving(false);
   }
@@ -105,64 +100,76 @@ export default function Profile() {
   const { stats } = profile;
 
   return (
-    <div className="pb-4">
-      {/* Cover Photo */}
-      <div className="relative h-40 bg-gradient-to-br from-faith-700 to-faith-500 overflow-hidden">
-        {profile.coverPhoto && !profile.coverPhoto.includes('cover') && (
-          <img src={profile.coverPhoto} alt="" className="w-full h-full object-cover" />
-        )}
-        <div className="absolute inset-0 bg-black/10" />
-
-        {/* Profile photo floating */}
-        <div className="absolute -bottom-12 left-4">
-          <div className="relative">
-            <div className="ring-4 ring-white rounded-full shadow-lg">
-              <Avatar user={profile} size="xl" />
+    <div className="pb-4 bg-gray-50 min-h-full">
+      {/* Profile Header — white card */}
+      <div className="bg-white border-b border-gray-100 px-4 pt-5 pb-5">
+        {/* Top row: photo + name block + action buttons */}
+        <div className="flex items-start gap-4">
+          {/* Profile photo — tappable on own profile */}
+          <button
+            onClick={isOwnProfile ? () => profilePhotoRef.current?.click() : undefined}
+            className="relative flex-shrink-0 group"
+          >
+            <div className="w-[70px] h-[70px] rounded-full overflow-hidden ring-2 ring-gray-100 shadow-sm">
+              {(previewProfile || profile.profilePhoto)
+                ? <img src={previewProfile || profile.profilePhoto} alt="profile" className="w-full h-full object-cover" />
+                : <div className="w-full h-full flex items-center justify-center bg-faith-100 text-faith-600 font-bold text-2xl">
+                    {profile.name?.[0]?.toUpperCase()}
+                  </div>
+              }
             </div>
+            {isOwnProfile && (
+              <div className="absolute bottom-0 right-0 w-5 h-5 bg-faith-600 rounded-full flex items-center justify-center shadow">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                  <circle cx="12" cy="13" r="4"/>
+                </svg>
+              </div>
+            )}
+          </button>
+
+          {/* Name + church + location */}
+          <div className="flex-1 min-w-0">
+            <h2 className="text-lg font-extrabold text-gray-900 leading-tight">{profile.name}</h2>
+            {profile.churchName && (
+              <p className="text-faith-600 text-sm mt-0.5 font-medium">{profile.churchName}</p>
+            )}
+            {profile.location && (
+              <p className="text-gray-400 text-xs mt-0.5">{profile.location}</p>
+            )}
+            {profile.bio && (
+              <p className="text-gray-500 text-xs mt-1.5 leading-snug line-clamp-2">{profile.bio}</p>
+            )}
+          </div>
+
+          {/* Action buttons — top-right */}
+          <div className="flex-shrink-0 flex gap-2 mt-0.5">
+            {isOwnProfile ? (
+              <>
+                <button onClick={() => setEditing(true)}
+                  className="border border-gray-200 text-gray-700 text-xs px-3 py-1.5 rounded-full font-semibold bg-white">
+                  Edit Profile
+                </button>
+                <Link to="/settings"
+                  className="border border-gray-200 text-gray-500 w-7 h-7 rounded-full flex items-center justify-center bg-white">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                  </svg>
+                </Link>
+              </>
+            ) : (
+              <button onClick={handleFollow}
+                className={`text-sm px-5 py-2 rounded-full font-bold shadow-sm ${following
+                  ? 'bg-gray-100 text-gray-600 border border-gray-200'
+                  : 'bg-amber-400 text-white'}`}>
+                {following ? 'Following ✓' : 'Follow 🙏'}
+              </button>
+            )}
           </div>
         </div>
 
-        {/* Action buttons top right */}
-        <div className="absolute top-3 right-3 flex gap-2">
-          {isOwnProfile ? (
-            <>
-              <button onClick={() => setEditing(true)}
-                className="bg-black/30 backdrop-blur-sm text-white text-xs px-4 py-1.5 rounded-full font-semibold border border-white/30">
-                Edit Profile
-              </button>
-              <Link to="/settings"
-                className="bg-black/30 backdrop-blur-sm text-white w-8 h-8 rounded-full flex items-center justify-center border border-white/30">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-                </svg>
-              </Link>
-            </>
-          ) : (
-            <button onClick={handleFollow}
-              className={`text-xs px-5 py-2 rounded-full font-bold shadow-lg ${following
-                ? 'bg-white/20 backdrop-blur-sm text-white border border-white/40'
-                : 'bg-white text-faith-700'}`}>
-              {following ? 'Following' : 'Follow'}
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Profile Info */}
-      <div className="mt-14 px-4 mb-4">
-        <h2 className="text-xl font-bold text-gray-900">{profile.name}</h2>
-        {profile.churchName && (
-          <p className="text-faith-600 text-sm mt-0.5 font-medium">{profile.churchName}</p>
-        )}
-        {profile.location && (
-          <p className="text-gray-400 text-xs mt-0.5">{profile.location}</p>
-        )}
-        {profile.bio && (
-          <p className="text-gray-600 text-sm mt-2 leading-relaxed">{profile.bio}</p>
-        )}
-
-        {/* Counts */}
-        <div className="flex gap-6 mt-4">
+        {/* Stats row */}
+        <div className="flex gap-8 mt-4 pt-4 border-t border-gray-50">
           <button onClick={() => setFollowModal('followers')} className="text-center">
             <p className="text-lg font-bold text-gray-900 leading-tight">{profile._count?.followers || 0}</p>
             <p className="text-xs text-gray-400">Believers</p>
@@ -178,9 +185,23 @@ export default function Profile() {
         </div>
       </div>
 
+      {/* Find Believers button — own profile only */}
+      {isOwnProfile && (
+        <div className="px-4 mt-3 mb-1">
+          <button onClick={() => navigate('/search')}
+            className="w-full border border-gray-200 text-gray-600 rounded-2xl py-2.5 text-sm font-semibold flex items-center justify-center gap-2 bg-white">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+            Find Believers
+          </button>
+        </div>
+      )}
+
       {/* Prayer Stats */}
       {stats && (
-        <div className="px-4 mb-4">
+        <div className="px-4 mt-4 mb-4">
           <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Prayer Statistics</p>
 
           {/* Streak highlight card */}
@@ -352,17 +373,6 @@ export default function Profile() {
             <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-4" />
             <h3 className="text-lg font-bold mb-4">Edit Profile</h3>
 
-            {/* Cover Photo Preview */}
-            <div className="relative h-24 rounded-xl mb-4 overflow-hidden bg-gray-100 cursor-pointer"
-              onClick={() => coverPhotoRef.current?.click()}>
-              {(previewCover || profile.coverPhoto) && (
-                <img src={previewCover || profile.coverPhoto} alt="cover" className="w-full h-full object-cover" />
-              )}
-              <div className="absolute inset-0 flex items-center justify-center bg-black/30 text-white text-sm font-medium">
-                {previewCover || profile.coverPhoto ? '📷 Change Cover Photo' : '📷 Add Cover Photo'}
-              </div>
-            </div>
-
             {/* Profile Photo Picker */}
             <div className="flex items-center gap-3 mb-4 p-3 bg-gray-50 rounded-xl border border-gray-200 cursor-pointer"
               onClick={() => profilePhotoRef.current?.click()}>
@@ -380,8 +390,6 @@ export default function Profile() {
               </div>
             </div>
 
-            <input ref={coverPhotoRef} type="file" accept="image/*" className="hidden"
-              onChange={e => setPreviewCover(URL.createObjectURL(e.target.files[0]))} />
             <input ref={profilePhotoRef} type="file" accept="image/*" className="hidden"
               onChange={e => setPreviewProfile(URL.createObjectURL(e.target.files[0]))} />
 

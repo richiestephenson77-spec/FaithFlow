@@ -115,11 +115,20 @@ export default function MyPrayerRequestsDrawer({ onClose }) {
               >
                 <div className="flex items-start justify-between gap-2">
                   <p className="font-semibold text-gray-900 text-sm leading-snug flex-1">{req.title}</p>
-                  <span className={`flex-shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                    req.isAnswered ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'
-                  }`}>
-                    {req.isAnswered ? '🙌 Answered' : 'Active'}
-                  </span>
+                  <div className="flex items-center gap-1 flex-shrink-0">
+                    {req.visibility && req.visibility !== 'PUBLIC' && (
+                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                        req.visibility === 'PRIVATE' ? 'bg-gray-100 text-gray-500' : 'bg-purple-50 text-purple-600'
+                      }`}>
+                        {req.visibility === 'PRIVATE' ? '🔒' : '✝️'}
+                      </span>
+                    )}
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                      req.isAnswered ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'
+                    }`}>
+                      {req.isAnswered ? '🙌 Answered' : 'Active'}
+                    </span>
+                  </div>
                 </div>
                 <div className="flex items-center gap-3 mt-2">
                   <span className="text-xs text-gray-400">{getTimeAgo(req.createdAt)}</span>

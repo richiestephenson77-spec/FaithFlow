@@ -40,7 +40,13 @@ export function SocketProvider({ children }) {
 
     socket.on('prayerStarted', (data) => {
       setNotifications((prev) => [
-        { ...data, id: Date.now(), type: 'PRAYER_STARTED', isRead: false },
+        {
+          ...data,
+          id: Date.now(),
+          type: 'PRAYER_STARTED',
+          isRead: false,
+          sender: data.fromUser ? { id: data.fromUser.id, name: data.fromUser.name, profilePhoto: data.fromUser.profilePhoto || null } : null,
+        },
         ...prev,
       ]);
       setUnreadCount(c => c + 1);

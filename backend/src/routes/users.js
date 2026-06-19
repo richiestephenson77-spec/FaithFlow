@@ -1,6 +1,8 @@
 const router = require('express').Router();
 const { authenticate } = require('../middleware/auth');
 const { uploadProfile } = require('../services/cloudinaryService');
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
 const {
   getProfile, getMe, updateProfile, follow,
   getFollowers, getFollowing, getDashboard, searchUsers,
@@ -15,6 +17,19 @@ router.put('/me', authenticate, (req, res, next) => {
     next();
   });
 }, updateProfile);
+router.patch('/location', authenticate, async (req, res) => {
+  const { latitude, longitude } = req.body;
+  if (latitude == null || longitude == null) return res.status(400).json({ error: 'latitude and longitude required' });
+  try {
+    await prisma.user.update({
+      where: { id: req.user.id },
+      data: { latitude: parseFloat(latitude), longitude: parseFloat(longitude) },
+    });
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to save location' });
+  }
+});
 router.get('/:id', authenticate, getProfile);
 router.post('/:id/follow', authenticate, follow);
 router.get('/:id/followers', authenticate, getFollowers);

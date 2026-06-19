@@ -3,8 +3,16 @@ const prisma = new PrismaClient();
 
 async function getPastors(req, res) {
   try {
+    const { search } = req.query;
+    const where = { isVerifiedPastor: true };
+    if (search && search.length >= 2) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { pastorChurch: { contains: search, mode: 'insensitive' } },
+      ];
+    }
     const pastors = await prisma.user.findMany({
-      where: { isVerifiedPastor: true },
+      where,
       select: { id: true, name: true, profilePhoto: true, pastorTitle: true, pastorChurch: true, pastorBio: true },
     });
     res.json(pastors);
@@ -59,6 +67,36 @@ async function getPastorDashboard(req, res) {
   }
 }
 
+async function getPrivatePrayers(req, res) {
+  if (!req.user.isVerifiedPastor) return res.status(403).json({ error: 'Not a pastor' });
+  try {
+    const prayers = await prisma.prayerRequest.findMany({
+      where: {
+        isActive: true, isAnswered: false,
+        OR: [
+          { visibility: 'PRIVATE' },
+          { visibility: 'PASTOR_ONLY', pastorAccess: { some: { pastorId: req.user.id } } },
+        ],
+      },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        user: { select: { id: true, name: true, profilePhoto: true, location: true } },
+        _count: { select: { sessions: true } },
+      },
+    });
+    res.json(prayers.map(r => ({
+      ...r,
+      totalPrayerCount: r._count.sessions,
+      displayLocation: r.user?.location ? `From ${r.user.location}` : 'Anonymous Believer',
+      user: { id: null, name: null, profilePhoto: null },
+      _count: undefined,
+    })));
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed' });
+  }
+}
+
 async function respondToRequest(req, res) {
   const { id } = req.params;
   const { response, status } = req.body;
@@ -79,4 +117,4 @@ async function respondToRequest(req, res) {
   }
 }
 
-module.exports = { getPastors, submitPrayerRequest, getMyRequests, getPastorDashboard, respondToRequest };
+module.exports = { getPastors, submitPrayerRequest, getMyRequests, getPastorDashboard, respondToRequest, getPrivatePrayers };

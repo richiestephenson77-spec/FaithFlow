@@ -13,7 +13,7 @@ function getTimeAgo(dateStr) {
   return `${Math.floor(h / 24)}d ago`;
 }
 
-export default function TopPrayerCard({ request, currentUserId, onPray, onUserClick, onMarkAnswered, onViewTestimony, rank }) {
+export default function TopPrayerCard({ request, currentUserId, onPray, onUserClick, onMarkAnswered, onViewTestimony, rank, showDistance }) {
   const isOwner = request.user?.id === currentUserId;
   const borderColor = BORDER[rank] || '#e5e7eb';
   const medal = MEDAL[rank];
@@ -34,16 +34,33 @@ export default function TopPrayerCard({ request, currentUserId, onPray, onUserCl
       )}
 
       <div className="flex items-start gap-3 mt-1">
-        <button onClick={onUserClick} className="flex-shrink-0">
-          <Avatar user={request.user} size="md" />
+        <button onClick={!request.isAnonymous ? onUserClick : undefined} className="flex-shrink-0">
+          {request.isAnonymous ? (
+            <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+              </svg>
+            </div>
+          ) : (
+            <Avatar user={request.user} size="md" />
+          )}
         </button>
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
             <div>
-              <button onClick={onUserClick} className="font-semibold text-gray-900 text-sm leading-tight text-left hover:underline">
-                {request.user?.name}
-              </button>
-              {request.user?.churchName && (
+              {request.isAnonymous ? (
+                <div className="flex items-center gap-1 mt-0.5">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                  </svg>
+                  <p className="text-xs font-semibold text-gray-500">{request.displayLocation || 'Anonymous Believer'}</p>
+                </div>
+              ) : (
+                <button onClick={onUserClick} className="font-semibold text-gray-900 text-sm leading-tight text-left hover:underline">
+                  {request.user?.name}
+                </button>
+              )}
+              {!request.isAnonymous && request.user?.churchName && (
                 <p className="text-xs text-faith-500 mt-0.5">{request.user.churchName}</p>
               )}
             </div>
@@ -57,6 +74,9 @@ export default function TopPrayerCard({ request, currentUserId, onPray, onUserCl
           <p className="text-xs font-semibold text-amber-600 mt-2">
             🌍 {request.prayerCount} {request.prayerCount === 1 ? 'person' : 'people'} praying worldwide
           </p>
+          {showDistance && request.distanceKm != null && (
+            <p className="text-xs text-gray-400 mt-0.5">📍 {request.distanceKm} km away</p>
+          )}
 
           <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-50">
             <div />

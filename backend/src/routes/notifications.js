@@ -10,7 +10,22 @@ router.get('/', authenticate, async (req, res) => {
     orderBy: { createdAt: 'desc' },
     take: 50,
   });
-  res.json(notifications);
+
+  // Attach sender info via fromUser field (batch lookup)
+  const senderIds = [...new Set(notifications.map(n => n.fromUser).filter(Boolean))];
+  let senderMap = {};
+  if (senderIds.length > 0) {
+    const senders = await prisma.user.findMany({
+      where: { id: { in: senderIds } },
+      select: { id: true, name: true, profilePhoto: true },
+    });
+    senderMap = Object.fromEntries(senders.map(s => [s.id, s]));
+  }
+
+  res.json(notifications.map(n => ({
+    ...n,
+    sender: n.fromUser ? (senderMap[n.fromUser] || null) : null,
+  })));
 });
 
 router.post('/read-all', authenticate, async (req, res) => {

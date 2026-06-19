@@ -10,6 +10,7 @@ import TestimonyModal from '../components/TestimonyModal';
 import MyPrayerRequestsDrawer from '../components/MyPrayerRequestsDrawer';
 import PrayerQueue from './PrayerQueue';
 import TopPrayerCard from '../components/TopPrayerCard';
+import LocationBanner from '../components/LocationBanner';
 
 const FILTER_TABS = [
   { id: 'ALL',          label: 'All' },
@@ -57,6 +58,16 @@ export default function Home() {
   const [showMyRequests, setShowMyRequests] = useState(false);
   const [quota, setQuota] = useState(null);
   const [showQueue, setShowQueue] = useState(false);
+  const [nearMe, setNearMe] = useState(false);
+  const [radius, setRadius] = useState(25);
+  const [userCoords, setUserCoords] = useState(() => {
+    const lat = localStorage.getItem('user_lat');
+    const lng = localStorage.getItem('user_lng');
+    return lat && lng ? { latitude: parseFloat(lat), longitude: parseFloat(lng) } : null;
+  });
+  const [showLocationBanner, setShowLocationBanner] = useState(() => {
+    return !localStorage.getItem('user_lat') && !localStorage.getItem('location_denied');
+  });
 
   // Show in-app toast when someone prays for you
   useEffect(() => {
@@ -83,17 +94,33 @@ export default function Home() {
     return () => socket.off('prayer_count_updated', handler);
   }, [socket]);
 
-  const loadFeed = useCallback(async (isRefresh = false) => {
+  const loadFeed = useCallback(async (isRefresh = false, opts = {}) => {
     if (isRefresh) setRefreshing(true); else setLoading(true);
     try {
-      const res = await api.get('/prayers/feed');
+      const params = {};
+      const coords = opts.coords !== undefined ? opts.coords : userCoords;
+      const useNear = opts.nearMe !== undefined ? opts.nearMe : nearMe;
+      const km = opts.radius !== undefined ? opts.radius : radius;
+      if (useNear && coords) {
+        params.radius = km;
+        params.lat = coords.latitude;
+        params.lng = coords.longitude;
+      }
+      const res = await api.get('/prayers/feed', { params });
       setTop3(res.data.top3 || []);
       setRestPrayers(res.data.rest || []);
     } catch {}
     if (isRefresh) setRefreshing(false); else setLoading(false);
-  }, []);
+  }, [userCoords, nearMe, radius]);
 
   useEffect(() => { loadFeed(); }, [loadFeed]);
+
+  // Debounce radius re-fetch
+  useEffect(() => {
+    if (!nearMe) return;
+    const t = setTimeout(() => loadFeed(false, { nearMe, radius, coords: userCoords }), 500);
+    return () => clearTimeout(t);
+  }, [radius]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     api.get('/users/me/dashboard').then(res => {
@@ -224,6 +251,60 @@ export default function Home() {
         {/* Prayer Room tile */}
         <PrayerRoomTile quota={quota} onTap={() => setShowQueue(true)} />
 
+        {/* Location banner */}
+        {showLocationBanner && (
+          <LocationBanner onLocationGranted={(coords) => {
+            setShowLocationBanner(false);
+            if (coords) setUserCoords(coords);
+          }} />
+        )}
+
+        {/* Worldwide / Near Me toggle */}
+        <div className="mb-3">
+          <div className="flex gap-2 mb-2">
+            <button
+              onClick={() => { setNearMe(false); loadFeed(false, { nearMe: false }); }}
+              className={`flex-1 py-2 rounded-full text-xs font-bold border transition-all ${
+                !nearMe ? 'prayer-gradient text-white border-transparent shadow-sm' : 'bg-white text-gray-500 border-gray-200'
+              }`}
+            >
+              🌍 Worldwide
+            </button>
+            <button
+              onClick={() => {
+                if (!userCoords) {
+                  setShowLocationBanner(true);
+                  return;
+                }
+                setNearMe(true);
+                loadFeed(false, { nearMe: true, radius, coords: userCoords });
+              }}
+              className={`flex-1 py-2 rounded-full text-xs font-bold border transition-all ${
+                nearMe ? 'prayer-gradient text-white border-transparent shadow-sm' : 'bg-white text-gray-500 border-gray-200'
+              }`}
+            >
+              📍 Near Me
+            </button>
+          </div>
+          {nearMe && (
+            <div className="bg-white border border-gray-100 rounded-2xl px-4 py-3">
+              <div className="flex justify-between items-center mb-1">
+                <p className="text-xs font-semibold text-gray-600">Radius</p>
+                <p className="text-xs font-bold text-faith-600">{radius} km</p>
+              </div>
+              <input
+                type="range" min="5" max="100" step="5"
+                value={radius}
+                onChange={e => setRadius(Number(e.target.value))}
+                className="w-full accent-faith-600"
+              />
+              <div className="flex justify-between text-[10px] text-gray-400 mt-0.5">
+                <span>5 km</span><span>100 km</span>
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* Category filter tabs */}
         <div className="flex gap-2 overflow-x-auto pb-2 mb-4 scrollbar-hide -mx-4 px-4">
           {FILTER_TABS.map(tab => (
@@ -259,8 +340,12 @@ export default function Home() {
               <div className="w-16 h-16 prayer-gradient rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
                 <span className="text-3xl">🕊️</span>
               </div>
-              <p className="font-semibold text-gray-700">No prayer requests yet</p>
-              <p className="text-sm text-gray-400 mt-1">Be the first to share one!</p>
+              <p className="font-semibold text-gray-700">
+                {nearMe ? 'No prayers found nearby' : 'No prayer requests yet'}
+              </p>
+              <p className="text-sm text-gray-400 mt-1">
+                {nearMe ? `Try increasing the radius beyond ${radius} km` : 'Be the first to share one!'}
+              </p>
             </div>
           );
 
@@ -279,12 +364,16 @@ export default function Home() {
               {filteredTop3.length > 0 && (
                 <>
                   <div className="mb-3">
-                    <p className="font-bold text-gray-900 text-sm">🌍 Top Prayers Worldwide</p>
-                    <p className="text-xs text-amber-600 mt-0.5">Updated live · sorted by most prayed</p>
+                    <p className="font-bold text-gray-900 text-sm">
+                      {nearMe ? `📍 Top Prayers Near You` : '🌍 Top Prayers Worldwide'}
+                    </p>
+                    <p className="text-xs text-amber-600 mt-0.5">
+                      {nearMe ? `Within ${radius} km · sorted by most prayed` : 'Updated live · sorted by most prayed'}
+                    </p>
                   </div>
                   <div className="space-y-3 mb-6">
                     {filteredTop3.map((request, i) => (
-                      <TopPrayerCard {...cardProps(request)} rank={i + 1} />
+                      <TopPrayerCard {...cardProps(request)} rank={i + 1} showDistance={nearMe} />
                     ))}
                   </div>
                 </>
@@ -293,11 +382,11 @@ export default function Home() {
               {filteredRest.length > 0 && (
                 <>
                   <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">
-                    All Prayer Requests · Sorted by most prayed
+                    {nearMe ? `Near You · ${radius} km radius` : 'All Prayer Requests · Sorted by most prayed'}
                   </p>
                   <div className="space-y-3">
                     {filteredRest.map(request => (
-                      <PrayerCard {...cardProps(request)} />
+                      <PrayerCard {...cardProps(request)} showDistance={nearMe} />
                     ))}
                   </div>
                 </>
@@ -338,7 +427,7 @@ export default function Home() {
   );
 }
 
-function PrayerCard({ request, currentUserId, onPray, onUserClick, onMarkAnswered, onViewTestimony }) {
+function PrayerCard({ request, currentUserId, onPray, onUserClick, onMarkAnswered, onViewTestimony, showDistance }) {
   const timeAgo = getTimeAgo(request.createdAt);
   const isOwner = request.user?.id === currentUserId;
   const catLabel = request.category && request.category !== 'GENERAL' ? CATEGORY_LABELS[request.category] : null;
@@ -366,23 +455,56 @@ function PrayerCard({ request, currentUserId, onPray, onUserClick, onMarkAnswere
       )}
 
       <div className="flex items-start gap-3">
-        <button onClick={onUserClick} className="flex-shrink-0">
-          <Avatar user={request.user} size="md" />
+        <button onClick={!request.isAnonymous ? onUserClick : undefined} className="flex-shrink-0">
+          {request.isAnonymous ? (
+            <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+              </svg>
+            </div>
+          ) : (
+            <Avatar user={request.user} size="md" />
+          )}
         </button>
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
             <div>
-              <button onClick={onUserClick} className="font-semibold text-gray-900 text-sm leading-tight text-left hover:underline">
-                {request.user?.name}
-              </button>
-              {request.user?.churchName && (
+              {request.isAnonymous ? (
+                <div className="flex items-center gap-1 mt-0.5">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                  </svg>
+                  <p className="text-xs font-semibold text-gray-500">{request.displayLocation || 'Anonymous Believer'}</p>
+                </div>
+              ) : (
+                <button onClick={onUserClick} className="font-semibold text-gray-900 text-sm leading-tight text-left hover:underline">
+                  {request.user?.name}
+                </button>
+              )}
+              {!request.isAnonymous && request.user?.churchName && (
                 <p className="text-xs text-faith-500 mt-0.5">{request.user.churchName}</p>
               )}
             </div>
-            <span className="text-[10px] text-gray-400 whitespace-nowrap mt-0.5">{timeAgo}</span>
+            <div className="flex items-center gap-1.5 flex-shrink-0">
+              {request.visibility && request.visibility !== 'PUBLIC' && (
+                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                  request.visibility === 'PRIVATE'
+                    ? 'bg-gray-100 text-gray-500'
+                    : 'bg-purple-50 text-purple-600'
+                }`}>
+                  {request.visibility === 'PRIVATE' ? '🔒 Private' : '✝️ Pastor Only'}
+                </span>
+              )}
+              <span className="text-[10px] text-gray-400 whitespace-nowrap">{timeAgo}</span>
+            </div>
           </div>
 
-          <h4 className="font-bold text-gray-900 text-sm mt-2 mb-1">{request.title}</h4>
+          <div className="flex items-center gap-2 mt-2 mb-1">
+            <h4 className="font-bold text-gray-900 text-sm">{request.title}</h4>
+            {showDistance && request.distanceKm != null && (
+              <span className="text-[10px] text-gray-400 whitespace-nowrap">📍 {request.distanceKm} km</span>
+            )}
+          </div>
           <p className="text-sm text-gray-500 leading-relaxed line-clamp-3">{request.body}</p>
 
           {request.isAnswered && request.testimonyMessage && (

@@ -3,37 +3,98 @@ const { notifyUser } = require('../services/socketService');
 
 const prisma = new PrismaClient();
 
+function haversineKm(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
 async function getFeed(req, res) {
-  const { category } = req.query;
-  const where = { isActive: true, isAnswered: false };
-  if (category && category !== 'ALL') where.category = category;
+  const { category, radius, lat, lng } = req.query;
+  const useRadius = radius && lat && lng;
+
+  // Determine requester pastor status
+  const requester = req.user ? await prisma.user.findUnique({
+    where: { id: req.user.id },
+    select: { isVerifiedPastor: true },
+  }) : null;
+  const isPastor = requester?.isVerifiedPastor === true;
+
+  // Build visibility filter
+  let visibilityFilter;
+  if (isPastor) {
+    visibilityFilter = {
+      OR: [
+        { visibility: 'PUBLIC' },
+        { visibility: 'PRIVATE' },
+        { visibility: 'PASTOR_ONLY', pastorAccess: { some: { pastorId: req.user.id } } },
+      ],
+    };
+  } else {
+    visibilityFilter = { visibility: 'PUBLIC' };
+  }
+
+  const where = { isActive: true, isAnswered: false, ...visibilityFilter };
 
   try {
     const all = await prisma.prayerRequest.findMany({
       where,
       include: {
-        user: { select: { id: true, name: true, profilePhoto: true, churchName: true } },
+        user: { select: { id: true, name: true, profilePhoto: true, churchName: true, location: true, latitude: true, longitude: true } },
         _count: { select: { sessions: true } },
         sessions: { select: { userId: true } },
       },
     });
 
-    // Sort by total prayer count desc
-    all.sort((a, b) => b._count.sessions - a._count.sessions);
+    let filtered = all;
 
-    const format = (r, index) => ({
-      ...r,
-      prayerCount: r._count.sessions,
-      currentlyPrayingCount: r.sessions.filter(s => s.userId).length,
-      totalPrayerCount: r._count.sessions,
-      userHasPrayed: req.user ? r.sessions.some(s => s.userId === req.user.id) : false,
-      isTop3: index < 3,
-      rank: index + 1,
-      sessions: undefined,
-      _count: undefined,
-    });
+    if (useRadius) {
+      const userLat = parseFloat(lat);
+      const userLng = parseFloat(lng);
+      const km = parseFloat(radius);
+      filtered = all
+        .filter(r => r.user.latitude != null && r.user.longitude != null)
+        .map(r => ({
+          ...r,
+          _distanceKm: haversineKm(userLat, userLng, r.user.latitude, r.user.longitude),
+        }))
+        .filter(r => r._distanceKm <= km);
+    }
 
-    const formatted = all.map(format);
+    // Apply category filter
+    if (category && category !== 'ALL') {
+      filtered = filtered.filter(r => r.category === category);
+    }
+
+    // Sort by prayer count desc
+    filtered.sort((a, b) => b._count.sessions - a._count.sessions);
+
+    const format = (r, index) => {
+      const displayLocation = r.user?.location ? `From ${r.user.location}` : 'Anonymous Believer';
+      const userField = r.isAnonymous
+        ? { id: null, name: null, profilePhoto: null, churchName: null }
+        : { ...r.user, latitude: undefined, longitude: undefined };
+      return {
+        ...r,
+        prayerCount: r._count.sessions,
+        currentlyPrayingCount: r.sessions.filter(s => s.userId).length,
+        totalPrayerCount: r._count.sessions,
+        userHasPrayed: req.user ? r.sessions.some(s => s.userId === req.user.id) : false,
+        isTop3: index < 3,
+        rank: index + 1,
+        distanceKm: r._distanceKm != null ? Math.round(r._distanceKm * 10) / 10 : null,
+        displayLocation: r.isAnonymous ? displayLocation : null,
+        sessions: undefined,
+        _count: undefined,
+        _distanceKm: undefined,
+        user: userField,
+      };
+    };
+
+    const formatted = filtered.map(format);
     res.json({ top3: formatted.slice(0, 3), rest: formatted.slice(3) });
   } catch (err) {
     console.error('getFeed error:', err);
@@ -42,19 +103,33 @@ async function getFeed(req, res) {
 }
 
 async function createRequest(req, res) {
-  const { title, body, category, isUrgent } = req.body;
+  const { title, body, category, isUrgent, visibility, pastorIds } = req.body;
   if (!title || !body) return res.status(400).json({ error: 'Title and body required' });
 
   const validCategories = ['GENERAL','HEALTH','FAMILY','CAREER','FINANCIAL','RELATIONSHIP','SPIRITUAL'];
   const safeCategory = validCategories.includes(category) ? category : 'GENERAL';
+  const safeVisibility = ['PUBLIC','PRIVATE','PASTOR_ONLY'].includes(visibility) ? visibility : 'PUBLIC';
+  const isAnonymous = safeVisibility !== 'PUBLIC';
 
   try {
     const request = await prisma.prayerRequest.create({
-      data: { userId: req.user.id, title, body, category: safeCategory, isUrgent: Boolean(isUrgent) },
-      include: { user: { select: { id: true, name: true, profilePhoto: true, churchName: true } } },
+      data: {
+        userId: req.user.id, title, body, category: safeCategory,
+        isUrgent: Boolean(isUrgent), visibility: safeVisibility, isAnonymous,
+      },
+      include: { user: { select: { id: true, name: true, profilePhoto: true, churchName: true, location: true } } },
     });
+
+    if (safeVisibility === 'PASTOR_ONLY' && Array.isArray(pastorIds) && pastorIds.length > 0) {
+      await prisma.prayerPastorAccess.createMany({
+        data: pastorIds.map(pastorId => ({ id: require('crypto').randomUUID(), prayerRequestId: request.id, pastorId })),
+        skipDuplicates: true,
+      });
+    }
+
     res.status(201).json({ ...request, currentlyPrayingCount: 0, totalPrayerCount: 0 });
-  } catch {
+  } catch (err) {
+    console.error('createRequest error:', err);
     res.status(500).json({ error: 'Failed to create prayer request' });
   }
 }
@@ -219,7 +294,7 @@ async function getMyRequests(req, res) {
         _count: { select: { sessions: true } },
       },
     });
-    res.json(requests.map(r => ({ ...r, totalPrayerCount: r._count.sessions })));
+    res.json(requests.map(r => ({ ...r, totalPrayerCount: r._count.sessions, _count: undefined })));
   } catch {
     res.status(500).json({ error: 'Failed to get your prayer requests' });
   }
@@ -304,12 +379,37 @@ async function getRequest(req, res) {
     const request = await prisma.prayerRequest.findUnique({
       where: { id },
       include: {
-        user: { select: { id: true, name: true, profilePhoto: true, churchName: true } },
+        user: { select: { id: true, name: true, profilePhoto: true, churchName: true, location: true } },
         _count: { select: { sessions: true } },
+        pastorAccess: { select: { pastorId: true } },
       },
     });
     if (!request) return res.status(404).json({ error: 'Not found' });
-    res.json(request);
+
+    // Visibility check
+    if (request.visibility !== 'PUBLIC') {
+      const requester = req.user ? await prisma.user.findUnique({
+        where: { id: req.user.id }, select: { isVerifiedPastor: true },
+      }) : null;
+      const isPastor = requester?.isVerifiedPastor === true;
+      if (!isPastor) return res.status(403).json({ error: 'Not authorized' });
+      if (request.visibility === 'PASTOR_ONLY') {
+        const hasAccess = request.pastorAccess.some(a => a.pastorId === req.user.id);
+        if (!hasAccess) return res.status(403).json({ error: 'Not authorized' });
+      }
+    }
+
+    const displayLocation = request.isAnonymous && request.user?.location
+      ? `From ${request.user.location}` : null;
+
+    res.json({
+      ...request,
+      displayLocation,
+      user: request.isAnonymous
+        ? { id: null, name: null, profilePhoto: null, churchName: null }
+        : request.user,
+      pastorAccess: undefined,
+    });
   } catch {
     res.status(500).json({ error: 'Failed to get prayer request' });
   }
