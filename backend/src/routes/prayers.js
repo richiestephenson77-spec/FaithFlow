@@ -1,10 +1,39 @@
 const router = require('express').Router();
 const { authenticate } = require('../middleware/auth');
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
 const {
   getFeed, createRequest, startSession, endSession, deleteRequest,
   markAnswered, getAnsweredFeed, getRequest,
   getMyRequests, editRequest, addUpdate,
 } = require('../controllers/prayerController');
+
+// Draft endpoints — must be before /:id routes
+router.get('/draft', authenticate, async (req, res) => {
+  try {
+    const draft = await prisma.prayerDraft.findUnique({ where: { userId: req.user.id } });
+    res.json(draft || null);
+  } catch { res.status(500).json({ error: 'Failed to get draft' }); }
+});
+
+router.patch('/draft', authenticate, async (req, res) => {
+  const { title, body, category, visibility, isUrgent } = req.body;
+  try {
+    const draft = await prisma.prayerDraft.upsert({
+      where: { userId: req.user.id },
+      update: { title: title ?? '', body: body ?? '', category: category ?? 'GENERAL', visibility: visibility ?? 'PUBLIC', isUrgent: Boolean(isUrgent) },
+      create: { userId: req.user.id, title: title ?? '', body: body ?? '', category: category ?? 'GENERAL', visibility: visibility ?? 'PUBLIC', isUrgent: Boolean(isUrgent) },
+    });
+    res.json({ saved: true, updatedAt: draft.updatedAt });
+  } catch { res.status(500).json({ error: 'Failed to save draft' }); }
+});
+
+router.delete('/draft', authenticate, async (req, res) => {
+  try {
+    await prisma.prayerDraft.deleteMany({ where: { userId: req.user.id } });
+    res.json({ ok: true });
+  } catch { res.status(500).json({ error: 'Failed to delete draft' }); }
+});
 
 router.get('/feed', authenticate, getFeed);
 router.get('/answered', authenticate, getAnsweredFeed);

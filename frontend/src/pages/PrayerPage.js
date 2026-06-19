@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Globe, MapPin, RefreshCw, Flame, BookOpen, Users, Plus, Bookmark, Play, Target, Settings, TrendingUp } from 'lucide-react';
+import { Globe, MapPin, RefreshCw, Flame, BookOpen, Users, Plus, Bookmark, Play, Target, Settings, TrendingUp, Pencil } from 'lucide-react';
 import api from '../utils/api';
 import { fadeUp, fadeIn, scaleIn, slideInRight, slideUp, staggerContainer, staggerContainerFast, staggerItem } from '../utils/animations';
 import { useAuth } from '../contexts/AuthContext';
@@ -140,6 +140,7 @@ export default function PrayerPage() {
   const [activeCategory, setActiveCategory] = useState('ALL');
   const [activeSession, setActiveSession] = useState(null);
   const [showNewRequest, setShowNewRequest] = useState(false);
+  const [hasDraft, setHasDraft] = useState(false);
   const [testimonyRequest, setTestimonyRequest] = useState(null);
   const [showMyRequests, setShowMyRequests] = useState(false);
 
@@ -170,6 +171,12 @@ export default function PrayerPage() {
   }, [userCoords, nearMe, radius]);
 
   useEffect(() => { loadFeed(); }, [loadFeed]);
+
+  useEffect(() => {
+    api.get('/prayers/draft').then(res => {
+      setHasDraft(!!(res.data && (res.data.title || res.data.body)));
+    }).catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (!nearMe) return;
@@ -219,6 +226,7 @@ export default function PrayerPage() {
   function onNewRequest(request) {
     setRestPrayers(prev => [{ ...request, prayerCount: 0, isTop3: false, rank: prev.length + 4 }, ...prev]);
     setShowNewRequest(false);
+    setHasDraft(false);
   }
 
   function handleTestimonySaved(updatedRequest) {
@@ -340,6 +348,38 @@ export default function PrayerPage() {
             <Bookmark size={17} strokeWidth={1.5} color="#6b7280" />
           </motion.button>
         </motion.div>
+
+        {/* Draft banner */}
+        <AnimatePresence>
+          {hasDraft && !showNewRequest && (
+            <motion.div
+              {...fadeUp}
+              className="mb-3 bg-amber-50 border border-amber-100 rounded-2xl px-4 py-3 flex items-start gap-3"
+            >
+              <Pencil size={16} color="#F59E0B" className="flex-shrink-0 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm text-amber-800 font-medium">You have an unfinished prayer draft</p>
+                <div className="flex gap-3 mt-2">
+                  <button
+                    onClick={() => setShowNewRequest(true)}
+                    className="text-xs font-semibold text-amber-700 bg-amber-100 px-3 py-1 rounded-full"
+                  >
+                    Continue Draft
+                  </button>
+                  <button
+                    onClick={async () => {
+                      await api.delete('/prayers/draft').catch(() => {});
+                      setHasDraft(false);
+                    }}
+                    className="text-xs text-amber-500"
+                  >
+                    Discard
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Location banner */}
         {showLocationBanner && (

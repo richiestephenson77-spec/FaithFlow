@@ -1,23 +1,29 @@
-import { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { X, Globe, Lock, Shield, Search, ArrowRight } from 'lucide-react';
 import api from '../utils/api';
 import Avatar from './Avatar';
 
 const CATEGORIES = [
-  { id: 'GENERAL',      label: 'General',          emoji: '🙏' },
-  { id: 'HEALTH',       label: 'Health',            emoji: '🏥' },
-  { id: 'FAMILY',       label: 'Family',            emoji: '👨‍👩‍👧' },
-  { id: 'CAREER',       label: 'Career',            emoji: '💼' },
-  { id: 'FINANCIAL',    label: 'Financial',         emoji: '💰' },
-  { id: 'RELATIONSHIP', label: 'Relationship',      emoji: '💑' },
-  { id: 'SPIRITUAL',    label: 'Spiritual Growth',  emoji: '✝️' },
+  { id: 'GENERAL',      label: 'General' },
+  { id: 'HEALTH',       label: 'Health' },
+  { id: 'FAMILY',       label: 'Family' },
+  { id: 'CAREER',       label: 'Career' },
+  { id: 'FINANCIAL',    label: 'Financial' },
+  { id: 'RELATIONSHIP', label: 'Relationship' },
+  { id: 'SPIRITUAL',    label: 'Spiritual' },
 ];
 
-const VISIBILITY_OPTIONS = [
-  { id: 'PUBLIC',      icon: '🌍', label: 'Public' },
-  { id: 'PRIVATE',     icon: '🔒', label: 'Private' },
-  { id: 'PASTOR_ONLY', icon: '✝️', label: 'Pastor Only' },
+const VISIBILITY = [
+  { id: 'PUBLIC',      label: 'Everyone', Icon: Globe },
+  { id: 'PRIVATE',     label: 'Private',  Icon: Lock },
+  { id: 'PASTOR_ONLY', label: 'Pastor Only', Icon: Shield },
 ];
+
+function debounce(fn, ms) {
+  let t;
+  return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
+}
 
 function PastorPicker({ selectedPastors, onToggle }) {
   const [search, setSearch] = useState('');
@@ -42,39 +48,45 @@ function PastorPicker({ selectedPastors, onToggle }) {
   const selectedIds = new Set(selectedPastors.map(p => p.id));
 
   return (
-    <div>
-      {/* Selected chips */}
+    <motion.div
+      initial={{ opacity: 0, y: -8 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -8 }}
+      transition={{ duration: 0.2 }}
+      className="space-y-2 pt-2"
+    >
       {selectedPastors.length > 0 && (
-        <div className="flex flex-wrap gap-2 mb-2">
+        <div className="flex flex-wrap gap-2">
           {selectedPastors.map(p => (
-            <div key={p.id} className="flex items-center gap-1.5 bg-purple-50 border border-purple-200 rounded-full px-3 py-1">
-              <span className="text-xs font-semibold text-purple-700">{p.name}</span>
-              <button onClick={() => onToggle(p)} className="text-purple-400 hover:text-purple-700">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-                </svg>
+            <div key={p.id} className="flex items-center gap-1.5 bg-amber-50 border border-amber-200 rounded-full px-3 py-1">
+              <span className="text-xs font-semibold text-amber-700">{p.name}</span>
+              <button onClick={() => onToggle(p)} className="text-amber-400">
+                <X size={10} strokeWidth={2.5} />
               </button>
             </div>
           ))}
         </div>
       )}
-      <input
-        type="text"
-        value={search}
-        onChange={e => setSearch(e.target.value)}
-        placeholder="Search for a pastor..."
-        className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
-      />
-      {searching && <p className="text-xs text-gray-400 mt-1.5 ml-1">Searching...</p>}
+      <div className="relative">
+        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" strokeWidth={1.8} />
+        <input
+          type="text"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          placeholder="Search for a pastor..."
+          className="w-full bg-gray-50 rounded-2xl pl-9 pr-4 py-3 text-sm text-gray-800 focus:outline-none placeholder-gray-400"
+        />
+      </div>
+      {searching && <p className="text-xs text-gray-400 px-1">Searching...</p>}
       {results.length > 0 && (
-        <div className="mt-2 border border-gray-100 rounded-xl overflow-hidden shadow-sm">
+        <div className="rounded-2xl overflow-hidden border border-gray-100 shadow-sm">
           {results.map(p => (
             <button
               key={p.id}
               type="button"
               onClick={() => onToggle(p)}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 text-left border-b border-gray-50 last:border-0 transition-colors ${
-                selectedIds.has(p.id) ? 'bg-purple-50' : 'bg-white hover:bg-gray-50'
+              className={`w-full flex items-center gap-3 px-4 py-3 text-left border-b border-gray-50 last:border-0 transition-colors ${
+                selectedIds.has(p.id) ? 'bg-amber-50' : 'bg-white hover:bg-gray-50'
               }`}
             >
               <Avatar user={p} size="sm" />
@@ -83,7 +95,7 @@ function PastorPicker({ selectedPastors, onToggle }) {
                 {p.pastorChurch && <p className="text-xs text-gray-400 truncate">{p.pastorChurch}</p>}
               </div>
               {selectedIds.has(p.id) && (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="20 6 9 17 4 12"/>
                 </svg>
               )}
@@ -92,18 +104,60 @@ function PastorPicker({ selectedPastors, onToggle }) {
         </div>
       )}
       {search.length >= 2 && !searching && results.length === 0 && (
-        <p className="text-xs text-gray-400 mt-1.5 ml-1">No pastors found</p>
+        <p className="text-xs text-gray-400 px-1">No pastors found</p>
       )}
-    </div>
+      {selectedPastors.length === 0 && (
+        <p className="text-xs text-amber-500 font-medium px-1">Select at least one pastor to continue</p>
+      )}
+    </motion.div>
   );
 }
 
 export default function NewPrayerRequestModal({ onClose, onCreate }) {
-  const [form, setForm] = useState({ title: '', body: '', category: 'GENERAL', isUrgent: false });
+  const [title, setTitle] = useState('');
+  const [body, setBody] = useState('');
+  const [category, setCategory] = useState('GENERAL');
   const [visibility, setVisibility] = useState('PUBLIC');
+  const [isUrgent, setIsUrgent] = useState(false);
   const [selectedPastors, setSelectedPastors] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [draftSaved, setDraftSaved] = useState(false);
+  const [draftRestored, setDraftRestored] = useState(false);
+  const titleRef = useRef(null);
+
+  // Load draft on open
+  useEffect(() => {
+    async function loadDraft() {
+      try {
+        const res = await api.get('/prayers/draft');
+        if (res.data && (res.data.title || res.data.body)) {
+          setTitle(res.data.title || '');
+          setBody(res.data.body || '');
+          setCategory(res.data.category || 'GENERAL');
+          setVisibility(res.data.visibility || 'PUBLIC');
+          setIsUrgent(res.data.isUrgent || false);
+          setDraftRestored(true);
+          setTimeout(() => setDraftRestored(false), 2500);
+        }
+      } catch {}
+    }
+    loadDraft();
+    setTimeout(() => titleRef.current?.focus(), 100);
+  }, []);
+
+  // Auto-save draft with debounce
+  const saveDraft = useMemo(() => debounce(async (data) => {
+    try {
+      await api.patch('/prayers/draft', data);
+      setDraftSaved(true);
+      setTimeout(() => setDraftSaved(false), 2000);
+    } catch {}
+  }, 1500), []);
+
+  useEffect(() => {
+    saveDraft({ title, body, category, visibility, isUrgent });
+  }, [title, body, category, visibility, isUrgent, saveDraft]);
 
   function togglePastor(pastor) {
     setSelectedPastors(prev =>
@@ -115,34 +169,36 @@ export default function NewPrayerRequestModal({ onClose, onCreate }) {
 
   const submitDisabled =
     loading ||
-    !form.title.trim() ||
-    !form.body.trim() ||
+    !title.trim() ||
     (visibility === 'PASTOR_ONLY' && selectedPastors.length === 0);
 
-  async function handleSubmit(e) {
-    e?.preventDefault();
+  async function handleSubmit() {
+    if (submitDisabled) return;
     setLoading(true);
     setError('');
     try {
       const res = await api.post('/prayers', {
-        ...form,
-        visibility,
+        title, body, category, visibility, isUrgent,
         pastorIds: visibility === 'PASTOR_ONLY' ? selectedPastors.map(p => p.id) : [],
       });
+      // delete draft on success
+      api.delete('/prayers/draft').catch(() => {});
       onCreate(res.data);
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to post request');
-    } finally {
       setLoading(false);
     }
   }
+
+  const draftLabel = draftRestored ? '● Draft restored' : draftSaved ? '● Draft saved' : null;
 
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/50 z-50 flex items-end justify-center"
+      className="fixed inset-0 z-50 flex items-end justify-center"
+      style={{ backdropFilter: 'blur(8px)', background: 'rgba(0,0,0,0.4)' }}
       onClick={onClose}
     >
       <motion.div
@@ -150,145 +206,166 @@ export default function NewPrayerRequestModal({ onClose, onCreate }) {
         animate={{ y: 0 }}
         exit={{ y: '100%' }}
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-        className="bg-white rounded-t-3xl w-full max-w-md pb-8 max-h-[92vh] overflow-y-auto"
+        className="bg-white w-full max-w-md pb-10 max-h-[92vh] overflow-y-auto"
+        style={{ borderRadius: '28px 28px 0 0' }}
         onClick={e => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="sticky top-0 bg-white px-4 pt-4 pb-3 border-b border-gray-100 flex items-center justify-between">
-          <button onClick={onClose} className="text-gray-400 font-semibold text-sm">Cancel</button>
-          <h2 className="font-bold text-gray-900">Share a Prayer Request</h2>
+        <div className="sticky top-0 bg-white px-4 pt-4 pb-3 border-b border-gray-100 flex items-center justify-between z-10">
+          <button
+            onClick={onClose}
+            className="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100"
+          >
+            <X size={18} color="#9ca3af" strokeWidth={2} />
+          </button>
+
+          <div className="flex items-center gap-2">
+            <span className="text-base font-semibold text-gray-900">New Prayer</span>
+            <AnimatePresence>
+              {draftLabel && (
+                <motion.span
+                  initial={{ opacity: 0, scale: 0.85 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.85 }}
+                  className="text-xs px-2 py-0.5 rounded-full bg-amber-50 text-amber-600"
+                >
+                  {draftLabel}
+                </motion.span>
+              )}
+            </AnimatePresence>
+          </div>
+
           <button
             onClick={handleSubmit}
             disabled={submitDisabled}
-            className="text-faith-600 font-bold text-sm disabled:opacity-40"
+            className="text-white text-sm font-medium px-5 py-2 rounded-full transition-colors"
+            style={{ background: submitDisabled ? '#FCD34D' : '#F59E0B' }}
           >
-            {loading ? 'Posting...' : 'Post'}
+            {loading ? 'Posting…' : 'Post'}
           </button>
         </div>
 
-        <div className="px-4 pt-4 space-y-4">
-          {error && <div className="bg-red-50 text-red-600 rounded-xl px-4 py-2 text-sm">{error}</div>}
+        <div className="px-5 pt-5 space-y-5">
+          {error && <div className="bg-red-50 text-red-600 rounded-2xl px-4 py-3 text-sm">{error}</div>}
 
           {/* Title */}
           <input
+            ref={titleRef}
             type="text"
-            required
-            value={form.title}
-            onChange={e => setForm(p => ({ ...p, title: e.target.value }))}
-            className="w-full border border-gray-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-faith-400"
-            placeholder="Prayer request title"
-            autoFocus
+            value={title}
+            onChange={e => setTitle(e.target.value)}
+            placeholder="What do you need prayer for?"
+            className="w-full text-xl font-semibold text-gray-900 placeholder-gray-300 focus:outline-none bg-transparent"
           />
+
+          {/* Divider */}
+          <div className="h-px bg-gray-100" />
 
           {/* Body */}
-          <textarea
-            required
-            value={form.body}
-            onChange={e => setForm(p => ({ ...p, body: e.target.value }))}
-            className="w-full border border-gray-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-faith-400 resize-none"
-            rows={4}
-            placeholder="Share what you'd like the community to pray for..."
-          />
+          <div className="relative">
+            <textarea
+              value={body}
+              onChange={e => setBody(e.target.value.slice(0, 500))}
+              placeholder="Share more details... (optional)"
+              rows={4}
+              className="w-full text-base text-gray-600 placeholder-gray-300 focus:outline-none bg-transparent resize-none"
+            />
+            <p className="text-xs text-gray-300 text-right">{body.length} / 500</p>
+          </div>
 
-          {/* Category */}
+          <div className="h-px bg-gray-100" />
+
+          {/* Category chips */}
           <div>
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Category</p>
-            <div className="grid grid-cols-2 gap-2">
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Category</p>
+            <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 no-scrollbar">
               {CATEGORIES.map(cat => (
                 <button
                   key={cat.id}
                   type="button"
-                  onClick={() => setForm(p => ({ ...p, category: cat.id }))}
-                  className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-sm font-medium transition-all ${
-                    form.category === cat.id
-                      ? 'border-faith-400 bg-faith-50 text-faith-700'
-                      : 'border-gray-200 text-gray-600 hover:border-gray-300'
-                  }`}
+                  onClick={() => setCategory(cat.id)}
+                  className="flex-shrink-0 h-9 px-4 rounded-full text-sm font-medium transition-all"
+                  style={{
+                    background: category === cat.id ? '#111827' : '#F3F4F6',
+                    color: category === cat.id ? '#FFFFFF' : '#4B5563',
+                  }}
                 >
-                  <span>{cat.emoji}</span>
-                  <span>{cat.label}</span>
+                  {cat.label}
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Visibility */}
+          <div className="h-px bg-gray-100" />
+
+          {/* Visibility segmented control */}
           <div>
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Who can see this?</p>
-            <div className="flex gap-2">
-              {VISIBILITY_OPTIONS.map(v => (
-                <button
-                  key={v.id}
-                  type="button"
-                  onClick={() => setVisibility(v.id)}
-                  className={`flex-1 flex flex-col items-center gap-1 py-3 rounded-2xl border text-xs font-bold transition-all ${
-                    visibility === v.id
-                      ? 'bg-amber-400 border-amber-400 text-white shadow-sm'
-                      : 'bg-white border-gray-200 text-gray-500'
-                  }`}
-                >
-                  <span className="text-base">{v.icon}</span>
-                  <span>{v.label}</span>
-                </button>
-              ))}
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Visibility</p>
+            <div className="bg-gray-100 rounded-2xl p-1 flex gap-1">
+              {VISIBILITY.map(v => {
+                const active = visibility === v.id;
+                return (
+                  <button
+                    key={v.id}
+                    type="button"
+                    onClick={() => setVisibility(v.id)}
+                    className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-sm transition-all"
+                    style={{
+                      background: active ? '#FFFFFF' : 'transparent',
+                      color: active ? '#111827' : '#9CA3AF',
+                      fontWeight: active ? 600 : 400,
+                      boxShadow: active ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
+                    }}
+                  >
+                    <v.Icon size={13} strokeWidth={active ? 2 : 1.5} />
+                    <span className="text-xs">{v.label}</span>
+                  </button>
+                );
+              })}
             </div>
 
-            {visibility === 'PRIVATE' && (
-              <div className="mt-3 bg-gray-50 border border-gray-100 rounded-xl px-4 py-3">
-                <p className="text-xs text-gray-600 leading-relaxed">
-                  <span className="font-semibold">🔒 Private</span> — Only verified pastors can see this. Your name will be hidden — your location will be shown instead.
-                </p>
-              </div>
-            )}
+            <AnimatePresence>
+              {(visibility === 'PRIVATE' || visibility === 'PASTOR_ONLY') && (
+                <motion.p
+                  initial={{ opacity: 0, y: -4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -4 }}
+                  className="text-xs text-gray-400 mt-2 px-1 leading-relaxed"
+                >
+                  {visibility === 'PRIVATE'
+                    ? 'Only verified pastors can read this. Your location will be shown instead of your name.'
+                    : 'Only the pastors you select will see this request.'}
+                </motion.p>
+              )}
+            </AnimatePresence>
 
-            {visibility === 'PASTOR_ONLY' && (
-              <div className="mt-3 space-y-3">
-                <div className="bg-purple-50 border border-purple-100 rounded-xl px-4 py-3">
-                  <p className="text-xs text-purple-700 leading-relaxed">
-                    <span className="font-semibold">✝️ Pastor Only</span> — Only pastors you select can see this. Your name will be hidden — your location will be shown instead.
-                  </p>
-                </div>
+            <AnimatePresence>
+              {visibility === 'PASTOR_ONLY' && (
                 <PastorPicker selectedPastors={selectedPastors} onToggle={togglePastor} />
-                {selectedPastors.length === 0 && (
-                  <p className="text-xs text-amber-600 font-medium">Select at least one pastor to continue</p>
-                )}
-              </div>
-            )}
+              )}
+            </AnimatePresence>
           </div>
+
+          <div className="h-px bg-gray-100" />
 
           {/* Urgent toggle */}
-          <button
-            type="button"
-            onClick={() => setForm(p => ({ ...p, isUrgent: !p.isUrgent }))}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl border transition-all ${
-              form.isUrgent
-                ? 'bg-red-50 border-red-200 text-red-700'
-                : 'bg-gray-50 border-gray-200 text-gray-500'
-            }`}
-          >
-            <span className="text-xl">🚨</span>
-            <div className="flex-1 text-left">
-              <p className="font-bold text-sm">Mark as Urgent</p>
-              <p className="text-xs opacity-70">Pinned at top of feed</p>
+          <div className="flex items-center gap-4 py-1">
+            <div className="flex-1">
+              <p className="text-sm font-medium text-gray-900">Urgent Request</p>
+              <p className="text-xs text-gray-400 mt-0.5">Pinned to top of feed</p>
             </div>
-            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
-              form.isUrgent ? 'bg-red-500 border-red-500' : 'border-gray-300'
-            }`}>
-              {form.isUrgent && (
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="20 6 9 17 4 12"/>
-                </svg>
-              )}
-            </div>
-          </button>
-
-          <button
-            onClick={handleSubmit}
-            disabled={submitDisabled}
-            className="w-full prayer-gradient text-white rounded-2xl py-4 text-sm font-bold disabled:opacity-60 shadow-sm"
-          >
-            {loading ? 'Posting...' : 'Share Request 🙏'}
-          </button>
+            <button
+              type="button"
+              onClick={() => setIsUrgent(v => !v)}
+              className="relative w-12 h-6 rounded-full transition-colors flex-shrink-0"
+              style={{ background: isUrgent ? '#F59E0B' : '#E5E7EB' }}
+            >
+              <span
+                className="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform"
+                style={{ transform: isUrgent ? 'translateX(24px)' : 'translateX(2px)' }}
+              />
+            </button>
+          </div>
         </div>
       </motion.div>
     </motion.div>

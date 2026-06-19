@@ -3,6 +3,9 @@
 @tailwind utilities;
 
 * { font-family: 'Inter', sans-serif; }
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 .font-cinzel { font-family: 'Cinzel', serif; }
 .font-cinzel-decorative { font-family: 'Cinzel Decorative', serif; }
 

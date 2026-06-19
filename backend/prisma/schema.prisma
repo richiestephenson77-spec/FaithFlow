@@ -50,6 +50,7 @@ model User {
   followers       Follow[]  @relation("Following")
   following       Follow[]  @relation("Followers")
   dailyQuotaLogs  DailyQuotaLog[]
+  prayerDraft     PrayerDraft?
   conversationParticipants ConversationParticipant[]
   sentMessages    Message[]
   confessions     Confession[]
@@ -387,6 +388,20 @@ model BibleBotMessage {
   user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("bible_bot_messages")
+}
+
+model PrayerDraft {
+  id         String   @id @default(cuid())
+  userId     String   @unique
+  title      String   @default("")
+  body       String   @default("")
+  category   String   @default("GENERAL")
+  visibility String   @default("PUBLIC")
+  isUrgent   Boolean  @default(false)
+  updatedAt  DateTime @updatedAt
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("prayer_drafts")
 }
 
 model DailyQuotaLog {
