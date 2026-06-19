@@ -3,26 +3,38 @@ const router = express.Router();
 const prisma = require('../db');
 const { authenticate } = require('../middleware/auth');
 
-// GET active cells
+// GET active + recent cells
 router.get('/', authenticate, async (req, res) => {
   try {
-    const cells = await prisma.prayerCell.findMany({
-      where: { isActive: true },
-      include: {
-        host: {
-          select: {
-            id: true, name: true, profilePhoto: true,
-            totalPeoplesPrayedFor: true, isVerifiedPastor: true, prayerWarriorBadge: true,
+    const hostSelect = {
+      id: true, name: true, profilePhoto: true,
+      totalPeoplesPrayedFor: true, isVerifiedPastor: true, prayerWarriorBadge: true,
+    };
+
+    const [activeCells, recentCells] = await Promise.all([
+      prisma.prayerCell.findMany({
+        where: { isActive: true },
+        include: {
+          host: { select: hostSelect },
+          sessions: {
+            where: { leftAt: null },
+            include: { guest: { select: { id: true, name: true, profilePhoto: true } } },
           },
         },
-        sessions: {
-          where: { leftAt: null },
-          include: { guest: { select: { id: true, name: true, profilePhoto: true } } },
+        orderBy: { sessionCount: 'desc' },
+      }),
+      prisma.prayerCell.findMany({
+        where: {
+          isActive: false,
+          endedAt: { gte: new Date(Date.now() - 30 * 60 * 1000) },
         },
-      },
-      orderBy: { sessionCount: 'desc' },
-    });
-    res.json(cells);
+        include: { host: { select: hostSelect } },
+        orderBy: { endedAt: 'desc' },
+        take: 5,
+      }),
+    ]);
+
+    res.json({ activeCells, recentCells });
   } catch (err) {
     console.error('getActiveCells:', err);
     res.status(500).json({ error: 'Failed' });

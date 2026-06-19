@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mic, MicOff } from 'lucide-react';
@@ -21,36 +21,39 @@ export default function PrayerCellHostRoom() {
   const [sessionCount, setSessionCount] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
   const [timeLeft, setTimeLeft] = useState(PRAYER_DURATION);
-  const [micError, setMicError] = useState(false);
 
   const streamRef = useRef(null);
   const timerRef = useRef(null);
-  const guestSocketRef = useRef(null);
 
-  // Init mic + host socket room
+  // Set up socket listeners FIRST, then emit cell:host
   useEffect(() => {
-    let active = true;
-    getLocalStream()
-      .then(stream => { if (active) streamRef.current = stream; })
-      .catch(() => setMicError(true));
-
-    if (socket) socket.emit('cell:host', { cellId });
-
-    return () => {
-      active = false;
-      endCall();
-      clearInterval(timerRef.current);
-    };
-  }, [cellId]); // eslint-disable-line
-
-  // Socket listeners
-  useEffect(() => {
-    if (!socket) return;
+    if (!socket || !cellId) return;
 
     async function onGuestJoined({ guestSocketId }) {
-      guestSocketRef.current = guestSocketId;
-      if (streamRef.current) {
-        await makeOffer(guestSocketId, socket, streamRef.current);
+      // Start praying UI
+      setGuest({ name: 'Someone', profilePhoto: null });
+      setPhase('praying');
+      setTimeLeft(PRAYER_DURATION);
+      clearInterval(timerRef.current);
+      timerRef.current = setInterval(() => {
+        setTimeLeft(t => {
+          if (t <= 1) {
+            clearInterval(timerRef.current);
+            setPhase('complete');
+            setSessionCount(c => c + 1);
+            return 0;
+          }
+          return t - 1;
+        });
+      }, 1000);
+
+      // WebRTC offer
+      try {
+        const stream = streamRef.current || await getLocalStream();
+        streamRef.current = stream;
+        await makeOffer(guestSocketId, socket, stream);
+      } catch (err) {
+        console.error('[Host] makeOffer error:', err);
       }
     }
 
@@ -58,20 +61,29 @@ export default function PrayerCellHostRoom() {
     function onIce({ candidate }) { handleIce(candidate); }
 
     function onGuestLeft() {
+      clearInterval(timerRef.current);
       setSessionCount(c => c + 1);
       setPhase('complete');
-      clearInterval(timerRef.current);
       setGuest(null);
-      guestSocketRef.current = null;
+      endCall();
     }
 
     function onPeerDisconnected() { onGuestLeft(); }
 
+    // Register listeners first
     socket.on('cell:guest_joined', onGuestJoined);
     socket.on('cell:answer', onAnswer);
     socket.on('cell:ice', onIce);
     socket.on('cell:guest_left', onGuestLeft);
     socket.on('cell:peer_disconnected', onPeerDisconnected);
+
+    // Then announce as host
+    socket.emit('cell:host', { cellId });
+
+    // Init mic in background
+    getLocalStream()
+      .then(stream => { streamRef.current = stream; })
+      .catch(err => console.error('[Host] mic error:', err));
 
     return () => {
       socket.off('cell:guest_joined', onGuestJoined);
@@ -79,36 +91,10 @@ export default function PrayerCellHostRoom() {
       socket.off('cell:ice', onIce);
       socket.off('cell:guest_left', onGuestLeft);
       socket.off('cell:peer_disconnected', onPeerDisconnected);
+      endCall();
+      clearInterval(timerRef.current);
     };
-  }, [socket]); // eslint-disable-line
-
-  // When guest joins, set praying phase + start timer
-  const startPraying = useCallback((guestData) => {
-    setGuest(guestData);
-    setPhase('praying');
-    setTimeLeft(PRAYER_DURATION);
-    clearInterval(timerRef.current);
-    timerRef.current = setInterval(() => {
-      setTimeLeft(t => {
-        if (t <= 1) {
-          clearInterval(timerRef.current);
-          setPhase('complete');
-          setSessionCount(c => c + 1);
-          return 0;
-        }
-        return t - 1;
-      });
-    }, 1000);
-  }, []);
-
-  // We don't have guest profile in socket event — just show anonymous for now
-  // (in production you'd fetch from the API)
-  useEffect(() => {
-    if (!socket) return;
-    function onGuestJoinedForUI() { startPraying({ name: 'Someone', profilePhoto: null }); }
-    socket.on('cell:guest_joined', onGuestJoinedForUI);
-    return () => socket.off('cell:guest_joined', onGuestJoinedForUI);
-  }, [socket, startPraying]);
+  }, [socket, cellId]); // eslint-disable-line
 
   async function handleEnd() {
     try { await api.post(`/prayer-cells/${cellId}/end`); } catch {}
@@ -117,10 +103,7 @@ export default function PrayerCellHostRoom() {
     navigate('/prayer-cells');
   }
 
-  function handleMute() {
-    const muted = toggleMute();
-    setIsMuted(muted);
-  }
+  function handleMute() { setIsMuted(toggleMute()); }
 
   function handlePrayNext() {
     setPhase('waiting');
@@ -142,14 +125,9 @@ export default function PrayerCellHostRoom() {
         </button>
       </div>
 
-      {/* Session count */}
       <p className="text-amber-400 text-sm text-center font-medium">
         {sessionCount} {sessionCount === 1 ? 'person' : 'people'} prayed this session
       </p>
-
-      {micError && (
-        <p className="text-red-400 text-xs text-center mt-2">Mic access denied — audio unavailable</p>
-      )}
 
       {/* Main area */}
       <div className="flex-1 flex flex-col items-center justify-center px-8">
@@ -185,18 +163,14 @@ export default function PrayerCellHostRoom() {
               exit={{ opacity: 0 }}
               className="flex flex-col items-center"
             >
-              {/* Guest avatar with sound wave */}
               <div className="relative mb-6">
                 <SoundWave />
                 <div className="w-[72px] h-[72px] rounded-full overflow-hidden relative z-10">
                   <Avatar user={guest} size="lg" />
                 </div>
               </div>
-              <p className="text-white text-base font-semibold">
-                {guest.name} has joined for prayer
-              </p>
+              <p className="text-white text-base font-semibold">{guest.name} has joined for prayer</p>
 
-              {/* Circular timer */}
               <div className="relative mt-8 flex items-center justify-center">
                 <svg width="100" height="100" className="-rotate-90">
                   <circle cx="50" cy="50" r="44" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="4" />
@@ -239,7 +213,7 @@ export default function PrayerCellHostRoom() {
         </AnimatePresence>
       </div>
 
-      {/* Mute button */}
+      {/* Mute */}
       <div className="flex justify-center pb-12">
         <motion.button
           whileTap={{ scale: 0.9 }}

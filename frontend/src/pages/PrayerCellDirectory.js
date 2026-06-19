@@ -8,19 +8,19 @@ import { useSocket } from '../contexts/SocketContext';
 
 const BG = '#0A0F1E';
 
-function getTimeAgo(d) {
-  const diff = Date.now() - new Date(d);
-  const m = Math.floor(diff / 60000);
-  if (m < 1) return 'just now';
-  if (m < 60) return `${m}m ago`;
-  const h = Math.floor(m / 60);
-  return `${h}h ago`;
+function timeAgo(date) {
+  const mins = Math.floor((Date.now() - new Date(date)) / 60000);
+  if (mins < 1) return 'just now';
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  return `${hrs}h ago`;
 }
 
 export default function PrayerCellDirectory() {
   const navigate = useNavigate();
   const { socket } = useSocket();
-  const [cells, setCells] = useState([]);
+  const [activeCells, setActiveCells] = useState([]);
+  const [recentCells, setRecentCells] = useState([]);
   const [loading, setLoading] = useState(true);
   const [starting, setStarting] = useState(false);
   const [joiningId, setJoiningId] = useState(null);
@@ -28,14 +28,22 @@ export default function PrayerCellDirectory() {
   const fetchCells = useCallback(async () => {
     try {
       const res = await api.get('/prayer-cells');
-      setCells(res.data);
+      const data = res.data;
+      // Handle both old array shape and new object shape
+      if (Array.isArray(data)) {
+        setActiveCells(data);
+        setRecentCells([]);
+      } else {
+        setActiveCells(data.activeCells || []);
+        setRecentCells(data.recentCells || []);
+      }
     } catch {}
     setLoading(false);
   }, []);
 
   useEffect(() => {
     fetchCells();
-    const interval = setInterval(fetchCells, 15000);
+    const interval = setInterval(fetchCells, 10000);
     return () => clearInterval(interval);
   }, [fetchCells]);
 
@@ -120,8 +128,8 @@ export default function PrayerCellDirectory() {
               <div key={i} className="h-24 rounded-2xl animate-pulse" style={{ background: 'rgba(255,255,255,0.05)' }} />
             ))}
           </div>
-        ) : cells.length === 0 ? (
-          <div className="flex flex-col items-center py-20">
+        ) : activeCells.length === 0 ? (
+          <div className="flex flex-col items-center py-12">
             <Radio size={48} color="rgba(255,255,255,0.15)" strokeWidth={1.5} />
             <p className="text-white/60 font-semibold mt-4">No active prayer cells</p>
             <p className="text-white/30 text-sm mt-1">Be the first to open one 🙏</p>
@@ -143,7 +151,7 @@ export default function PrayerCellDirectory() {
               initial="hidden"
               animate="show"
             >
-              {cells.map(cell => (
+              {activeCells.map(cell => (
                 <CellCard
                   key={cell.id}
                   cell={cell}
@@ -155,6 +163,20 @@ export default function PrayerCellDirectory() {
           </AnimatePresence>
         )}
       </div>
+
+      {/* Recent sessions */}
+      {!loading && recentCells.length > 0 && (
+        <div className="mt-8 px-4">
+          <p className="font-bold text-sm mb-3" style={{ color: 'rgba(255,255,255,0.4)' }}>
+            Recent Sessions
+          </p>
+          <div className="space-y-3">
+            {recentCells.map(cell => (
+              <RecentCellCard key={cell.id} cell={cell} />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -169,7 +191,6 @@ function CellCard({ cell, onJoin, joining }) {
       style={{ background: '#1A1F35', border: '1px solid rgba(255,255,255,0.08)' }}
     >
       <div className="flex items-center gap-3">
-        {/* Avatar */}
         <div className="relative flex-shrink-0">
           <div
             className="rounded-full overflow-hidden"
@@ -182,7 +203,6 @@ function CellCard({ cell, onJoin, joining }) {
           </div>
         </div>
 
-        {/* Info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <p className="text-white font-semibold text-sm">{cell.host.name}</p>
@@ -210,13 +230,12 @@ function CellCard({ cell, onJoin, joining }) {
           <div className="flex items-center gap-1.5 mt-1">
             <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
             <p className="text-xs" style={{ color: 'rgba(255,255,255,0.35)' }}>
-              Live · {getTimeAgo(cell.startedAt)}
+              Live · Started {timeAgo(cell.startedAt)}
               {guestCount > 0 && ` · ${guestCount} in room`}
             </p>
           </div>
         </div>
 
-        {/* Join */}
         <motion.button
           whileTap={{ scale: 0.95 }}
           onClick={onJoin}
@@ -228,5 +247,41 @@ function CellCard({ cell, onJoin, joining }) {
         </motion.button>
       </div>
     </motion.div>
+  );
+}
+
+function RecentCellCard({ cell }) {
+  return (
+    <div
+      className="rounded-2xl p-4"
+      style={{ background: '#1A1F35', border: '1px solid rgba(255,255,255,0.05)', opacity: 0.65 }}
+    >
+      <div className="flex items-center gap-3">
+        <div
+          className="rounded-full overflow-hidden flex-shrink-0"
+          style={{ width: 48, height: 48 }}
+        >
+          <Avatar user={cell.host} size="md" />
+        </div>
+
+        <div className="flex-1 min-w-0">
+          <p className="text-white font-semibold text-sm">{cell.host.name}</p>
+          <p className="text-xs mt-0.5" style={{ color: '#fbbf24' }}>
+            Prayed for {cell.sessionCount} {cell.sessionCount === 1 ? 'person' : 'people'}
+          </p>
+          <div className="flex items-center gap-1.5 mt-1">
+            <div className="w-1.5 h-1.5 rounded-full bg-gray-500" />
+            <p className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>
+              Ended {timeAgo(cell.endedAt)}
+            </p>
+          </div>
+        </div>
+
+        <span className="flex-shrink-0 text-xs font-medium px-3 py-1.5 rounded-full"
+          style={{ background: 'rgba(255,255,255,0.06)', color: 'rgba(255,255,255,0.3)' }}>
+          Ended
+        </span>
+      </div>
+    </div>
   );
 }

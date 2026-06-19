@@ -27,6 +27,7 @@ function setupSocket(io) {
       socket.join(`cell:${cellId}`);
       socket.data.cellId = cellId;
       socket.data.role = 'host';
+      io.emit('cell:directory_updated');
     });
 
     socket.on('cell:join', ({ cellId }) => {

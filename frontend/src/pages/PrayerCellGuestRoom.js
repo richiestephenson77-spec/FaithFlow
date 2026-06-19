@@ -19,31 +19,13 @@ export default function PrayerCellGuestRoom() {
 
   const host = state?.host || { name: state?.hostName || 'Host', profilePhoto: state?.hostPhoto };
 
-  const [status, setStatus] = useState('connecting'); // connecting | connected | complete | ended
+  const [status, setStatus] = useState('connecting'); // connecting | connected | complete | ended | disconnected
   const [isMuted, setIsMuted] = useState(false);
   const [timeLeft, setTimeLeft] = useState(PRAYER_DURATION);
-  const [micError, setMicError] = useState(false);
 
   const streamRef = useRef(null);
   const timerRef = useRef(null);
 
-  // Init mic + join socket room
-  useEffect(() => {
-    let active = true;
-    getLocalStream()
-      .then(stream => { if (active) streamRef.current = stream; })
-      .catch(() => setMicError(true));
-
-    if (socket) socket.emit('cell:join', { cellId });
-
-    return () => {
-      active = false;
-      endCall();
-      clearInterval(timerRef.current);
-    };
-  }, [cellId]); // eslint-disable-line
-
-  // Start countdown once connected
   function startTimer() {
     setStatus('connected');
     setTimeLeft(PRAYER_DURATION);
@@ -60,38 +42,62 @@ export default function PrayerCellGuestRoom() {
     }, 1000);
   }
 
-  // Socket listeners
+  // Set up listeners FIRST, then emit cell:join
   useEffect(() => {
-    if (!socket) return;
+    if (!socket || !cellId) return;
 
     async function onOffer({ offer, fromSocketId }) {
-      if (streamRef.current) {
-        await handleOffer(offer, fromSocketId, socket, streamRef.current);
+      try {
+        // Get mic on demand — ensures it's ready before answering
+        const stream = streamRef.current || await getLocalStream();
+        streamRef.current = stream;
+        await handleOffer(offer, fromSocketId, socket, stream);
         startTimer();
+      } catch (err) {
+        console.error('[Guest] handleOffer error:', err);
       }
     }
 
+    function onAnswer({ answer }) { handleAnswer(answer); }
     function onIce({ candidate }) { handleIce(candidate); }
 
     function onEnded() {
       clearInterval(timerRef.current);
       setStatus('ended');
+      endCall();
     }
 
-    function onDisconnected() { onEnded(); }
+    function onDisconnected() {
+      clearInterval(timerRef.current);
+      setStatus('disconnected');
+      endCall();
+    }
 
+    // Listeners first
     socket.on('cell:offer', onOffer);
+    socket.on('cell:answer', onAnswer);
     socket.on('cell:ice', onIce);
     socket.on('cell:ended', onEnded);
     socket.on('cell:peer_disconnected', onDisconnected);
 
+    // Then join
+    socket.emit('cell:join', { cellId });
+
+    // Pre-fetch mic in background so it's ready when offer arrives
+    getLocalStream()
+      .then(stream => { streamRef.current = stream; })
+      .catch(err => console.error('[Guest] mic error:', err));
+
     return () => {
       socket.off('cell:offer', onOffer);
+      socket.off('cell:answer', onAnswer);
       socket.off('cell:ice', onIce);
       socket.off('cell:ended', onEnded);
       socket.off('cell:peer_disconnected', onDisconnected);
+      endCall();
+      clearInterval(timerRef.current);
     };
-  }, [socket]); // eslint-disable-line
+  }, [socket, cellId]); // eslint-disable-line
 
   async function handleLeave() {
     try { await api.post(`/prayer-cells/${cellId}/leave`); } catch {}
@@ -101,10 +107,7 @@ export default function PrayerCellGuestRoom() {
     navigate('/prayer-cells');
   }
 
-  function handleMute() {
-    const muted = toggleMute();
-    setIsMuted(muted);
-  }
+  function handleMute() { setIsMuted(toggleMute()); }
 
   const circumference = 2 * Math.PI * 44;
   const progress = timeLeft / PRAYER_DURATION;
@@ -120,10 +123,6 @@ export default function PrayerCellGuestRoom() {
         </button>
       </div>
 
-      {micError && (
-        <p className="text-red-400 text-xs text-center">Mic access denied — audio unavailable</p>
-      )}
-
       {/* Main content */}
       <div className="flex-1 flex flex-col items-center justify-center px-8">
         <AnimatePresence mode="wait">
@@ -134,7 +133,6 @@ export default function PrayerCellGuestRoom() {
               animate={{ opacity: 1, y: 0 }}
               className="flex flex-col items-center"
             >
-              {/* Host avatar with sound wave */}
               <div className="relative mb-6">
                 {status === 'connected' && <HostSoundWave />}
                 <div
@@ -154,7 +152,6 @@ export default function PrayerCellGuestRoom() {
                 </span>
               )}
 
-              {/* Connection status */}
               <div className="flex items-center gap-2 mt-4">
                 {status === 'connecting' ? (
                   <>
@@ -169,7 +166,6 @@ export default function PrayerCellGuestRoom() {
                 )}
               </div>
 
-              {/* Timer */}
               {status === 'connected' && (
                 <>
                   <div className="relative mt-8 flex items-center justify-center">
@@ -214,14 +210,16 @@ export default function PrayerCellGuestRoom() {
             </motion.div>
           )}
 
-          {status === 'ended' && (
+          {(status === 'ended' || status === 'disconnected') && (
             <motion.div
               key="ended"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               className="flex flex-col items-center"
             >
-              <p className="text-white text-lg font-semibold text-center">Host ended the session</p>
+              <p className="text-white text-lg font-semibold text-center">
+                {status === 'disconnected' ? 'Connection lost' : 'Host ended the session'}
+              </p>
               <p className="text-gray-400 text-sm text-center mt-2">Thank you for joining 🙏</p>
               <motion.button
                 whileTap={{ scale: 0.97 }}
@@ -236,7 +234,7 @@ export default function PrayerCellGuestRoom() {
         </AnimatePresence>
       </div>
 
-      {/* Mute button */}
+      {/* Mute */}
       <div className="flex justify-center pb-12">
         <motion.button
           whileTap={{ scale: 0.9 }}
