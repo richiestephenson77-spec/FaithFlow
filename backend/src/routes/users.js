@@ -6,10 +6,11 @@ const bcrypt = require('bcryptjs');
 const prisma = new PrismaClient();
 const {
   getProfile, getMe, updateProfile, follow,
-  getFollowers, getFollowing, getDashboard, searchUsers,
+  getFollowers, getFollowing, getDashboard, searchUsers, getSuggestedUsers,
 } = require('../controllers/userController');
 
 router.get('/search', authenticate, searchUsers);
+router.get('/suggested', authenticate, getSuggestedUsers);
 router.get('/me', authenticate, getMe);
 router.get('/me/dashboard', authenticate, getDashboard);
 router.put('/me', authenticate, (req, res, next) => {

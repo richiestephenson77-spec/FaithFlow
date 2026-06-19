@@ -1,116 +1,203 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Search, UserX } from 'lucide-react';
 import api from '../utils/api';
-import Avatar from '../components/Avatar';
-import { staggerContainerFast, staggerItem } from '../utils/animations';
+import UserRow from '../components/UserRow';
+import { fadeUp, staggerItem } from '../utils/animations';
+
+const stagger = { animate: { transition: { staggerChildren: 0.06 } } };
+
+const FILTERS = [
+  { id: '',         label: 'All' },
+  { id: 'church',  label: 'Your Church' },
+  { id: 'city',    label: 'Your City' },
+  { id: 'warriors',label: 'Prayer Warriors' },
+  { id: 'pastors', label: 'Pastors' },
+];
+
+function SkeletonRow() {
+  return (
+    <div className="flex items-center gap-3 px-4 py-3 animate-pulse">
+      <div className="w-10 h-10 rounded-full bg-gray-200 flex-shrink-0" />
+      <div className="flex-1 space-y-2">
+        <div className="h-3 bg-gray-200 rounded-full w-32" />
+        <div className="h-2.5 bg-gray-100 rounded-full w-20" />
+      </div>
+      <div className="w-16 h-7 bg-gray-100 rounded-full" />
+    </div>
+  );
+}
 
 export default function Search() {
+  const navigate = useNavigate();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [searching, setSearching] = useState(false);
   const [searched, setSearched] = useState(false);
-  const navigate = useNavigate();
+
+  const [suggested, setSuggested] = useState([]);
+  const [suggestedLoading, setSuggestedLoading] = useState(true);
+  const [activeFilter, setActiveFilter] = useState('');
+
+  const debounceRef = useRef(null);
+
+  // Load suggested on mount and when filter changes
+  useEffect(() => {
+    setSuggestedLoading(true);
+    api.get(`/users/suggested${activeFilter ? `?filter=${activeFilter}` : ''}`)
+      .then(res => setSuggested(res.data))
+      .catch(() => {})
+      .finally(() => setSuggestedLoading(false));
+  }, [activeFilter]);
 
   const doSearch = useCallback(async (q) => {
-    if (!q || q.trim().length < 2) { setResults([]); setSearched(false); return; }
-    setLoading(true);
+    if (!q || q.trim().length < 2) { setResults([]); setSearched(false); setSearching(false); return; }
     try {
       const res = await api.get(`/users/search?q=${encodeURIComponent(q)}`);
       setResults(res.data);
       setSearched(true);
     } catch {}
-    setLoading(false);
+    setSearching(false);
   }, []);
 
   function handleChange(e) {
     const val = e.target.value;
     setQuery(val);
+    clearTimeout(debounceRef.current);
     if (val.trim().length >= 2) {
-      setLoading(true);
-      setTimeout(() => doSearch(val), 400);
+      setSearching(true);
+      debounceRef.current = setTimeout(() => doSearch(val), 300);
     } else {
       setResults([]);
       setSearched(false);
+      setSearching(false);
     }
   }
 
-  return (
-    <div className="bg-gray-50 min-h-full">
-      <div className="bg-gray-50 px-5 pt-5 pb-4">
-        <h2 className="text-2xl font-bold text-gray-900 mb-0.5">Find Believers</h2>
-        <p className="text-sm text-gray-400">Connect with your faith community</p>
-      </div>
+  const showDiscovery = !query || query.trim().length < 2;
 
-      <div className="bg-gray-50 px-4 pt-3 pb-4">
-        {/* Search Input */}
-        <div className="relative mb-5">
-          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-            </svg>
-          </div>
+  return (
+    <div className="bg-gray-50 min-h-full pb-28">
+      {/* Header */}
+      <motion.div {...fadeUp} className="px-5 pt-5 pb-4">
+        <h2 className="text-2xl font-bold text-gray-900">Find Believers</h2>
+        <p className="text-sm text-gray-400 mt-0.5">Connect with your faith community</p>
+      </motion.div>
+
+      {/* Search input */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.98 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.25, ease: 'easeOut' }}
+        className="px-4 mb-4"
+      >
+        <div className="relative">
+          <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" strokeWidth={1.8} />
           <input
             type="text"
             value={query}
             onChange={handleChange}
-            placeholder="Name, church, or location..."
-            className="w-full bg-white border border-gray-200 rounded-2xl pl-11 pr-4 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-faith-400 shadow-sm"
-            autoFocus
+            placeholder="Search believers, churches, locations..."
+            className="w-full bg-white rounded-2xl pl-11 pr-4 py-3.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-400/30 transition-all"
+            style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
           />
-          {loading && (
+          {searching && (
             <div className="absolute right-4 top-1/2 -translate-y-1/2">
-              <div className="w-4 h-4 border-2 border-faith-400 border-t-transparent rounded-full animate-spin" />
+              <div className="w-4 h-4 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
             </div>
           )}
         </div>
+      </motion.div>
 
-        {/* Empty state */}
-        {!searched && !loading && (
-          <div className="text-center py-16">
-            <div className="w-16 h-16 prayer-gradient rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-              </svg>
+      <AnimatePresence mode="wait">
+        {showDiscovery ? (
+          <motion.div
+            key="discovery"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+          >
+            {/* Category filter chips */}
+            <div className="flex gap-2 overflow-x-auto px-4 pb-1 no-scrollbar mb-4">
+              {FILTERS.map(f => (
+                <button
+                  key={f.id}
+                  onClick={() => setActiveFilter(f.id)}
+                  className="flex-shrink-0 h-8 px-3.5 rounded-full text-xs font-medium transition-colors"
+                  style={{
+                    background: activeFilter === f.id ? '#111827' : '#FFFFFF',
+                    color: activeFilter === f.id ? '#FFFFFF' : '#6B7280',
+                    boxShadow: activeFilter === f.id ? 'none' : '0 1px 3px rgba(0,0,0,0.07)',
+                  }}
+                >
+                  {f.label}
+                </button>
+              ))}
             </div>
-            <p className="font-semibold text-gray-700">Search for fellow believers</p>
-            <p className="text-sm text-gray-400 mt-1">Find by name, church, or location</p>
-          </div>
-        )}
 
-        {searched && results.length === 0 && !loading && (
-          <div className="text-center py-16">
-            <p className="font-semibold text-gray-600">No believers found</p>
-            <p className="text-sm text-gray-400 mt-1">Try a different name or church</p>
-          </div>
-        )}
-
-        <motion.div className="space-y-2" key={results.length} {...staggerContainerFast} initial="initial" animate="animate">
-          {results.map(user => (
-            <motion.div
-              key={user.id}
-              variants={staggerItem}
-              onClick={() => navigate(`/profile/${user.id}`)}
-              className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm flex items-center gap-3 cursor-pointer"
-            >
-              <Avatar user={user} size="lg" />
-              <div className="flex-1 min-w-0">
-                <p className="font-semibold text-gray-900 text-sm leading-tight">{user.name}</p>
-                {user.churchName && (
-                  <p className="text-xs text-faith-600 mt-0.5 font-medium">{user.churchName}</p>
+            {/* Suggested believers */}
+            <motion.div {...fadeUp} transition={{ delay: 0.1 }}>
+              <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest px-5 mb-2">
+                {activeFilter ? FILTERS.find(f => f.id === activeFilter)?.label : 'Suggested Believers'}
+              </p>
+              <div className="bg-white rounded-2xl mx-4 overflow-hidden shadow-sm divide-y divide-gray-100">
+                {suggestedLoading ? (
+                  Array.from({ length: 5 }).map((_, i) => <SkeletonRow key={i} />)
+                ) : suggested.length === 0 ? (
+                  <div className="py-10 text-center px-4">
+                    <p className="text-sm font-medium text-gray-500">No believers found</p>
+                    <p className="text-xs text-gray-400 mt-1">Try a different filter</p>
+                  </div>
+                ) : (
+                  <motion.div variants={stagger} initial="initial" animate="animate">
+                    {suggested.map(user => (
+                      <motion.div key={user.id} variants={staggerItem}>
+                        <UserRow user={user} />
+                      </motion.div>
+                    ))}
+                  </motion.div>
                 )}
-                {user.location && (
-                  <p className="text-xs text-gray-400 mt-0.5">{user.location}</p>
-                )}
-                <p className="text-xs text-gray-400 mt-1">{user._count?.followers || 0} believers</p>
               </div>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="9 18 15 12 9 6"/>
-              </svg>
             </motion.div>
-          ))}
-        </motion.div>
-      </div>
+          </motion.div>
+        ) : (
+          <motion.div
+            key="results"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            className="px-4"
+          >
+            {searched && results.length === 0 && !searching && (
+              <div className="text-center py-16">
+                <UserX size={40} color="#d1d5db" strokeWidth={1.5} className="mx-auto mb-3" />
+                <p className="font-semibold text-gray-600">No believers found for "{query}"</p>
+                <p className="text-sm text-gray-400 mt-1">Try searching by church or location</p>
+              </div>
+            )}
+
+            {results.length > 0 && (
+              <div className="bg-white rounded-2xl overflow-hidden shadow-sm divide-y divide-gray-100">
+                <motion.div
+                  key={query}
+                  variants={stagger}
+                  initial="initial"
+                  animate="animate"
+                >
+                  {results.map(user => (
+                    <motion.div key={user.id} variants={staggerItem}>
+                      <UserRow user={user} />
+                    </motion.div>
+                  ))}
+                </motion.div>
+              </div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -231,15 +231,62 @@ async function searchUsers(req, res) {
         ],
         NOT: { id: req.user.id },
       },
-      select: { id: true, name: true, profilePhoto: true, churchName: true, location: true,
-        _count: { select: { followers: true } } },
+      select: {
+        id: true, name: true, profilePhoto: true, churchName: true,
+        location: true, isVerifiedPastor: true, prayerWarriorBadge: true,
+        _count: { select: { followers: true } },
+        followers: { where: { followerId: req.user.id }, select: { followerId: true }, take: 1 },
+      },
       take: 20,
       orderBy: { name: 'asc' },
     });
-    res.json(users);
+    res.json(users.map(u => ({
+      ...u,
+      followerCount: u._count.followers,
+      isFollowedByMe: u.followers.length > 0,
+      followers: undefined,
+      _count: undefined,
+    })));
   } catch {
     res.status(500).json({ error: 'Search failed' });
   }
 }
 
-module.exports = { getProfile, getMe, updateProfile, follow, getFollowers, getFollowing, getDashboard, searchUsers };
+async function getSuggestedUsers(req, res) {
+  const { filter } = req.query;
+  const me = await prisma.user.findUnique({
+    where: { id: req.user.id },
+    select: { churchName: true, location: true },
+  });
+
+  const where = { NOT: { id: req.user.id } };
+  if (filter === 'church' && me?.churchName) where.churchName = me.churchName;
+  if (filter === 'city' && me?.location) where.location = me.location;
+  if (filter === 'warriors') where.prayerWarriorBadge = true;
+  if (filter === 'pastors') where.isVerifiedPastor = true;
+
+  try {
+    const users = await prisma.user.findMany({
+      where,
+      select: {
+        id: true, name: true, profilePhoto: true, churchName: true,
+        location: true, isVerifiedPastor: true, prayerWarriorBadge: true,
+        _count: { select: { followers: true } },
+        followers: { where: { followerId: req.user.id }, select: { followerId: true }, take: 1 },
+      },
+      orderBy: [{ profilePhoto: { sort: 'desc', nulls: 'last' } }, { followers: { _count: 'desc' } }],
+      take: 10,
+    });
+    res.json(users.map(u => ({
+      ...u,
+      followerCount: u._count.followers,
+      isFollowedByMe: u.followers.length > 0,
+      followers: undefined,
+      _count: undefined,
+    })));
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to get suggested users' });
+  }
+}
+
+module.exports = { getProfile, getMe, updateProfile, follow, getFollowers, getFollowing, getDashboard, searchUsers, getSuggestedUsers };
