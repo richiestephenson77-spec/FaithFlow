@@ -4,48 +4,39 @@ const { notifyUser } = require('../services/socketService');
 const prisma = new PrismaClient();
 
 async function getFeed(req, res) {
-  const page = parseInt(req.query.page) || 1;
-  const limit = 20;
-  const skip = (page - 1) * limit;
   const { category } = req.query;
-
   const where = { isActive: true, isAnswered: false };
   if (category && category !== 'ALL') where.category = category;
 
   try {
-    const [urgent, regular] = await Promise.all([
-      prisma.prayerRequest.findMany({
-        where: { ...where, isUrgent: true },
-        orderBy: { createdAt: 'desc' },
-        take: 5,
-        include: {
-          user: { select: { id: true, name: true, profilePhoto: true, churchName: true } },
-          _count: { select: { sessions: true } },
-          sessions: { where: { endedAt: null }, select: { userId: true } },
-        },
-      }),
-      prisma.prayerRequest.findMany({
-        where: { ...where, isUrgent: false },
-        orderBy: { createdAt: 'desc' },
-        skip,
-        take: limit,
-        include: {
-          user: { select: { id: true, name: true, profilePhoto: true, churchName: true } },
-          _count: { select: { sessions: true } },
-          sessions: { where: { endedAt: null }, select: { userId: true } },
-        },
-      }),
-    ]);
-
-    const format = (r) => ({
-      ...r,
-      currentlyPrayingCount: r.sessions.length,
-      totalPrayerCount: r._count.sessions,
-      sessions: undefined,
+    const all = await prisma.prayerRequest.findMany({
+      where,
+      include: {
+        user: { select: { id: true, name: true, profilePhoto: true, churchName: true } },
+        _count: { select: { sessions: true } },
+        sessions: { select: { userId: true } },
+      },
     });
 
-    res.json([...urgent.map(format), ...regular.map(format)]);
-  } catch {
+    // Sort by total prayer count desc
+    all.sort((a, b) => b._count.sessions - a._count.sessions);
+
+    const format = (r, index) => ({
+      ...r,
+      prayerCount: r._count.sessions,
+      currentlyPrayingCount: r.sessions.filter(s => s.userId).length,
+      totalPrayerCount: r._count.sessions,
+      userHasPrayed: req.user ? r.sessions.some(s => s.userId === req.user.id) : false,
+      isTop3: index < 3,
+      rank: index + 1,
+      sessions: undefined,
+      _count: undefined,
+    });
+
+    const formatted = all.map(format);
+    res.json({ top3: formatted.slice(0, 3), rest: formatted.slice(3) });
+  } catch (err) {
+    console.error('getFeed error:', err);
     res.status(500).json({ error: 'Failed to get feed' });
   }
 }
@@ -133,6 +124,13 @@ async function endSession(req, res) {
       where: { id: sessionId },
       data: { endedAt, durationSeconds },
     });
+
+    // Broadcast live prayer count update
+    const newCount = await prisma.prayerSession.count({
+      where: { prayerRequestId: session.prayerRequestId },
+    });
+    const io = req.app.get('io');
+    if (io) io.emit('prayer_count_updated', { prayerRequestId: session.prayerRequestId, newCount });
 
     // Streak logic
     const user = await prisma.user.findUnique({

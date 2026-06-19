@@ -9,6 +9,7 @@ import NewPrayerRequestModal from '../components/NewPrayerRequestModal';
 import TestimonyModal from '../components/TestimonyModal';
 import MyPrayerRequestsDrawer from '../components/MyPrayerRequestsDrawer';
 import PrayerQueue from './PrayerQueue';
+import TopPrayerCard from '../components/TopPrayerCard';
 
 const FILTER_TABS = [
   { id: 'ALL',          label: 'All' },
@@ -42,8 +43,10 @@ export default function Home() {
   const { user } = useAuth();
   const { notifications } = useSocket();
   const navigate = useNavigate();
-  const [feed, setFeed] = useState([]);
+  const [top3, setTop3] = useState([]);
+  const [restPrayers, setRestPrayers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [activeSession, setActiveSession] = useState(null);
   const [showNewRequest, setShowNewRequest] = useState(false);
   const [prayerToast, setPrayerToast] = useState(null);
@@ -65,16 +68,32 @@ export default function Home() {
     }
   }, [notifications]);
 
-  const loadFeed = useCallback(async (category = 'ALL') => {
-    setLoading(true);
+  // Live prayer count updates
+  const { socket } = useSocket();
+  useEffect(() => {
+    if (!socket) return;
+    const handler = ({ prayerRequestId, newCount }) => {
+      const update = (arr) => arr.map(r =>
+        r.id === prayerRequestId ? { ...r, prayerCount: newCount, totalPrayerCount: newCount } : r
+      );
+      setTop3(prev => update(prev));
+      setRestPrayers(prev => update(prev));
+    };
+    socket.on('prayer_count_updated', handler);
+    return () => socket.off('prayer_count_updated', handler);
+  }, [socket]);
+
+  const loadFeed = useCallback(async (isRefresh = false) => {
+    if (isRefresh) setRefreshing(true); else setLoading(true);
     try {
-      const res = await api.get(`/prayers/feed${category !== 'ALL' ? `?category=${category}` : ''}`);
-      setFeed(res.data);
+      const res = await api.get('/prayers/feed');
+      setTop3(res.data.top3 || []);
+      setRestPrayers(res.data.rest || []);
     } catch {}
-    setLoading(false);
+    if (isRefresh) setRefreshing(false); else setLoading(false);
   }, []);
 
-  useEffect(() => { loadFeed(activeCategory); }, [loadFeed, activeCategory]);
+  useEffect(() => { loadFeed(); }, [loadFeed]);
 
   useEffect(() => {
     api.get('/users/me/dashboard').then(res => {
@@ -86,7 +105,9 @@ export default function Home() {
 
   function handleTestimonySaved(updatedRequest) {
     setTestimonyRequest(null);
-    setFeed(prev => prev.map(r => r.id === updatedRequest.id ? { ...r, ...updatedRequest } : r));
+    const update = arr => arr.map(r => r.id === updatedRequest.id ? { ...r, ...updatedRequest } : r);
+    setTop3(update);
+    setRestPrayers(update);
     setAnsweredFeed(prev => [updatedRequest, ...prev].slice(0, 5));
   }
 
@@ -99,11 +120,11 @@ export default function Home() {
 
   function onSessionEnd() {
     setActiveSession(null);
-    loadFeed(activeCategory);
+    loadFeed();
   }
 
   function onNewRequest(request) {
-    setFeed(prev => [request, ...prev]);
+    setRestPrayers(prev => [{ ...request, prayerCount: 0, isTop3: false, rank: prev.length + 4 }, ...prev]);
     setShowNewRequest(false);
   }
 
@@ -220,35 +241,70 @@ export default function Home() {
           ))}
         </div>
 
-        <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Prayer Requests</h3>
+        {/* Pull to refresh */}
+        <button onClick={() => loadFeed(true)}
+          className="w-full text-center text-xs text-gray-400 mb-3 py-1 active:text-faith-600 transition-colors">
+          {refreshing ? '🌍 Refreshing rankings...' : '↻ Refresh rankings'}
+        </button>
 
         {loading ? (
-          <div className="space-y-3">
-            {[1, 2, 3].map(i => <SkeletonCard key={i} />)}
-          </div>
-        ) : feed.length === 0 ? (
-          <div className="text-center py-16">
-            <div className="w-16 h-16 prayer-gradient rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-              <span className="text-3xl">🕊️</span>
+          <div className="space-y-3">{[1,2,3].map(i => <SkeletonCard key={i} />)}</div>
+        ) : (() => {
+          const filteredTop3 = activeCategory === 'ALL' ? top3 : top3.filter(p => p.category === activeCategory);
+          const filteredRest = activeCategory === 'ALL' ? restPrayers : restPrayers.filter(p => p.category === activeCategory);
+          const allEmpty = filteredTop3.length === 0 && filteredRest.length === 0;
+
+          if (allEmpty) return (
+            <div className="text-center py-16">
+              <div className="w-16 h-16 prayer-gradient rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                <span className="text-3xl">🕊️</span>
+              </div>
+              <p className="font-semibold text-gray-700">No prayer requests yet</p>
+              <p className="text-sm text-gray-400 mt-1">Be the first to share one!</p>
             </div>
-            <p className="font-semibold text-gray-700">No prayer requests yet</p>
-            <p className="text-sm text-gray-400 mt-1">Be the first to share one!</p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {feed.map(request => (
-              <PrayerCard
-                key={request.id}
-                request={request}
-                currentUserId={user?.id}
-                onPray={() => startPraying(request)}
-                onUserClick={() => navigate(`/profile/${request.user.id}`)}
-                onMarkAnswered={() => setTestimonyRequest(request)}
-                onViewTestimony={() => navigate(`/prayer/${request.id}`)}
-              />
-            ))}
-          </div>
-        )}
+          );
+
+          const cardProps = (request) => ({
+            key: request.id,
+            request,
+            currentUserId: user?.id,
+            onPray: () => startPraying(request),
+            onUserClick: () => navigate(`/profile/${request.user.id}`),
+            onMarkAnswered: () => setTestimonyRequest(request),
+            onViewTestimony: () => navigate(`/prayer/${request.id}`),
+          });
+
+          return (
+            <>
+              {filteredTop3.length > 0 && (
+                <>
+                  <div className="mb-3">
+                    <p className="font-bold text-gray-900 text-sm">🌍 Top Prayers Worldwide</p>
+                    <p className="text-xs text-amber-600 mt-0.5">Updated live · sorted by most prayed</p>
+                  </div>
+                  <div className="space-y-3 mb-6">
+                    {filteredTop3.map((request, i) => (
+                      <TopPrayerCard {...cardProps(request)} rank={i + 1} />
+                    ))}
+                  </div>
+                </>
+              )}
+
+              {filteredRest.length > 0 && (
+                <>
+                  <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">
+                    All Prayer Requests · Sorted by most prayed
+                  </p>
+                  <div className="space-y-3">
+                    {filteredRest.map(request => (
+                      <PrayerCard {...cardProps(request)} />
+                    ))}
+                  </div>
+                </>
+              )}
+            </>
+          );
+        })()}
       </div>
 
       {/* Answered Prayers section */}
