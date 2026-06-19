@@ -1,5 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { staggerItem } from '../utils/animations';
+
+const gridContainer = { animate: { transition: { staggerChildren: 0.07 } } };
 
 function ComingSoonToast({ onDone }) {
   return (
@@ -161,12 +165,14 @@ export default function Explore() {
       <div className="-mt-3 rounded-t-3xl bg-gray-50 px-4 pt-6 pb-6">
         <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Features</p>
 
-        <div className="grid grid-cols-2 gap-3">
+        <motion.div className="grid grid-cols-2 gap-3" variants={gridContainer} initial="initial" animate="animate">
           {features.map(f => (
-            <button
+            <motion.button
               key={f.id}
+              variants={staggerItem}
+              whileTap={{ scale: 0.95 }}
               onClick={() => handleTap(f)}
-              className={`relative flex flex-col items-start p-4 rounded-2xl border ${f.bg} ${f.border} shadow-sm active:scale-95 transition-transform text-left`}
+              className={`relative flex flex-col items-start p-4 rounded-2xl border ${f.bg} ${f.border} shadow-sm text-left`}
             >
               {!f.active && (
                 <span className="absolute top-2.5 right-2.5 text-[9px] font-bold text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded-full uppercase tracking-wide">
@@ -178,9 +184,9 @@ export default function Explore() {
               </div>
               <p className={`font-bold text-sm ${f.textColor} leading-tight`}>{f.label}</p>
               <p className="text-xs text-gray-400 mt-0.5 leading-snug">{f.subtitle}</p>
-            </button>
+            </motion.button>
           ))}
-        </div>
+        </motion.div>
 
         {/* Verse of the day */}
         <div className="mt-6 prayer-gradient rounded-2xl p-4 text-white">

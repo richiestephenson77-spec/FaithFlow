@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import api from '../utils/api';
 import { useSocket } from '../contexts/SocketContext';
+import { staggerContainerFast, staggerItem } from '../utils/animations';
 
 const TYPE_ICON = {
   PRAYER_STARTED: '🙏',
@@ -113,11 +115,13 @@ export default function Notifications() {
           <p>No notifications yet</p>
         </div>
       ) : (
-        <div className="space-y-2">
+        <motion.div className="space-y-2" {...staggerContainerFast} initial="initial" animate="animate">
           {deduped.map((n, i) => (
-            <NotificationRow key={n.id || i} n={n} />
+            <motion.div key={n.id || i} variants={staggerItem}>
+              <NotificationRow n={n} />
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       )}
     </div>
   );

@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import api from '../utils/api';
 import { useAuth } from '../contexts/AuthContext';
 import { useSocket } from '../contexts/SocketContext';
 import Avatar from '../components/Avatar';
 import MyPrayerRequestsDrawer from '../components/MyPrayerRequestsDrawer';
+import { fadeUp, fadeIn, staggerContainer, staggerItem, springTap } from '../utils/animations';
 
 function getTimeAgo(dateStr) {
   const diff = Date.now() - new Date(dateStr);
@@ -184,19 +186,21 @@ export default function Home() {
 
       <div className="px-4 pt-4 pb-24">
         {/* Prayer Room entry button */}
-        <button
+        <motion.button
+          {...fadeUp}
+          {...springTap}
           onClick={() => navigate('/prayer')}
-          className="w-full flex items-center justify-between px-5 rounded-xl mb-5 active:scale-[0.98] transition-transform"
+          className="w-full flex items-center justify-between px-5 rounded-xl mb-5"
           style={{ background: 'linear-gradient(135deg, #f59e0b 0%, #f97316 60%, #a855f7 100%)', height: 60 }}
         >
           <span className="text-white font-bold text-base">🙏 Prayer Room</span>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="9 18 15 12 9 6"/>
           </svg>
-        </button>
+        </motion.button>
 
         {/* Community label */}
-        <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Community</p>
+        <motion.p {...fadeIn} transition={{ delay: 0.1, duration: 0.25 }} className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Community</motion.p>
 
         {/* Posts */}
         {loading ? (
@@ -208,16 +212,17 @@ export default function Home() {
             <p className="text-sm text-gray-400 mt-1">Be the first to share something!</p>
           </div>
         ) : (
-          <div className="space-y-3">
+          <motion.div className="space-y-3" {...staggerContainer}>
             {posts.map(post => (
-              <PostCard
-                key={post.id}
-                post={post}
-                onLike={() => handleLike(post.id)}
-                onUserClick={() => navigate(`/profile/${post.user?.id}`)}
-              />
+              <motion.div key={post.id} {...staggerItem}>
+                <PostCard
+                  post={post}
+                  onLike={() => handleLike(post.id)}
+                  onUserClick={() => navigate(`/profile/${post.user?.id}`)}
+                />
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         )}
       </div>
 

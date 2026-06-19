@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
 import api from '../utils/api';
 import Avatar from './Avatar';
 
@@ -137,8 +138,21 @@ export default function NewPrayerRequestModal({ onClose, onCreate }) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-end justify-center" onClick={onClose}>
-      <div className="bg-white rounded-t-3xl w-full max-w-md pb-8 fade-in max-h-[92vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 bg-black/50 z-50 flex items-end justify-center"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ y: '100%' }}
+        animate={{ y: 0 }}
+        exit={{ y: '100%' }}
+        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+        className="bg-white rounded-t-3xl w-full max-w-md pb-8 max-h-[92vh] overflow-y-auto"
+        onClick={e => e.stopPropagation()}
+      >
         {/* Header */}
         <div className="sticky top-0 bg-white px-4 pt-4 pb-3 border-b border-gray-100 flex items-center justify-between">
           <button onClick={onClose} className="text-gray-400 font-semibold text-sm">Cancel</button>
@@ -276,7 +290,7 @@ export default function NewPrayerRequestModal({ onClose, onCreate }) {
             {loading ? 'Posting...' : 'Share Request 🙏'}
           </button>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }

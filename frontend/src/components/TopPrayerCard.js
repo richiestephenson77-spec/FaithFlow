@@ -1,3 +1,4 @@
+import { motion } from 'framer-motion';
 import Avatar from './Avatar';
 
 const MEDAL = { 1: '🥇', 2: '🥈', 3: '🥉' };
@@ -20,13 +21,19 @@ export default function TopPrayerCard({ request, currentUserId, onPray, onUserCl
 
   return (
     <div
-      className="bg-white rounded-2xl p-4 shadow-sm relative fade-in"
+      className="bg-white rounded-2xl p-4 shadow-sm relative"
       style={{ border: `2px solid ${borderColor}` }}
     >
-      {/* Medal top-left */}
-      <span className="absolute -top-3 -left-1 text-2xl select-none">{medal}</span>
+      {/* Medal badge — bounces in */}
+      <motion.span
+        className="absolute -top-3 -left-1 text-2xl select-none"
+        initial={{ scale: 0, rotate: -15 }}
+        animate={{ scale: 1, rotate: 0 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 14, delay: 0.15 * rank }}
+      >
+        {medal}
+      </motion.span>
 
-      {/* Urgent badge top-right */}
       {request.isUrgent && (
         <span className="absolute top-3 right-3 bg-red-50 text-red-600 text-[10px] font-bold px-2 py-0.5 rounded-full border border-red-100 uppercase tracking-wide">
           Urgent
@@ -70,10 +77,16 @@ export default function TopPrayerCard({ request, currentUserId, onPray, onUserCl
           <h4 className="font-bold text-gray-900 text-sm mt-2 mb-1">{request.title}</h4>
           <p className="text-sm text-gray-500 leading-relaxed line-clamp-2">{request.body}</p>
 
-          {/* Worldwide count */}
-          <p className="text-xs font-semibold text-amber-600 mt-2">
+          {/* Live count — re-animates when count changes */}
+          <motion.p
+            key={request.prayerCount}
+            initial={{ scale: 1.15, color: '#f59e0b' }}
+            animate={{ scale: 1, color: '#d97706' }}
+            transition={{ duration: 0.3 }}
+            className="text-xs font-semibold mt-2"
+          >
             🌍 {request.prayerCount} {request.prayerCount === 1 ? 'person' : 'people'} praying worldwide
-          </p>
+          </motion.p>
           {showDistance && request.distanceKm != null && (
             <p className="text-xs text-gray-400 mt-0.5">📍 {request.distanceKm} km away</p>
           )}
@@ -88,17 +101,17 @@ export default function TopPrayerCard({ request, currentUserId, onPray, onUserCl
                 </button>
               )}
               {!request.isAnswered && (
-                <button
+                <motion.button
                   onClick={!isOwner ? onPray : undefined}
                   disabled={isOwner}
+                  whileTap={!isOwner ? { scale: 0.93 } : {}}
+                  transition={{ type: 'spring', stiffness: 500, damping: 25 }}
                   className={`text-xs font-bold rounded-xl px-4 py-2 shadow-sm ${
-                    isOwner
-                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                      : 'prayer-gradient text-white'
+                    isOwner ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'prayer-gradient text-white'
                   }`}
                 >
                   Pray Now
-                </button>
+                </motion.button>
               )}
             </div>
           </div>

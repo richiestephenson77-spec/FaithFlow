@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import api from '../utils/api';
 import { useAuth } from '../contexts/AuthContext';
 import Avatar from './Avatar';
@@ -75,7 +76,13 @@ export default function CreatePostModal({ onClose, onCreate }) {
   const typeObj = POST_TYPES.find(t => t.id === postType);
 
   return (
-    <div className="fixed inset-0 z-50 bg-white flex flex-col max-w-md mx-auto">
+    <motion.div
+      initial={{ opacity: 0, y: '100%' }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: '100%' }}
+      transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+      className="fixed inset-0 z-50 bg-white flex flex-col max-w-md mx-auto"
+    >
       {/* STEP 1 — Media */}
       {step === 1 && (
         <>
@@ -313,6 +320,6 @@ export default function CreatePostModal({ onClose, onCreate }) {
           </div>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }

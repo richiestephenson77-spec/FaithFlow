@@ -1,7 +1,9 @@
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import api from '../utils/api';
 import Avatar from '../components/Avatar';
+import { staggerContainerFast, staggerItem } from '../utils/animations';
 
 export default function Search() {
   const [query, setQuery] = useState('');
@@ -84,12 +86,13 @@ export default function Search() {
           </div>
         )}
 
-        <div className="space-y-2">
+        <motion.div className="space-y-2" key={results.length} {...staggerContainerFast} initial="initial" animate="animate">
           {results.map(user => (
-            <div
+            <motion.div
               key={user.id}
+              variants={staggerItem}
               onClick={() => navigate(`/profile/${user.id}`)}
-              className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm flex items-center gap-3 cursor-pointer active:scale-[0.98] transition-transform"
+              className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm flex items-center gap-3 cursor-pointer"
             >
               <Avatar user={user} size="lg" />
               <div className="flex-1 min-w-0">
@@ -105,9 +108,9 @@ export default function Search() {
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="9 18 15 12 9 6"/>
               </svg>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </div>
     </div>
   );

@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import api from '../utils/api';
 import Avatar from '../components/Avatar';
+import { fadeUp } from '../utils/animations';
 
 const MIN_SECONDS = 15;
 
@@ -8,7 +10,7 @@ export default function PrayerQueue({ onClose, onComplete }) {
   const [queue, setQueue] = useState([]);
   const [current, setCurrent] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [phase, setPhase] = useState('timer'); // 'timer' | 'flash' | 'done'
+  const [phase, setPhase] = useState('timer');
   const [elapsed, setElapsed] = useState(0);
   const [finishing, setFinishing] = useState(false);
   const [quotaResult, setQuotaResult] = useState(null);
@@ -22,7 +24,6 @@ export default function PrayerQueue({ onClose, onComplete }) {
     }).catch(() => setLoading(false));
   }, []);
 
-  // Start session when a request loads
   useEffect(() => {
     if (!queue.length || loading) return;
     const req = queue[current];
@@ -120,71 +121,119 @@ export default function PrayerQueue({ onClose, onComplete }) {
           </svg>
         </button>
         <div className="flex-1">
-          <p className="text-white/50 text-xs mb-1">Prayer {current + 1} of {queue.length}</p>
+          {/* Counter re-animates on change */}
+          <AnimatePresence mode="wait">
+            <motion.p
+              key={current}
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.2 }}
+              className="text-white/50 text-xs mb-1"
+            >
+              Prayer {current + 1} of {queue.length}
+            </motion.p>
+          </AnimatePresence>
+          {/* Progress bar animates width */}
           <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
-            <div className="h-full bg-amber-400 rounded-full transition-all duration-500" style={{ width: `${progress}%` }} />
+            <motion.div
+              className="h-full bg-amber-400 rounded-full"
+              animate={{ width: `${progress}%` }}
+              transition={{ duration: 0.4, ease: 'easeOut' }}
+            />
           </div>
         </div>
       </div>
 
       {/* Flash overlay */}
-      {phase === 'flash' && (
-        <div className="absolute inset-0 flex items-center justify-center z-10">
-          <div className="text-center">
-            <p className="text-5xl mb-2">🙏</p>
-            <p className="text-white font-bold text-xl">Prayed!</p>
-          </div>
-        </div>
-      )}
-
-      <div className={`flex-1 flex flex-col px-4 py-4 transition-opacity duration-300 ${phase === 'flash' ? 'opacity-0' : 'opacity-100'}`}>
-        {/* Person */}
-        <div className="text-center mb-5">
-          <p className="text-white/50 text-xs mb-3">Praying for</p>
-          <div className="inline-block ring-4 ring-white/20 rounded-full">
-            <Avatar user={req.user} size="xl" />
-          </div>
-          <p className="text-white font-bold text-lg mt-2">{req.user?.name}</p>
-          {req.user?.churchName && <p className="text-white/50 text-xs mt-0.5">{req.user.churchName}</p>}
-        </div>
-
-        {/* Prayer card */}
-        <div className="bg-white/8 backdrop-blur rounded-3xl p-5 text-white text-center flex-1 flex flex-col justify-center mb-5">
-          {req.isUrgent && (
-            <span className="text-[10px] font-bold text-red-300 bg-red-500/20 px-2.5 py-0.5 rounded-full uppercase tracking-wide mb-3 inline-block">Urgent</span>
-          )}
-          <h3 className="font-bold text-base mb-2">{req.title}</h3>
-          <p className="text-white/65 text-sm leading-relaxed" style={{ fontFamily: 'Georgia, serif' }}>{req.body}</p>
-        </div>
-
-        {/* Timer */}
-        <div className="text-center mb-5">
-          <div className="text-5xl font-mono font-bold text-white tracking-widest">{minutes}:{seconds}</div>
-          {!ready ? (
-            <div className="mt-3 flex flex-col items-center gap-1">
-              <div className="w-44 h-1.5 bg-white/15 rounded-full overflow-hidden">
-                <div className="h-full bg-amber-400 rounded-full transition-all duration-1000" style={{ width: `${(elapsed / MIN_SECONDS) * 100}%` }} />
-              </div>
-              <p className="text-white/40 text-xs mt-1">Available in {countdown}s</p>
+      <AnimatePresence>
+        {phase === 'flash' && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 flex items-center justify-center z-10"
+          >
+            <div className="text-center">
+              <motion.p
+                initial={{ scale: 0.5 }}
+                animate={{ scale: 1 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 15 }}
+                className="text-5xl mb-2"
+              >🙏</motion.p>
+              <p className="text-white font-bold text-xl">Prayed!</p>
             </div>
-          ) : (
-            <p className="text-white/40 text-sm mt-1">Time in prayer</p>
-          )}
-        </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-        {/* Buttons */}
-        <div className="space-y-3 pb-8">
-          <button onClick={handleFinish} disabled={!ready || finishing}
-            className={`w-full py-4 rounded-2xl font-bold text-base transition-all ${
-              ready && !finishing ? 'bg-amber-400 text-gray-900 shadow-lg' : 'bg-white/10 text-white/30 cursor-not-allowed'
-            }`}>
-            {finishing ? 'Saving...' : ready ? 'Finish Prayer' : `Finish Prayer (${countdown}s)`}
-          </button>
-          <button onClick={handleSkip} className="w-full py-3 rounded-2xl text-white/40 text-sm font-medium border border-white/10">
-            Skip
-          </button>
-        </div>
-      </div>
+      {/* Card — slides in from right when current changes */}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={current}
+          initial={{ opacity: 0, x: 60 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -60, scale: 0.95 }}
+          transition={{ duration: 0.3, ease: 'easeOut' }}
+          className="flex-1 flex flex-col px-4 py-4"
+        >
+          {/* Person */}
+          <div className="text-center mb-5">
+            <p className="text-white/50 text-xs mb-3">Praying for</p>
+            <div className="inline-block ring-4 ring-white/20 rounded-full">
+              <Avatar user={req.user} size="xl" />
+            </div>
+            <p className="text-white font-bold text-lg mt-2">{req.user?.name}</p>
+            {req.user?.churchName && <p className="text-white/50 text-xs mt-0.5">{req.user.churchName}</p>}
+          </div>
+
+          {/* Prayer card */}
+          <div className="bg-white/8 backdrop-blur rounded-3xl p-5 text-white text-center flex-1 flex flex-col justify-center mb-5">
+            {req.isUrgent && (
+              <span className="text-[10px] font-bold text-red-300 bg-red-500/20 px-2.5 py-0.5 rounded-full uppercase tracking-wide mb-3 inline-block">Urgent</span>
+            )}
+            <h3 className="font-bold text-base mb-2">{req.title}</h3>
+            <p className="text-white/65 text-sm leading-relaxed" style={{ fontFamily: 'Georgia, serif' }}>{req.body}</p>
+          </div>
+
+          {/* Timer */}
+          <div className="text-center mb-5">
+            <div className="text-5xl font-mono font-bold text-white tracking-widest">{minutes}:{seconds}</div>
+            {!ready ? (
+              <div className="mt-3 flex flex-col items-center gap-1">
+                <div className="w-44 h-1.5 bg-white/15 rounded-full overflow-hidden">
+                  <motion.div
+                    className="h-full bg-amber-400 rounded-full"
+                    animate={{ width: `${(elapsed / MIN_SECONDS) * 100}%` }}
+                    transition={{ duration: 1, ease: 'linear' }}
+                  />
+                </div>
+                <p className="text-white/40 text-xs mt-1">Available in {countdown}s</p>
+              </div>
+            ) : (
+              <p className="text-white/40 text-sm mt-1">Time in prayer</p>
+            )}
+          </div>
+
+          {/* Buttons */}
+          <div className="space-y-3 pb-8">
+            <motion.button
+              onClick={handleFinish}
+              disabled={!ready || finishing}
+              whileTap={ready && !finishing ? { scale: 0.97 } : {}}
+              transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+              className={`w-full py-4 rounded-2xl font-bold text-base transition-all ${
+                ready && !finishing ? 'bg-amber-400 text-gray-900 shadow-lg' : 'bg-white/10 text-white/30 cursor-not-allowed'
+              }`}
+            >
+              {finishing ? 'Saving...' : ready ? 'Finish Prayer' : `Finish Prayer (${countdown}s)`}
+            </motion.button>
+            <button onClick={handleSkip} className="w-full py-3 rounded-2xl text-white/40 text-sm font-medium border border-white/10">
+              Skip
+            </button>
+          </div>
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 }
@@ -237,22 +286,56 @@ function QuotaCelebration({ result, count, onContinue }) {
     <div className="fixed inset-0 z-50 bg-gray-900 flex flex-col items-center justify-center px-8 text-center">
       <canvas ref={canvasRef} className="absolute inset-0 pointer-events-none" />
       <div className="relative z-10">
-        <p className="text-7xl mb-4">🎉</p>
-        <h2 className="text-white text-2xl font-extrabold mb-2">Daily Goal Complete!</h2>
-        <p className="text-white/60 text-sm mb-6">You prayed for {count} {count === 1 ? 'person' : 'people'} today</p>
+        {/* Emoji bounces in */}
+        <motion.p
+          initial={{ scale: 0 }}
+          animate={{ scale: [0, 1.25, 1] }}
+          transition={{ type: 'spring', stiffness: 300, damping: 14, delay: 0.1 }}
+          className="text-7xl mb-4"
+        >🎉</motion.p>
 
+        {/* Title */}
+        <motion.h2
+          {...fadeUp}
+          transition={{ delay: 0.3, duration: 0.3 }}
+          className="text-white text-2xl font-extrabold mb-2"
+        >
+          Daily Goal Complete!
+        </motion.h2>
+
+        {/* Subtitle */}
+        <motion.p
+          {...fadeUp}
+          transition={{ delay: 0.45, duration: 0.3 }}
+          className="text-white/60 text-sm mb-6"
+        >
+          You prayed for {count} {count === 1 ? 'person' : 'people'} today
+        </motion.p>
+
+        {/* Badge */}
         {result?.badgeEarned && (
-          <div className="mb-6 bg-amber-400/20 border border-amber-400/30 rounded-2xl p-4 mx-auto max-w-xs">
+          <motion.div
+            initial={{ opacity: 0, scale: 0, rotate: -20 }}
+            animate={{ opacity: 1, scale: 1, rotate: 0 }}
+            transition={{ type: 'spring', stiffness: 250, damping: 16, delay: 0.65 }}
+            className="mb-6 bg-amber-400/20 border border-amber-400/30 rounded-2xl p-4 mx-auto max-w-xs"
+          >
             <p className="text-4xl mb-2">🏆</p>
             <p className="text-amber-300 font-bold text-sm">Prayer Warrior Badge Earned!</p>
             <p className="text-amber-400/70 text-xs mt-0.5">First daily quota completed</p>
-          </div>
+          </motion.div>
         )}
 
-        <button onClick={onContinue}
-          className="bg-amber-400 text-gray-900 font-bold rounded-2xl px-10 py-4 text-base shadow-xl">
+        {/* Continue button */}
+        <motion.button
+          {...fadeUp}
+          transition={{ delay: result?.badgeEarned ? 0.85 : 0.6, duration: 0.3 }}
+          whileTap={{ scale: 0.96 }}
+          onClick={onContinue}
+          className="bg-amber-400 text-gray-900 font-bold rounded-2xl px-10 py-4 text-base shadow-xl"
+        >
           Continue
-        </button>
+        </motion.button>
       </div>
     </div>
   );

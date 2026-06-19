@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import api from '../utils/api';
+import { fadeUp, fadeIn, scaleIn, slideInRight, slideUp, staggerContainer, staggerContainerFast, staggerItem } from '../utils/animations';
 import { useAuth } from '../contexts/AuthContext';
 import { useSocket } from '../contexts/SocketContext';
 import Avatar from '../components/Avatar';
@@ -257,8 +259,8 @@ export default function PrayerPage() {
         <button onClick={() => navigate(-1)} className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center mb-4">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
-        <p className="text-white/70 text-sm mb-1">Prayer Room</p>
-        <h2 className="text-2xl font-bold text-white mb-2">Who will you pray<br />for today?</h2>
+        <motion.p {...fadeUp} className="text-white/70 text-sm mb-1">Prayer Room</motion.p>
+        <motion.h2 {...fadeUp} transition={{ delay: 0.05, duration: 0.3 }} className="text-2xl font-bold text-white mb-2">Who will you pray<br />for today?</motion.h2>
         {streak !== null && streak > 0 && (
           <div className="flex items-center gap-2 mb-4">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="rgba(255,255,255,0.9)" stroke="none">
@@ -291,25 +293,28 @@ export default function PrayerPage() {
       {/* Feed */}
       <div className="-mt-4 rounded-t-3xl bg-gray-50 px-4 pt-5 pb-24">
         {/* Action buttons */}
-        <div className="flex gap-3 mb-5">
-          <button onClick={() => setShowQueue(true)}
-            className="flex-1 bg-amber-400 text-gray-900 font-bold rounded-2xl py-3.5 text-sm shadow-md active:scale-[0.98] transition-transform">
+        <motion.div {...fadeUp} transition={{ delay: 0.1, duration: 0.3 }} className="flex gap-3 mb-5">
+          <motion.button whileTap={{ scale: 0.96 }} transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+            onClick={() => setShowQueue(true)}
+            className="flex-1 bg-amber-400 text-gray-900 font-bold rounded-2xl py-3.5 text-sm shadow-md">
             🙏 Start Daily Prayers
-          </button>
-          <button onClick={() => setShowNewRequest(true)}
+          </motion.button>
+          <motion.button whileTap={{ scale: 0.96 }} transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+            onClick={() => setShowNewRequest(true)}
             className="flex-1 bg-white border border-gray-200 text-gray-700 font-semibold rounded-2xl py-3.5 text-sm flex items-center justify-center gap-1.5">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
             </svg>
             Share Request
-          </button>
-          <button onClick={() => setShowMyRequests(true)}
+          </motion.button>
+          <motion.button whileTap={{ scale: 0.9 }} transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+            onClick={() => setShowMyRequests(true)}
             className="w-12 h-12 bg-white border border-gray-200 rounded-2xl flex items-center justify-center flex-shrink-0">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
             </svg>
-          </button>
-        </div>
+          </motion.button>
+        </motion.div>
 
         {/* Location banner */}
         {showLocationBanner && (
@@ -320,43 +325,46 @@ export default function PrayerPage() {
         )}
 
         {/* Worldwide / Near Me toggle */}
-        <div className="mb-3">
+        {/* Worldwide / Near Me toggle */}
+        <motion.div {...scaleIn} transition={{ delay: 0.15, duration: 0.25 }} className="mb-3">
           <div className="flex gap-2 mb-2">
-            <button onClick={() => { setNearMe(false); loadFeed(false, { nearMe: false }); }}
+            <motion.button whileTap={{ scale: 0.96 }} onClick={() => { setNearMe(false); loadFeed(false, { nearMe: false }); }}
               className={`flex-1 py-2 rounded-full text-xs font-bold border transition-all ${!nearMe ? 'prayer-gradient text-white border-transparent shadow-sm' : 'bg-white text-gray-500 border-gray-200'}`}>
               🌍 Worldwide
-            </button>
-            <button onClick={() => {
+            </motion.button>
+            <motion.button whileTap={{ scale: 0.96 }} onClick={() => {
               if (!userCoords) { setShowLocationBanner(true); return; }
               setNearMe(true); loadFeed(false, { nearMe: true, radius, coords: userCoords });
             }}
               className={`flex-1 py-2 rounded-full text-xs font-bold border transition-all ${nearMe ? 'prayer-gradient text-white border-transparent shadow-sm' : 'bg-white text-gray-500 border-gray-200'}`}>
               📍 Near Me
-            </button>
+            </motion.button>
           </div>
-          {nearMe && (
-            <div className="bg-white border border-gray-100 rounded-2xl px-4 py-3">
-              <div className="flex justify-between items-center mb-1">
-                <p className="text-xs font-semibold text-gray-600">Radius</p>
-                <p className="text-xs font-bold text-faith-600">{radius} km</p>
-              </div>
-              <input type="range" min="5" max="100" step="5" value={radius}
-                onChange={e => setRadius(Number(e.target.value))} className="w-full accent-faith-600" />
-              <div className="flex justify-between text-[10px] text-gray-400 mt-0.5"><span>5 km</span><span>100 km</span></div>
-            </div>
-          )}
-        </div>
+          <AnimatePresence>
+            {nearMe && (
+              <motion.div {...slideUp} className="bg-white border border-gray-100 rounded-2xl px-4 py-3">
+                <div className="flex justify-between items-center mb-1">
+                  <p className="text-xs font-semibold text-gray-600">Radius</p>
+                  <p className="text-xs font-bold text-faith-600">{radius} km</p>
+                </div>
+                <input type="range" min="5" max="100" step="5" value={radius}
+                  onChange={e => setRadius(Number(e.target.value))} className="w-full accent-faith-600" />
+                <div className="flex justify-between text-[10px] text-gray-400 mt-0.5"><span>5 km</span><span>100 km</span></div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
 
         {/* Category filter tabs */}
-        <div className="flex gap-2 overflow-x-auto pb-2 mb-4 scrollbar-hide -mx-4 px-4">
+        <motion.div {...slideInRight} transition={{ delay: 0.2, duration: 0.3 }} className="flex gap-2 overflow-x-auto pb-2 mb-4 scrollbar-hide -mx-4 px-4">
           {FILTER_TABS.map(tab => (
-            <button key={tab.id} onClick={() => setActiveCategory(tab.id)}
+            <motion.button key={tab.id} whileTap={{ scale: 0.93 }} onClick={() => setActiveCategory(tab.id)}
               className={`flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-semibold border transition-all tracking-wide ${
                 activeCategory === tab.id ? 'prayer-gradient text-white border-transparent shadow-sm' : 'bg-white text-gray-500 border-gray-200'}`}>
               {tab.label}
-            </button>
+            </motion.button>
           ))}
-        </div>
+        </motion.div>
 
         {/* Refresh */}
         <button onClick={() => loadFeed(true)}
@@ -368,26 +376,28 @@ export default function PrayerPage() {
         {loading ? (
           <div className="space-y-3">{[1,2,3].map(i => <SkeletonCard key={i} />)}</div>
         ) : filteredTop3.length === 0 && filteredRest.length === 0 ? (
-          <div className="text-center py-16">
+          <motion.div {...fadeIn} className="text-center py-16">
             <div className="w-16 h-16 prayer-gradient rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
               <span className="text-3xl">🕊️</span>
             </div>
             <p className="font-semibold text-gray-700">{nearMe ? 'No prayers found nearby' : 'No prayer requests yet'}</p>
             <p className="text-sm text-gray-400 mt-1">{nearMe ? `Try increasing the radius beyond ${radius} km` : 'Be the first to share one!'}</p>
-          </div>
+          </motion.div>
         ) : (
           <>
             {filteredTop3.length > 0 && (
               <>
-                <div className="mb-3">
+                <motion.div {...fadeIn} className="mb-3">
                   <p className="font-bold text-gray-900 text-sm">{nearMe ? '📍 Top Prayers Near You' : '🌍 Top Prayers Worldwide'}</p>
                   <p className="text-xs text-amber-600 mt-0.5">{nearMe ? `Within ${radius} km · sorted by most prayed` : 'Updated live · sorted by most prayed'}</p>
-                </div>
-                <div className="space-y-3 mb-6">
+                </motion.div>
+                <motion.div className="space-y-3 mb-6" variants={{ animate: { transition: { staggerChildren: 0.1 } } }} initial="initial" animate="animate">
                   {filteredTop3.map((request, i) => (
-                    <TopPrayerCard {...cardProps(request)} rank={i + 1} showDistance={nearMe} />
+                    <motion.div key={request.id} variants={staggerItem}>
+                      <TopPrayerCard {...cardProps(request)} rank={i + 1} showDistance={nearMe} />
+                    </motion.div>
                   ))}
-                </div>
+                </motion.div>
               </>
             )}
             {filteredRest.length > 0 && (
@@ -395,9 +405,13 @@ export default function PrayerPage() {
                 <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">
                   {nearMe ? `Near You · ${radius} km radius` : 'All Prayer Requests · Sorted by most prayed'}
                 </p>
-                <div className="space-y-3">
-                  {filteredRest.map(request => <PrayerCard {...cardProps(request)} showDistance={nearMe} />)}
-                </div>
+                <motion.div className="space-y-3" {...staggerContainerFast} initial="initial" animate="animate">
+                  {filteredRest.map(request => (
+                    <motion.div key={request.id} variants={staggerItem}>
+                      <PrayerCard {...cardProps(request)} showDistance={nearMe} />
+                    </motion.div>
+                  ))}
+                </motion.div>
               </>
             )}
           </>

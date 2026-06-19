@@ -2,9 +2,11 @@ import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useSocket } from '../contexts/SocketContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import Toast from './Toast';
 import Logo from './Logo';
 import CreatePostModal from './CreatePostModal';
+import { pageTransition, springTap } from '../utils/animations';
 
 function HomeIcon({ active }) {
   return (
@@ -115,19 +117,30 @@ export default function Layout() {
       {latestToast && <Toast key={latestToast.id} message={latestToast.message} />}
 
       <main className="flex-1 overflow-y-auto pb-20">
-        <Outlet />
+        <AnimatePresence mode="wait">
+          <motion.div key={location.pathname} {...pageTransition} className="min-h-full">
+            <Outlet />
+          </motion.div>
+        </AnimatePresence>
       </main>
 
       {/* FAB Pray button */}
-      {!hideFAB && (
-        <button
-          onClick={() => navigate('/prayer')}
-          className="fixed bottom-[72px] left-1/2 -translate-x-1/2 z-40 px-7 py-3 rounded-full font-bold text-sm text-white shadow-xl"
-          style={{ background: 'linear-gradient(135deg, #f59e0b, #f97316)', boxShadow: '0 4px 20px rgba(249,115,22,0.45)' }}
-        >
-          Pray
-        </button>
-      )}
+      <AnimatePresence>
+        {!hideFAB && (
+          <motion.button
+            initial={{ opacity: 0, scale: 0, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0, y: 20 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 20, delay: 0.35 }}
+            whileTap={{ scale: 0.93 }}
+            onClick={() => navigate('/prayer')}
+            className="fixed bottom-[72px] left-1/2 -translate-x-1/2 z-40 px-7 py-3 rounded-full font-bold text-sm text-white shadow-xl"
+            style={{ background: 'linear-gradient(135deg, #f59e0b, #f97316)', boxShadow: '0 4px 20px rgba(249,115,22,0.45)' }}
+          >
+            Pray
+          </motion.button>
+        )}
+      </AnimatePresence>
 
       {showCreatePost && (
         <CreatePostModal
@@ -152,14 +165,14 @@ export default function Layout() {
           >
             {({ isActive }) => (
               <>
-                <div className="relative">
+                <motion.div className="relative" whileTap={{ scale: 0.82 }} transition={{ type: 'spring', stiffness: 500, damping: 25 }}>
                   <Icon active={isActive} />
                   {label === 'Chats' && unreadMessages > 0 && (
                     <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[9px] rounded-full w-4 h-4 flex items-center justify-center leading-none font-bold">
                       {unreadMessages > 9 ? '9+' : unreadMessages}
                     </span>
                   )}
-                </div>
+                </motion.div>
               </>
             )}
           </NavLink>
