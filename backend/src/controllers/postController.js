@@ -28,6 +28,7 @@ async function getFeed(req, res) {
 
   try {
     const posts = await prisma.post.findMany({
+      where: { isArchived: false },
       orderBy: { createdAt: 'desc' },
       skip: (page - 1) * limit,
       take: limit,
@@ -135,6 +136,29 @@ async function getComments(req, res) {
   }
 }
 
+async function updatePost(req, res) {
+  const { id } = req.params;
+  const { content, isArchived } = req.body;
+  try {
+    const post = await prisma.post.findUnique({ where: { id } });
+    if (!post || post.userId !== req.user.id)
+      return res.status(403).json({ error: 'Not authorized' });
+
+    const data = {};
+    if (content !== undefined) data.content = content;
+    if (isArchived !== undefined) data.isArchived = isArchived;
+
+    const updated = await prisma.post.update({
+      where: { id },
+      data,
+      include: POST_INCLUDE(req.user.id),
+    });
+    res.json(formatPost(updated, req.user.id));
+  } catch {
+    res.status(500).json({ error: 'Failed to update post' });
+  }
+}
+
 async function deletePost(req, res) {
   const { id } = req.params;
   try {
@@ -149,4 +173,4 @@ async function deletePost(req, res) {
   }
 }
 
-module.exports = { getFeed, getUserPosts, createPost, likePost, addComment, getComments, deletePost };
+module.exports = { getFeed, getUserPosts, createPost, likePost, addComment, getComments, updatePost, deletePost };

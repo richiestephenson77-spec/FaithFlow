@@ -404,7 +404,11 @@ export default function Profile() {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.15 }}
             >
-              <PostGrid posts={posts} onPostClick={() => {}} />
+              <PostGrid
+                posts={posts}
+                currentUserId={isOwnProfile ? me?.id : undefined}
+                onPostsChanged={setPosts}
+              />
             </motion.div>
           ) : (
             <motion.div

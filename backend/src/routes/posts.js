@@ -3,7 +3,7 @@ const { authenticate } = require('../middleware/auth');
 const { uploadPost } = require('../services/cloudinaryService');
 const {
   getFeed, getUserPosts, createPost, likePost,
-  addComment, getComments, deletePost,
+  addComment, getComments, updatePost, deletePost,
 } = require('../controllers/postController');
 
 router.get('/', authenticate, getFeed);
@@ -17,6 +17,7 @@ router.post('/', authenticate, (req, res, next) => {
 router.post('/:id/like', authenticate, likePost);
 router.get('/:id/comments', authenticate, getComments);
 router.post('/:id/comments', authenticate, addComment);
+router.patch('/:id', authenticate, updatePost);
 router.delete('/:id', authenticate, deletePost);
 
 module.exports = router;

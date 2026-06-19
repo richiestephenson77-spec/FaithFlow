@@ -1,7 +1,7 @@
 import posthog from 'posthog-js';
 
 const KEY = process.env.REACT_APP_POSTHOG_KEY;
-const HOST = 'https://app.posthog.com';
+const HOST = 'https://eu.i.posthog.com';
 
 export function initPostHog() {
   if (!KEY) return;

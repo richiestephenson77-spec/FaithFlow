@@ -219,6 +219,7 @@ model Post {
   type        PostType   @default(UPDATE)
   bibleVerse  String?
   location    String?
+  isArchived  Boolean    @default(false)
   media       PostMedia[]
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt

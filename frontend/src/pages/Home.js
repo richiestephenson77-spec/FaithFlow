@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Sparkles } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Sparkles, MoreHorizontal } from 'lucide-react';
 import api from '../utils/api';
 import { track } from '../utils/analytics';
 import { useAuth } from '../contexts/AuthContext';
 import { useSocket } from '../contexts/SocketContext';
 import Avatar from '../components/Avatar';
 import MyPrayerRequestsDrawer from '../components/MyPrayerRequestsDrawer';
+import PostOptionsSheet from '../components/PostOptionsSheet';
 import { fadeUp, fadeIn, staggerContainer, staggerItem, springTap } from '../utils/animations';
 
 function getTimeAgo(dateStr) {
@@ -27,8 +28,9 @@ const POST_TYPE_BADGE_ALL = {
   VERSE:     { label: '📖 Verse',     cls: 'bg-indigo-50 text-indigo-700 border-indigo-100' },
 };
 
-function PostCard({ post, onLike, onUserClick }) {
+function PostCard({ post, onLike, onUserClick, currentUserId, onOptions }) {
   const badge = POST_TYPE_BADGE_ALL[post.type];
+  const isOwn = post.user?.id === currentUserId || post.userId === currentUserId;
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden fade-in">
       <div className="flex items-center gap-3 px-4 pt-4 pb-2">
@@ -48,6 +50,11 @@ function PostCard({ post, onLike, onUserClick }) {
           <span className={`text-[11px] font-semibold px-2.5 py-1 rounded-full border flex-shrink-0 ${badge.cls}`}>
             {badge.label}
           </span>
+        )}
+        {isOwn && (
+          <button onClick={onOptions} className="p-1.5 -mr-1 flex-shrink-0">
+            <MoreHorizontal size={18} strokeWidth={1.8} color="#9ca3af" />
+          </button>
         )}
       </div>
 
@@ -139,6 +146,13 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [showMyRequests, setShowMyRequests] = useState(false);
   const [prayerToast, setPrayerToast] = useState(null);
+  const [optionsPost, setOptionsPost] = useState(null);
+  const [feedToast, setFeedToast] = useState('');
+
+  function showFeedToast(msg) {
+    setFeedToast(msg);
+    setTimeout(() => setFeedToast(''), 2500);
+  }
 
   useEffect(() => {
     const latest = notifications[0];
@@ -217,20 +231,60 @@ export default function Home() {
           </div>
         ) : (
           <motion.div className="space-y-3" {...staggerContainer}>
-            {posts.map(post => (
-              <motion.div key={post.id} {...staggerItem}>
-                <PostCard
-                  post={post}
-                  onLike={() => handleLike(post.id)}
-                  onUserClick={() => navigate(`/profile/${post.user?.id}`)}
-                />
-              </motion.div>
-            ))}
+            <AnimatePresence>
+              {posts.map(post => (
+                <motion.div
+                  key={post.id}
+                  {...staggerItem}
+                  exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
+                  layout
+                >
+                  <PostCard
+                    post={post}
+                    onLike={() => handleLike(post.id)}
+                    onUserClick={() => navigate(`/profile/${post.user?.id}`)}
+                    currentUserId={user?.id}
+                    onOptions={() => setOptionsPost(post)}
+                  />
+                </motion.div>
+              ))}
+            </AnimatePresence>
           </motion.div>
         )}
       </div>
 
       {showMyRequests && <MyPrayerRequestsDrawer onClose={() => setShowMyRequests(false)} />}
+
+      {optionsPost && (
+        <PostOptionsSheet
+          post={optionsPost}
+          onClose={() => setOptionsPost(null)}
+          onUpdated={updated => {
+            setPosts(prev => prev.map(p => p.id === updated.id ? updated : p));
+          }}
+          onArchived={id => {
+            setPosts(prev => prev.filter(p => p.id !== id));
+            showFeedToast('Post archived');
+          }}
+          onDeleted={id => {
+            setPosts(prev => prev.filter(p => p.id !== id));
+            showFeedToast('Post deleted');
+          }}
+        />
+      )}
+
+      <AnimatePresence>
+        {feedToast && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            className="fixed bottom-28 left-1/2 -translate-x-1/2 z-50 bg-gray-900 text-white text-sm font-medium px-5 py-3 rounded-2xl shadow-xl"
+          >
+            {feedToast}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
