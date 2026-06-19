@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Globe, MapPin, RefreshCw, Flame, BookOpen, Users, Plus, Bookmark } from 'lucide-react';
+import { Globe, MapPin, RefreshCw, Flame, BookOpen, Users, Plus, Bookmark, Play, Target, Settings, TrendingUp } from 'lucide-react';
 import api from '../utils/api';
 import { fadeUp, fadeIn, scaleIn, slideInRight, slideUp, staggerContainer, staggerContainerFast, staggerItem } from '../utils/animations';
 import { useAuth } from '../contexts/AuthContext';
@@ -255,62 +255,89 @@ export default function PrayerPage() {
 
   return (
     <div className="bg-gray-50 min-h-full">
-      {/* Hero */}
-      <div className="prayer-gradient px-5 pt-5 pb-10">
-        <button onClick={() => navigate(-1)} className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center mb-4">
+      {/* Hero — deep navy premium */}
+      <div className="px-5 pt-5 pb-12" style={{ background: 'linear-gradient(160deg, #1a1a2e 0%, #16213e 55%, #0f3460 100%)' }}>
+        <button onClick={() => navigate(-1)} className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center mb-6">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
-        <motion.p {...fadeUp} className="text-white/70 text-sm mb-1">Prayer Room</motion.p>
-        <motion.h2 {...fadeUp} transition={{ delay: 0.05, duration: 0.3 }} className="text-2xl font-bold text-white mb-2">Who will you pray<br />for today?</motion.h2>
-        {streak !== null && streak > 0 && (
-          <div className="flex items-center gap-2 mb-4">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="rgba(255,255,255,0.9)" stroke="none">
-              <path d="M12 2c0 0-6 6-6 11a6 6 0 0 0 12 0c0-5-6-11-6-11zm0 15a2 2 0 0 1-2-2c0-2 2-5 2-5s2 3 2 5a2 2 0 0 1-2 2z"/>
-            </svg>
-            <p className="text-white/80 text-sm font-semibold">{streak} day streak</p>
-          </div>
-        )}
 
-        {/* Quota widget */}
-        <div className="bg-white/15 backdrop-blur border border-white/20 rounded-2xl px-4 py-3">
-          <div className="flex items-center justify-between mb-2">
+        <motion.h2
+          initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, ease: 'easeOut' }}
+          className="text-3xl font-bold text-white leading-tight mb-3"
+        >
+          Who will you pray<br />for today?
+        </motion.h2>
+
+        {streak !== null && streak > 0 && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.15, duration: 0.3 }}
+            className="flex items-center gap-1.5 mb-5"
+          >
+            <Flame size={14} strokeWidth={2} color="#f59e0b" />
+            <p className="text-white/60 text-xs font-medium">{streak} day streak</p>
+          </motion.div>
+        )}
+        {streak === null || streak === 0 ? <div className="mb-5" /> : null}
+
+        {/* Daily Goal — frosted glass card */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.35, ease: 'easeOut' }}
+          className="rounded-2xl px-4 py-3.5"
+          style={{ background: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.12)' }}
+        >
+          <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <BookOpen size={16} strokeWidth={1.5} className="text-white/80" />
-              <p className="text-white font-semibold text-sm">Daily Goal: {quota?.completed ?? '–'} / {quota?.target ?? '–'}</p>
+              <Target size={15} strokeWidth={1.5} color="rgba(255,255,255,0.7)" />
+              <p className="text-white/70 text-xs font-medium">Daily Goal</p>
             </div>
-            <button onClick={() => setShowSettings(true)} className="w-7 h-7 bg-white/20 rounded-full flex items-center justify-center">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
-              </svg>
-            </button>
+            <div className="flex items-center gap-3">
+              <span className="text-amber-400 font-bold text-sm">{quota?.completed ?? 0} / {quota?.target ?? '–'}</span>
+              <button onClick={() => setShowSettings(true)} className="text-white/40 hover:text-white/70 transition-colors">
+                <Settings size={14} strokeWidth={1.5} />
+              </button>
+            </div>
           </div>
-          <div className="w-full h-2 bg-white/20 rounded-full overflow-hidden">
-            <div className="h-full bg-amber-400 rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
+          <div className="w-full h-1 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.15)' }}>
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{ width: `${pct}%` }}
+              transition={{ duration: 0.8, ease: 'easeOut', delay: 0.3 }}
+              className="h-full rounded-full bg-amber-400"
+            />
           </div>
-          {quota?.isComplete && <p className="text-amber-300 text-xs font-semibold mt-1.5">Daily goal complete! 🎉</p>}
-        </div>
+          {quota?.isComplete && <p className="text-amber-400 text-xs font-medium mt-2">Goal complete for today</p>}
+        </motion.div>
       </div>
 
       {/* Feed */}
-      <div className="-mt-4 rounded-t-3xl bg-gray-50 px-4 pt-5 pb-24">
+      <div className="-mt-5 rounded-t-3xl bg-gray-50 px-4 pt-5 pb-24">
         {/* Action buttons */}
-        <motion.div {...fadeUp} transition={{ delay: 0.1, duration: 0.3 }} className="flex gap-3 mb-5">
-          <motion.button whileTap={{ scale: 0.96 }} transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+        <motion.div {...fadeUp} transition={{ delay: 0.05, duration: 0.3 }} className="flex gap-2 mb-5">
+          <motion.button
+            whileTap={{ scale: 0.97 }} transition={{ type: 'spring', stiffness: 400, damping: 20 }}
             onClick={() => setShowQueue(true)}
-            className="flex-1 bg-amber-400 text-gray-900 font-bold rounded-2xl py-3.5 text-sm shadow-md flex items-center justify-center gap-2">
-            <Flame size={15} strokeWidth={1.5} />
-            Start Daily Prayers
+            className="flex-1 flex items-center justify-center gap-2 bg-amber-400 text-gray-900 font-medium rounded-xl text-sm shadow-sm"
+            style={{ height: 44 }}
+          >
+            <Play size={14} strokeWidth={2} />
+            Start Prayers
           </motion.button>
-          <motion.button whileTap={{ scale: 0.96 }} transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+          <motion.button
+            whileTap={{ scale: 0.97 }} transition={{ type: 'spring', stiffness: 400, damping: 20 }}
             onClick={() => setShowNewRequest(true)}
-            className="flex-1 bg-white border border-gray-200 text-gray-700 font-semibold rounded-2xl py-3.5 text-sm flex items-center justify-center gap-1.5">
-            <Plus size={15} strokeWidth={2} />
+            className="flex-1 flex items-center justify-center gap-2 bg-white border-2 border-gray-200 text-gray-700 font-medium rounded-xl text-sm"
+            style={{ height: 44 }}
+          >
+            <Plus size={14} strokeWidth={2} />
             Share Request
           </motion.button>
-          <motion.button whileTap={{ scale: 0.9 }} transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+          <motion.button
+            whileTap={{ scale: 0.92 }} transition={{ type: 'spring', stiffness: 400, damping: 20 }}
             onClick={() => setShowMyRequests(true)}
-            className="w-12 h-12 bg-white border border-gray-200 rounded-2xl flex items-center justify-center flex-shrink-0">
-            <Bookmark size={18} strokeWidth={1.5} color="#6b7280" />
+            className="flex items-center justify-center bg-white border border-gray-200 rounded-xl flex-shrink-0"
+            style={{ height: 44, width: 44 }}
+          >
+            <Bookmark size={17} strokeWidth={1.5} color="#6b7280" />
           </motion.button>
         </motion.div>
 
@@ -322,21 +349,31 @@ export default function PrayerPage() {
           }} />
         )}
 
-        {/* Worldwide / Near Me toggle */}
-        {/* Worldwide / Near Me toggle */}
-        <motion.div {...scaleIn} transition={{ delay: 0.15, duration: 0.25 }} className="mb-3">
-          <div className="flex gap-2 mb-2">
-            <motion.button whileTap={{ scale: 0.96 }} onClick={() => { setNearMe(false); loadFeed(false, { nearMe: false }); }}
-              className={`flex-1 py-2 rounded-full text-xs font-bold border transition-all ${!nearMe ? 'prayer-gradient text-white border-transparent shadow-sm' : 'bg-white text-gray-500 border-gray-200'}`}>
-              <Globe size={13} strokeWidth={2} className="inline mr-1" /> Worldwide
-            </motion.button>
-            <motion.button whileTap={{ scale: 0.96 }} onClick={() => {
-              if (!userCoords) { setShowLocationBanner(true); return; }
-              setNearMe(true); loadFeed(false, { nearMe: true, radius, coords: userCoords });
-            }}
-              className={`flex-1 py-2 rounded-full text-xs font-bold border transition-all ${nearMe ? 'prayer-gradient text-white border-transparent shadow-sm' : 'bg-white text-gray-500 border-gray-200'}`}>
-              <MapPin size={13} strokeWidth={2} className="inline mr-1" /> Near Me
-            </motion.button>
+        {/* Worldwide / Near Me toggle — sliding pill */}
+        <motion.div {...scaleIn} transition={{ delay: 0.1, duration: 0.25 }} className="mb-3">
+          <div className="relative flex bg-gray-100 rounded-full p-1 mb-2" style={{ height: 38 }}>
+            {/* Sliding background */}
+            <motion.div
+              layoutId="togglePill"
+              className="absolute top-1 bottom-1 rounded-full"
+              style={{ background: '#1a1a2e', width: 'calc(50% - 4px)', left: nearMe ? 'calc(50%)' : '4px' }}
+              transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+            />
+            <button
+              onClick={() => { setNearMe(false); loadFeed(false, { nearMe: false }); }}
+              className={`flex-1 flex items-center justify-center gap-1.5 text-xs font-medium rounded-full relative z-10 transition-colors ${!nearMe ? 'text-white' : 'text-gray-500'}`}
+            >
+              <Globe size={13} strokeWidth={1.8} /> Worldwide
+            </button>
+            <button
+              onClick={() => {
+                if (!userCoords) { setShowLocationBanner(true); return; }
+                setNearMe(true); loadFeed(false, { nearMe: true, radius, coords: userCoords });
+              }}
+              className={`flex-1 flex items-center justify-center gap-1.5 text-xs font-medium rounded-full relative z-10 transition-colors ${nearMe ? 'text-white' : 'text-gray-500'}`}
+            >
+              <MapPin size={13} strokeWidth={1.8} /> Near Me
+            </button>
           </div>
           <AnimatePresence>
             {nearMe && (
@@ -354,11 +391,18 @@ export default function PrayerPage() {
         </motion.div>
 
         {/* Category filter tabs */}
-        <motion.div {...slideInRight} transition={{ delay: 0.2, duration: 0.3 }} className="flex gap-2 overflow-x-auto pb-2 mb-4 scrollbar-hide -mx-4 px-4">
+        <motion.div {...slideInRight} transition={{ delay: 0.15, duration: 0.3 }} className="flex gap-2 overflow-x-auto pb-2 mb-4 scrollbar-hide -mx-4 px-4">
           {FILTER_TABS.map(tab => (
             <motion.button key={tab.id} whileTap={{ scale: 0.93 }} onClick={() => setActiveCategory(tab.id)}
-              className={`flex-shrink-0 px-4 py-1.5 rounded-full text-xs font-semibold border transition-all tracking-wide ${
-                activeCategory === tab.id ? 'prayer-gradient text-white border-transparent shadow-sm' : 'bg-white text-gray-500 border-gray-200'}`}>
+              className={`flex-shrink-0 px-4 rounded-full text-sm font-medium border-0 transition-all ${
+                activeCategory === tab.id
+                  ? 'text-white'
+                  : 'bg-gray-100 text-gray-600'
+              }`}
+              style={{
+                height: 34,
+                background: activeCategory === tab.id ? '#1a1a2e' : undefined,
+              }}>
               {tab.label}
             </motion.button>
           ))}
@@ -366,8 +410,11 @@ export default function PrayerPage() {
 
         {/* Refresh */}
         <button onClick={() => loadFeed(true)}
-          className="w-full text-center text-xs text-gray-400 mb-3 py-1 active:text-faith-600 transition-colors">
-          <span className="flex items-center justify-center gap-1.5"><RefreshCw size={12} strokeWidth={2} />{refreshing ? 'Refreshing rankings...' : 'Refresh rankings'}</span>
+          className="w-full text-center text-xs text-gray-400 mb-4 py-1 active:text-gray-600 transition-colors">
+          <span className="flex items-center justify-center gap-1.5">
+            <RefreshCw size={11} strokeWidth={2} className={refreshing ? 'animate-spin' : ''} />
+            {refreshing ? 'Refreshing...' : 'Refresh rankings'}
+          </span>
         </button>
 
         {/* Prayer feed */}
@@ -375,8 +422,8 @@ export default function PrayerPage() {
           <div className="space-y-3">{[1,2,3].map(i => <SkeletonCard key={i} />)}</div>
         ) : filteredTop3.length === 0 && filteredRest.length === 0 ? (
           <motion.div {...fadeIn} className="text-center py-16">
-            <div className="w-16 h-16 prayer-gradient rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-              <BookOpen size={28} strokeWidth={1.5} color="white" />
+            <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm" style={{ background: '#1a1a2e' }}>
+              <BookOpen size={26} strokeWidth={1.5} color="white" />
             </div>
             <p className="font-semibold text-gray-700">{nearMe ? 'No prayers found nearby' : 'No prayer requests yet'}</p>
             <p className="text-sm text-gray-400 mt-1">{nearMe ? `Try increasing the radius beyond ${radius} km` : 'Be the first to share one!'}</p>
@@ -385,9 +432,12 @@ export default function PrayerPage() {
           <>
             {filteredTop3.length > 0 && (
               <>
-                <motion.div {...fadeIn} className="mb-3">
-                  <p className="font-bold text-gray-900 text-sm flex items-center gap-1.5">{nearMe ? <><MapPin size={13} strokeWidth={2} className="text-faith-600" /> Top Prayers Near You</> : <><Globe size={13} strokeWidth={2} className="text-faith-600" /> Top Prayers Worldwide</>}</p>
-                  <p className="text-xs text-amber-600 mt-0.5">{nearMe ? `Within ${radius} km · sorted by most prayed` : 'Updated live · sorted by most prayed'}</p>
+                <motion.div {...fadeIn} className="flex items-start gap-2 mb-3">
+                  <TrendingUp size={14} strokeWidth={1.8} className="text-gray-400 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="font-bold text-gray-900 text-base">{nearMe ? 'Top Prayers Near You' : 'Top Prayers Worldwide'}</p>
+                    <p className="text-xs text-gray-400 mt-0.5">{nearMe ? `Within ${radius} km · sorted by most prayed` : 'Updated live · sorted by most prayed'}</p>
+                  </div>
                 </motion.div>
                 <motion.div className="space-y-3 mb-6" variants={{ animate: { transition: { staggerChildren: 0.1 } } }} initial="initial" animate="animate">
                   {filteredTop3.map((request, i) => (
@@ -401,7 +451,7 @@ export default function PrayerPage() {
             {filteredRest.length > 0 && (
               <>
                 <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">
-                  {nearMe ? `Near You · ${radius} km radius` : 'All Prayer Requests · Sorted by most prayed'}
+                  {nearMe ? `Near You · ${radius} km radius` : 'All Prayer Requests'}
                 </p>
                 <motion.div className="space-y-3" {...staggerContainerFast} initial="initial" animate="animate">
                   {filteredRest.map(request => (
