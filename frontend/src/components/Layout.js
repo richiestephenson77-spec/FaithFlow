@@ -52,7 +52,7 @@ function ProfileIcon({ active }) {
 
 function BellIcon() {
   return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1e3a8a" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
       <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
       <path d="M13.73 21a2 2 0 0 1-3.46 0" />
     </svg>
@@ -89,7 +89,7 @@ export default function Layout() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col max-w-md mx-auto relative shadow-xl">
-      <header className="prayer-gradient text-white px-4 py-2.5 flex items-center justify-between sticky top-0 z-30">
+      <header className="bg-white border-b border-gray-100 px-4 py-2.5 flex items-center justify-between sticky top-0 z-30">
         <button onClick={() => setShowCreatePost(true)} className="flex-shrink-0">
           {user?.profilePhoto ? (
             <img src={user.profilePhoto} alt={user.name} className="w-9 h-9 rounded-full object-cover" />
@@ -99,7 +99,7 @@ export default function Layout() {
             </div>
           )}
         </button>
-        <Logo size="sm" light={true} />
+        <Logo size="sm" light={false} />
         <div className="flex items-center justify-end w-10">
           <button onClick={() => navigate('/notifications')} className="relative">
             <BellIcon />
