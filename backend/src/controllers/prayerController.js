@@ -23,18 +23,26 @@ async function getFeed(req, res) {
   }) : null;
   const isPastor = requester?.isVerifiedPastor === true;
 
-  // Build visibility filter
+  // Build visibility filter — always show own prayers regardless of visibility
+  const userId = req.user.id;
+  const ownPrayers = { userId };
   let visibilityFilter;
   if (isPastor) {
     visibilityFilter = {
       OR: [
         { visibility: 'PUBLIC' },
         { visibility: 'PRIVATE' },
-        { visibility: 'PASTOR_ONLY', pastorAccess: { some: { pastorId: req.user.id } } },
+        { visibility: 'PASTOR_ONLY', pastorAccess: { some: { pastorId: userId } } },
+        ownPrayers,
       ],
     };
   } else {
-    visibilityFilter = { visibility: 'PUBLIC' };
+    visibilityFilter = {
+      OR: [
+        { visibility: 'PUBLIC' },
+        ownPrayers,
+      ],
+    };
   }
 
   const where = { isActive: true, isAnswered: false, ...visibilityFilter };
@@ -73,8 +81,10 @@ async function getFeed(req, res) {
     filtered.sort((a, b) => b._count.sessions - a._count.sessions);
 
     const format = (r, index) => {
+      // Only anonymize if the prayer is non-public AND the viewer is not the poster
+      const shouldAnonymize = r.isAnonymous && r.userId !== userId;
       const displayLocation = r.user?.location ? `From ${r.user.location}` : 'Anonymous Believer';
-      const userField = r.isAnonymous
+      const userField = shouldAnonymize
         ? { id: null, name: null, profilePhoto: null, churchName: null }
         : { ...r.user, latitude: undefined, longitude: undefined };
       return {
@@ -82,11 +92,12 @@ async function getFeed(req, res) {
         prayerCount: r._count.sessions,
         currentlyPrayingCount: r.sessions.filter(s => s.userId).length,
         totalPrayerCount: r._count.sessions,
-        userHasPrayed: req.user ? r.sessions.some(s => s.userId === req.user.id) : false,
+        userHasPrayed: r.sessions.some(s => s.userId === userId),
         isTop3: index < 3,
         rank: index + 1,
         distanceKm: r._distanceKm != null ? Math.round(r._distanceKm * 10) / 10 : null,
-        displayLocation: r.isAnonymous ? displayLocation : null,
+        isAnonymous: shouldAnonymize,
+        displayLocation: shouldAnonymize ? displayLocation : null,
         sessions: undefined,
         _count: undefined,
         _distanceKm: undefined,
