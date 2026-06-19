@@ -1,10 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { BookOpen, MapPin, Shield, Users, Heart, Handshake, Search } from 'lucide-react';
-import { staggerItem } from '../utils/animations';
-
-const gridContainer = { animate: { transition: { staggerChildren: 0.07 } } };
+import { BookOpen, MapPin, Shield, Users, Heart, Handshake, Search, ArrowRight } from 'lucide-react';
 
 const features = [
   {
@@ -12,7 +9,8 @@ const features = [
     label: 'Bible',
     subtitle: 'Read & search scripture',
     route: '/bible',
-    iconBg: '#F59E0B',
+    gradient: 'linear-gradient(135deg, #1E3A5F, #0F2240)',
+    accent: '#F59E0B',
     Icon: BookOpen,
     active: true,
   },
@@ -21,25 +19,29 @@ const features = [
     label: 'Find Churches',
     subtitle: 'Join your local church',
     route: '/churches',
-    iconBg: '#3B82F6',
+    gradient: 'linear-gradient(135deg, #1A3A2A, #0D2018)',
+    accent: '#34D399',
     Icon: MapPin,
     active: true,
   },
   {
     id: 'confessions',
     label: 'Confession Wall',
-    subtitle: 'Anonymous, no judgment',
+    subtitle: 'Share your heart without fear. Completely anonymous.',
     route: '/confessions',
-    iconBg: '#8B5CF6',
+    gradient: 'linear-gradient(135deg, #2D1B4E, #1A0F2E)',
+    accent: '#A78BFA',
     Icon: Shield,
     active: true,
+    fullWidth: true,
   },
   {
     id: 'pastors',
     label: 'Pray w/ Pastor',
     subtitle: 'Connect with verified pastors',
     route: '/pastors',
-    iconBg: '#10B981',
+    gradient: 'linear-gradient(135deg, #3A1F1F, #220F0F)',
+    accent: '#F87171',
     Icon: Users,
     active: true,
   },
@@ -47,7 +49,8 @@ const features = [
     id: 'answered',
     label: 'Answered Prayers',
     subtitle: "Celebrate God's faithfulness",
-    iconBg: '#EC4899',
+    gradient: 'linear-gradient(135deg, #1F2D3A, #0F1820)',
+    accent: '#60A5FA',
     Icon: Heart,
     active: false,
   },
@@ -55,7 +58,8 @@ const features = [
     id: 'partners',
     label: 'Prayer Partners',
     subtitle: 'Pray together in pairs',
-    iconBg: '#F97316',
+    gradient: 'linear-gradient(135deg, #2A1F3A, #180D26)',
+    accent: '#C084FC',
     Icon: Handshake,
     active: false,
   },
@@ -63,11 +67,99 @@ const features = [
     id: 'believers',
     label: 'Find Believers',
     subtitle: 'Connect by faith & location',
-    iconBg: '#06B6D4',
+    gradient: 'linear-gradient(135deg, #1A2E3A, #0D1E26)',
+    accent: '#22D3EE',
     Icon: Search,
     active: false,
   },
 ];
+
+function SmallCard({ feature, onTap }) {
+  return (
+    <motion.button
+      whileTap={{ scale: 0.97 }}
+      transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+      onClick={() => onTap(feature)}
+      className="relative flex flex-col p-6 rounded-3xl text-left overflow-hidden"
+      style={{ height: 180, background: feature.gradient }}
+    >
+      {!feature.active && (
+        <span
+          className="absolute top-3 right-3 text-[10px] font-medium px-2 py-0.5 rounded-full"
+          style={{ background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.3)', border: '1px solid rgba(255,255,255,0.1)' }}
+        >
+          Coming Soon
+        </span>
+      )}
+
+      <div
+        className="flex items-center justify-center rounded-[12px] flex-shrink-0"
+        style={{
+          width: 44,
+          height: 44,
+          background: feature.active ? feature.accent + '33' : feature.accent + '1A',
+        }}
+      >
+        <feature.Icon
+          size={20}
+          color={feature.active ? feature.accent : feature.accent + '80'}
+          strokeWidth={1.8}
+        />
+      </div>
+
+      <p className="text-white font-semibold text-base mt-3 leading-tight">{feature.label}</p>
+      <p className="text-slate-400 text-xs mt-1 leading-relaxed flex-1">{feature.subtitle}</p>
+
+      {feature.active && (
+        <div className="flex justify-end mt-2">
+          <ArrowRight size={14} color="rgba(255,255,255,0.3)" />
+        </div>
+      )}
+    </motion.button>
+  );
+}
+
+function HeroCard({ feature, onTap }) {
+  return (
+    <motion.button
+      whileTap={{ scale: 0.98 }}
+      transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+      onClick={() => onTap(feature)}
+      className="relative w-full flex flex-col p-6 rounded-3xl text-left overflow-hidden"
+      style={{ height: 160, background: feature.gradient }}
+    >
+      {/* Glow */}
+      <div
+        className="absolute bottom-0 right-0 w-40 h-40 rounded-full pointer-events-none"
+        style={{ background: 'radial-gradient(circle, rgba(167,139,250,0.18) 0%, transparent 70%)', transform: 'translate(30%, 30%)' }}
+      />
+
+      <div className="flex items-start justify-between">
+        <div
+          className="flex items-center justify-center rounded-[12px] flex-shrink-0"
+          style={{ width: 44, height: 44, background: feature.accent + '33' }}
+        >
+          <feature.Icon size={20} color={feature.accent} strokeWidth={1.8} />
+        </div>
+        <span className="text-[10px] font-semibold text-purple-300/60 tracking-widest uppercase mt-1">
+          Anonymous Space
+        </span>
+      </div>
+
+      <p className="text-white font-semibold text-base mt-4 leading-tight">{feature.label}</p>
+      <p className="text-slate-400 text-xs mt-1">{feature.subtitle}</p>
+
+      <div className="mt-auto pt-3 flex justify-end">
+        <span
+          className="text-sm font-medium px-4 py-1.5 rounded-full flex items-center gap-1.5"
+          style={{ background: 'rgba(167,139,250,0.2)', color: '#C4B5FD' }}
+        >
+          Enter <ArrowRight size={12} />
+        </span>
+      </div>
+    </motion.button>
+  );
+}
 
 export default function Explore() {
   const navigate = useNavigate();
@@ -82,69 +174,46 @@ export default function Explore() {
     }
   }
 
+  const [bible, churches, confessions, pastors, answered, partners, believers] = features;
+
   return (
-    <div className="bg-white min-h-full">
+    <div className="min-h-full" style={{ background: '#0A0F1E' }}>
       {toast && (
         <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 w-[85%] max-w-xs">
-          <div className="bg-gray-900 text-white text-sm font-medium px-4 py-3 rounded-2xl shadow-xl text-center">
+          <div className="bg-white/10 backdrop-blur-md text-white text-sm font-medium px-4 py-3 rounded-2xl shadow-xl text-center border border-white/10">
             Coming Soon 🙏
           </div>
         </div>
       )}
 
       {/* Header */}
-      <div className="px-5 pt-5 pb-4">
-        <h2 className="text-2xl font-bold text-gray-900 mb-0.5">Explore</h2>
-        <p className="text-sm text-gray-400">Deepen your faith journey</p>
+      <div className="px-4 pt-6 pb-5">
+        <h2 className="text-3xl font-bold text-white">Explore</h2>
+        <p className="text-sm text-slate-400 mt-1">Deepen your faith journey</p>
       </div>
-      <div className="h-px bg-gray-100 mx-0" />
 
-      {/* Grid */}
-      <div className="px-4 pt-5 pb-28">
-        <motion.div
-          className="grid grid-cols-2 gap-3"
-          variants={gridContainer}
-          initial="initial"
-          animate="animate"
-        >
-          {features.map(f => (
-            <motion.button
-              key={f.id}
-              variants={staggerItem}
-              whileTap={{ scale: 0.98 }}
-              onClick={() => handleTap(f)}
-              className="relative flex flex-col items-start p-5 rounded-[20px] text-left"
-              style={{
-                height: 140,
-                background: '#FFFFFF',
-                border: '1px solid #F1F5F9',
-                boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
-              }}
-            >
-              {!f.active && (
-                <span className="absolute top-3 right-3 text-[10px] font-semibold text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
-                  Coming Soon
-                </span>
-              )}
+      {/* Cards */}
+      <div className="px-4 space-y-3 pb-32">
+        {/* Row 1 */}
+        <div className="grid grid-cols-2 gap-3">
+          <SmallCard feature={bible} onTap={handleTap} />
+          <SmallCard feature={churches} onTap={handleTap} />
+        </div>
 
-              <div
-                className="flex items-center justify-center rounded-[14px] mb-3 flex-shrink-0"
-                style={{
-                  width: 52,
-                  height: 52,
-                  background: f.active ? f.iconBg : f.iconBg + 'B3',
-                }}
-              >
-                <f.Icon size={24} color="#FFFFFF" strokeWidth={1.8} />
-              </div>
+        {/* Row 2 — full width hero */}
+        <HeroCard feature={confessions} onTap={handleTap} />
 
-              <p className={`font-bold text-sm leading-tight ${f.active ? 'text-gray-900' : 'text-gray-500'}`}>
-                {f.label}
-              </p>
-              <p className="text-xs text-gray-400 mt-1 leading-snug">{f.subtitle}</p>
-            </motion.button>
-          ))}
-        </motion.div>
+        {/* Row 3 */}
+        <div className="grid grid-cols-2 gap-3">
+          <SmallCard feature={pastors} onTap={handleTap} />
+          <SmallCard feature={answered} onTap={handleTap} />
+        </div>
+
+        {/* Row 4 */}
+        <div className="grid grid-cols-2 gap-3">
+          <SmallCard feature={partners} onTap={handleTap} />
+          <SmallCard feature={believers} onTap={handleTap} />
+        </div>
       </div>
     </div>
   );
