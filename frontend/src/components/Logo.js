@@ -1,50 +1,31 @@
+const SIZES = {
+  sm: { cross: { w: 10, h: 13 }, text: '1.25rem' },
+  md: { cross: { w: 13, h: 17 }, text: '1.6rem' },
+  lg: { cross: { w: 18, h: 24 }, text: '2.25rem' },
+};
+
 export default function Logo({ size = 'md', light = true }) {
-  const scales = { sm: 0.45, md: 0.65, lg: 0.9 };
-  const scale = scales[size];
-  const color = light ? 'white' : '#1e3a8a';
-  const subColor = light ? 'rgba(255,255,255,0.65)' : '#6b83f0';
+  const textColor = light ? 'white' : '#111827';
+  const crossColor = '#F59E0B';
+  const { cross, text: fontSize } = SIZES[size] || SIZES.md;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: size === 'sm' ? 4 : 8 }}>
-      {/* SVG wordmark with cross integrated into the t */}
-      <svg
-        viewBox="0 0 520 120"
-        width={520 * scale}
-        height={120 * scale}
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <defs>
-          <style>{`
-            @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap');
-            .logo-text { font-family: 'Dancing Script', cursive; font-weight: 700; font-size: 96px; }
-          `}</style>
-        </defs>
-
-        {/* "Fai" */}
-        <text x="0" y="95" className="logo-text" fill={color}>Fai</text>
-
-        {/* Cross replacing the "t" — nudged left to close gap */}
-        {/* Vertical bar of cross */}
-        <rect x="178" y="18" width="11" height="78" rx="5.5" fill={color} />
-        {/* Horizontal bar of cross */}
-        <rect x="158" y="42" width="51" height="11" rx="5.5" fill={color} />
-
-        {/* "hFlow" */}
-        <text x="194" y="95" className="logo-text" fill={color}>hFlow</text>
+    <div className="flex items-center gap-2">
+      <svg width={cross.w} height={cross.h} viewBox="0 0 14 18" fill="none">
+        <rect x="6" y="0" width="2" height="18" fill={crossColor} rx="1" />
+        <rect x="1" y="5" width="12" height="2" fill={crossColor} rx="1" />
       </svg>
-
-      {size !== 'sm' && (
-        <p style={{
-          fontFamily: "'Cinzel', serif",
-          fontSize: size === 'lg' ? 11 : 9,
-          letterSpacing: '0.25em',
-          textTransform: 'uppercase',
-          color: subColor,
-          margin: 0,
-        }}>
-          United in Faith
-        </p>
-      )}
+      <span
+        style={{
+          fontFamily: "'Dancing Script', cursive",
+          fontWeight: 700,
+          fontSize,
+          color: textColor,
+          lineHeight: 1,
+        }}
+      >
+        FaithFlow
+      </span>
     </div>
   );
 }

@@ -18,6 +18,7 @@ const navItems = [
 ];
 
 const HIDE_FAB_ON = ['/prayer', '/bible', '/messages'];
+const HIDE_HEADER_ON = ['/profile'];
 
 export default function Layout() {
   const { notifications, unreadCount, unreadMessages } = useSocket();
@@ -36,10 +37,11 @@ export default function Layout() {
   }, [notifications]);
 
   const hideFAB = HIDE_FAB_ON.some(p => location.pathname.startsWith(p));
+  const hideHeader = HIDE_HEADER_ON.some(p => location.pathname.startsWith(p));
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col max-w-md mx-auto relative shadow-xl">
-      <header className="bg-white border-b border-gray-100 px-4 py-2.5 flex items-center justify-between sticky top-0 z-30">
+      {!hideHeader && <header className="bg-white border-b border-gray-100 px-4 py-2.5 flex items-center justify-between sticky top-0 z-30">
         <button onClick={() => setShowCreatePost(true)} className="flex-shrink-0">
           {user?.profilePhoto ? (
             <img src={user.profilePhoto} alt={user.name} className="w-9 h-9 rounded-full object-cover" />
@@ -60,7 +62,7 @@ export default function Layout() {
             )}
           </button>
         </div>
-      </header>
+      </header>}
 
       {latestToast && <Toast key={latestToast.id} message={latestToast.message} />}
 
