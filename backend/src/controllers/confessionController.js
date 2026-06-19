@@ -132,13 +132,19 @@ async function addComment(req, res) {
   if (content.trim().length < 2) return res.status(400).json({ error: 'Comment too short' });
   if (content.trim().length > 300) return res.status(400).json({ error: 'Comment too long (max 300 characters)' });
   try {
-    const me = await prisma.user.findUnique({
-      where: { id: req.user.id },
-      select: { name: true, profilePhoto: true, prayerWarriorBadge: true },
-    });
-    const c = await prisma.confessionComment.create({
-      data: { confessionId: id, userId: req.user.id, content: content.trim(), isAnonymous: Boolean(isAnonymous) },
-    });
+    const confession = await prisma.confession.findUnique({ where: { id } });
+    if (!confession) return res.status(404).json({ error: 'Confession not found' });
+
+    const [me, c] = await Promise.all([
+      prisma.user.findUnique({
+        where: { id: req.user.id },
+        select: { name: true, profilePhoto: true, prayerWarriorBadge: true },
+      }),
+      prisma.confessionComment.create({
+        data: { confessionId: id, userId: req.user.id, content: content.trim(), isAnonymous: Boolean(isAnonymous) },
+      }),
+    ]);
+
     res.status(201).json({
       id: c.id,
       content: c.content,
@@ -146,8 +152,9 @@ async function addComment(req, res) {
       isAnonymous: c.isAnonymous,
       commenter: c.isAnonymous ? null : { name: me.name, profilePhoto: me.profilePhoto, prayerWarriorBadge: me.prayerWarriorBadge },
     });
-  } catch {
-    res.status(500).json({ error: 'Failed' });
+  } catch (err) {
+    console.error('addComment error:', err);
+    res.status(500).json({ error: err.message || 'Failed to post comment' });
   }
 }
 
