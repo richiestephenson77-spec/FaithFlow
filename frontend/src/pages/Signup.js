@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { track } from '../utils/analytics';
 import Logo from '../components/Logo';
 
 export default function Signup() {
@@ -22,6 +23,7 @@ export default function Signup() {
     setLoading(true);
     try {
       await signup(form);
+      track('user_signed_up', { method: 'email' });
       navigate('/');
     } catch (err) {
       setError(err.response?.data?.error || 'Signup failed');

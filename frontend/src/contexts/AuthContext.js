@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import api from '../utils/api';
+import { identifyUser, resetUser } from '../utils/analytics';
 
 const AuthContext = createContext(null);
 
@@ -11,7 +12,7 @@ export function AuthProvider({ children }) {
     const token = localStorage.getItem('token');
     if (token) {
       api.get('/users/me')
-        .then((res) => setUser(res.data))
+        .then((res) => { setUser(res.data); identifyUser(res.data); })
         .catch(() => localStorage.removeItem('token'))
         .finally(() => setLoading(false));
     } else {
@@ -23,6 +24,7 @@ export function AuthProvider({ children }) {
     const res = await api.post('/auth/login', { email, password });
     localStorage.setItem('token', res.data.token);
     setUser(res.data.user);
+    identifyUser(res.data.user);
     return res.data.user;
   }
 
@@ -30,12 +32,14 @@ export function AuthProvider({ children }) {
     const res = await api.post('/auth/signup', data);
     localStorage.setItem('token', res.data.token);
     setUser(res.data.user);
+    identifyUser(res.data.user);
     return res.data.user;
   }
 
   function logout() {
     localStorage.removeItem('token');
     setUser(null);
+    resetUser();
   }
 
   function updateUser(data) {

@@ -1,5 +1,7 @@
-import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { initPostHog } from './utils/analytics';
+import posthog from './utils/analytics';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { SocketProvider } from './contexts/SocketContext';
 
@@ -43,6 +45,14 @@ function PublicRoute({ children }) {
   const { user, loading } = useAuth();
   if (loading) return <LoadingScreen />;
   return user ? <Navigate to="/" replace /> : children;
+}
+
+function PageViewTracker() {
+  const location = useLocation();
+  useEffect(() => {
+    posthog.capture('$pageview', { $current_url: window.location.href });
+  }, [location.pathname]);
+  return null;
 }
 
 function AppRoutes() {
@@ -92,9 +102,12 @@ function AppRoutes() {
 }
 
 export default function App() {
+  useEffect(() => { initPostHog(); }, []);
+
   return (
     <AuthProvider>
       <BrowserRouter>
+        <PageViewTracker />
         <AppRoutes />
       </BrowserRouter>
     </AuthProvider>

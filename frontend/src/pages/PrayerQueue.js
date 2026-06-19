@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import api from '../utils/api';
 import Avatar from '../components/Avatar';
 import { fadeUp } from '../utils/animations';
+import { track } from '../utils/analytics';
 
 const MIN_SECONDS = 15;
 
@@ -18,6 +19,7 @@ export default function PrayerQueue({ onClose, onComplete }) {
   const sessionRef = useRef(null);
 
   useEffect(() => {
+    track('prayer_room_opened');
     api.get('/quota/queue').then(res => {
       setQueue(res.data);
       setLoading(false);
@@ -50,10 +52,18 @@ export default function PrayerQueue({ onClose, onComplete }) {
         await api.post(`/prayers/session/${sessionRef.current.id}/end`);
       }
       const res = await api.post('/quota/complete-prayer', { prayerRequestId: queue[current].id });
+      track('prayer_completed', {
+        prayerRequestId: queue[current].id,
+        category: queue[current].category,
+        durationSeconds: elapsed,
+        isUrgent: queue[current].isUrgent,
+        visibility: queue[current].visibility,
+      });
       const isLast = current === queue.length - 1;
       if (isLast) {
         setQuotaResult(res.data);
         setPhase('done');
+        track('daily_quota_completed', { target: queue.length });
       } else {
         setPhase('flash');
         setTimeout(() => {

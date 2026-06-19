@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { HandHeart, Clock, Users, Globe, Lock, Shield, MoreHorizontal } from 'lucide-react';
 import api from '../utils/api';
+import { track } from '../utils/analytics';
 import { useAuth } from '../contexts/AuthContext';
 import PostGrid from '../components/PostGrid';
 import FollowListModal from '../components/FollowListModal';
@@ -98,6 +99,7 @@ export default function Profile() {
   async function handleFollow() {
     try {
       const res = await api.post(`/users/${profileId}/follow`);
+      if (res.data.following) track('user_followed', { followedUserId: profileId });
       setFollowing(res.data.following);
       setProfile(p => ({
         ...p,

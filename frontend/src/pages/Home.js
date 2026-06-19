@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Sparkles } from 'lucide-react';
 import api from '../utils/api';
+import { track } from '../utils/analytics';
 import { useAuth } from '../contexts/AuthContext';
 import { useSocket } from '../contexts/SocketContext';
 import Avatar from '../components/Avatar';
@@ -157,6 +158,7 @@ export default function Home() {
 
   useEffect(() => {
     const handler = (e) => {
+      track('post_created', { type: e.detail?.type });
       setPosts(prev => [e.detail, ...prev]);
     };
     window.addEventListener('post_created', handler);
@@ -166,6 +168,7 @@ export default function Home() {
   async function handleLike(postId) {
     try {
       await api.post(`/posts/${postId}/like`);
+      track('post_liked');
       setPosts(prev => prev.map(p =>
         p.id === postId
           ? { ...p, likedByMe: !p.likedByMe, _count: { ...p._count, likes: p._count.likes + (p.likedByMe ? -1 : 1) } }

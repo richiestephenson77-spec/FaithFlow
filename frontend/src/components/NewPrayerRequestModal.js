@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Globe, Lock, Shield, Search, ArrowRight } from 'lucide-react';
 import api from '../utils/api';
+import { track } from '../utils/analytics';
 import Avatar from './Avatar';
 
 const CATEGORIES = [
@@ -183,6 +184,7 @@ export default function NewPrayerRequestModal({ onClose, onCreate }) {
       });
       // delete draft on success
       api.delete('/prayers/draft').catch(() => {});
+      track('prayer_request_created', { category, visibility, isUrgent });
       onCreate(res.data);
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to post request');
