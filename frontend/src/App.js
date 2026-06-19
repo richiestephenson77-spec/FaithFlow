@@ -33,6 +33,9 @@ import ConfessionDetail from './pages/ConfessionDetail';
 import Pastors from './pages/Pastors';
 import MyPastorRequests from './pages/MyPastorRequests';
 import PastorDashboard from './pages/PastorDashboard';
+import PrayerCellDirectory from './pages/PrayerCellDirectory';
+import PrayerCellHostRoom from './pages/PrayerCellHostRoom';
+import PrayerCellGuestRoom from './pages/PrayerCellGuestRoom';
 import Layout from './components/Layout';
 import LoadingScreen from './components/LoadingScreen';
 
@@ -95,6 +98,9 @@ function AppRoutes() {
         <Route path="messages/:conversationId" element={<ChatThread />} />
         <Route path="confessions" element={<Confessions />} />
         <Route path="confessions/:id" element={<ConfessionDetail />} />
+        <Route path="prayer-cells" element={<PrayerCellDirectory />} />
+        <Route path="prayer-cells/:cellId/host" element={<PrayerCellHostRoom />} />
+        <Route path="prayer-cells/:cellId/guest" element={<PrayerCellGuestRoom />} />
         <Route path="pastors" element={<Pastors />} />
         <Route path="my-pastor-requests" element={<MyPastorRequests />} />
         <Route path="pastor-dashboard" element={<PastorDashboard />} />

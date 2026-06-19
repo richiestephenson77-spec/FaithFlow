@@ -431,6 +431,28 @@ export default function PrayerPage() {
           </AnimatePresence>
         </motion.div>
 
+        {/* Live Prayer Cells banner */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          whileTap={{ scale: 0.97 }}
+          onClick={() => navigate('/prayer-cells')}
+          className="mx-0 mb-4 rounded-2xl p-4 flex items-center justify-between cursor-pointer"
+          style={{ background: 'linear-gradient(135deg, #f59e0b, #f97316)' }}
+        >
+          <div>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-white animate-pulse" />
+              <span className="text-white font-semibold text-sm">Live Prayer Cells</span>
+            </div>
+            <p className="text-white/70 text-xs mt-0.5">Join or host a live prayer session</p>
+          </div>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="9 18 15 12 9 6"/>
+          </svg>
+        </motion.div>
+
         {/* Category filter tabs */}
         <motion.div {...slideInRight} transition={{ delay: 0.15, duration: 0.3 }} className="flex gap-2 overflow-x-auto pb-2 mb-4 scrollbar-hide -mx-4 px-4">
           {FILTER_TABS.map(tab => (

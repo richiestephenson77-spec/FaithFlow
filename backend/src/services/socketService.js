@@ -22,8 +22,48 @@ function setupSocket(io) {
       socket.to(`conversation:${conversationId}`).emit('stop_typing');
     });
 
+    // Prayer Cell WebRTC Signaling
+    socket.on('cell:host', ({ cellId }) => {
+      socket.join(`cell:${cellId}`);
+      socket.data.cellId = cellId;
+      socket.data.role = 'host';
+    });
+
+    socket.on('cell:join', ({ cellId }) => {
+      socket.join(`cell:${cellId}`);
+      socket.data.cellId = cellId;
+      socket.data.role = 'guest';
+      socket.to(`cell:${cellId}`).emit('cell:guest_joined', { guestSocketId: socket.id });
+    });
+
+    socket.on('cell:offer', ({ offer, targetSocketId }) => {
+      io.to(targetSocketId).emit('cell:offer', { offer, fromSocketId: socket.id });
+    });
+
+    socket.on('cell:answer', ({ answer, targetSocketId }) => {
+      io.to(targetSocketId).emit('cell:answer', { answer, fromSocketId: socket.id });
+    });
+
+    socket.on('cell:ice', ({ candidate, targetSocketId }) => {
+      io.to(targetSocketId).emit('cell:ice', { candidate });
+    });
+
+    socket.on('cell:guest_left', ({ cellId }) => {
+      socket.to(`cell:${cellId}`).emit('cell:guest_left');
+      io.emit('cell:directory_updated');
+    });
+
+    socket.on('cell:ended', ({ cellId }) => {
+      io.to(`cell:${cellId}`).emit('cell:ended');
+      io.emit('cell:directory_updated');
+    });
+
     socket.on('disconnect', () => {
       if (userId) connectedUsers.delete(userId);
+      if (socket.data.cellId) {
+        socket.to(`cell:${socket.data.cellId}`).emit('cell:peer_disconnected');
+        io.emit('cell:directory_updated');
+      }
     });
   });
 }

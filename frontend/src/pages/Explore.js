@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { BookOpen, MapPin, Shield, Users, Heart, Handshake, Search, ArrowRight } from 'lucide-react';
+import { BookOpen, MapPin, Shield, Users, Heart, Handshake, Search, ArrowRight, Radio } from 'lucide-react';
 
 const cardVariants = {
   hidden: { opacity: 0, y: 24, scale: 0.97 },
@@ -63,6 +63,16 @@ const features = [
     accent: '#60A5FA',
     Icon: Heart,
     active: false,
+  },
+  {
+    id: 'cells',
+    label: 'Prayer Cells',
+    subtitle: 'Join a live audio prayer session',
+    route: '/prayer-cells',
+    gradient: 'linear-gradient(135deg, #1F3A2A, #0D2018)',
+    accent: '#f59e0b',
+    Icon: Radio,
+    active: true,
   },
   {
     id: 'partners',
@@ -201,7 +211,7 @@ export default function Explore() {
     }
   }
 
-  const [bible, churches, confessions, pastors, answered, partners, believers] = features;
+  const [bible, churches, confessions, pastors, answered, cells, partners, believers] = features;
 
   return (
     <div className="min-h-full" style={{ background: '#0A0F1E' }}>
@@ -248,7 +258,12 @@ export default function Explore() {
 
         {/* Row 4 */}
         <div className="grid grid-cols-2 gap-3">
+          <SmallCard feature={cells} onTap={handleTap} />
           <SmallCard feature={partners} onTap={handleTap} />
+        </div>
+
+        {/* Row 5 */}
+        <div className="grid grid-cols-2 gap-3">
           <SmallCard feature={believers} onTap={handleTap} />
         </div>
       </div>

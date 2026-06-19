@@ -68,7 +68,35 @@ model User {
   prayerReminderEnabled Boolean @default(false)
   prayerReminderTime    String?
 
+  hostedCells     PrayerCell[]        @relation("PrayerCellHost")
+  cellSessions    PrayerCellSession[] @relation("PrayerCellGuest")
+
   @@map("users")
+}
+
+model PrayerCell {
+  id           String              @id @default(cuid())
+  hostId       String
+  host         User                @relation("PrayerCellHost", fields: [hostId], references: [id])
+  isActive     Boolean             @default(true)
+  startedAt    DateTime            @default(now())
+  endedAt      DateTime?
+  sessionCount Int                 @default(0)
+  sessions     PrayerCellSession[]
+
+  @@map("prayer_cells")
+}
+
+model PrayerCellSession {
+  id       String     @id @default(cuid())
+  cellId   String
+  guestId  String
+  joinedAt DateTime   @default(now())
+  leftAt   DateTime?
+  cell     PrayerCell @relation(fields: [cellId], references: [id])
+  guest    User       @relation("PrayerCellGuest", fields: [guestId], references: [id])
+
+  @@map("prayer_cell_sessions")
 }
 
 model Conversation {
