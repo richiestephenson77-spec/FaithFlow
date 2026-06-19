@@ -70,7 +70,7 @@ const HIDE_FAB_ON = ['/prayer', '/bible', '/messages'];
 
 export default function Layout() {
   const { notifications, unreadCount, unreadMessages } = useSocket();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [latestToast, setLatestToast] = useState(null);
@@ -88,7 +88,15 @@ export default function Layout() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col max-w-md mx-auto relative shadow-xl">
       <header className="prayer-gradient text-white px-4 py-2.5 flex items-center justify-between sticky top-0 z-30">
-        <div className="w-10" />
+        <button onClick={() => navigate('/profile')} className="flex-shrink-0">
+          {user?.profilePhoto ? (
+            <img src={user.profilePhoto} alt={user.name} className="w-9 h-9 rounded-full object-cover" />
+          ) : (
+            <div className="w-9 h-9 rounded-full bg-amber-500 flex items-center justify-center">
+              <span className="text-white font-bold text-base">{user?.name?.charAt(0).toUpperCase() || '?'}</span>
+            </div>
+          )}
+        </button>
         <Logo size="sm" light={true} />
         <div className="flex items-center justify-end w-10">
           <button onClick={() => navigate('/notifications')} className="relative">
