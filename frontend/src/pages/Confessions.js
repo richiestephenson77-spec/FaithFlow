@@ -102,7 +102,7 @@ export default function Confessions() {
   }
 
   return (
-    <div className="min-h-full pb-32" style={{ background: BG }}>
+    <div className="min-h-screen pb-32" style={{ background: BG }}>
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}

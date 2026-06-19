@@ -129,7 +129,7 @@ export default function ConfessionDetail() {
   }
 
   return (
-    <div className="min-h-full flex flex-col" style={{ background: BG }}>
+    <div className="min-h-screen flex flex-col" style={{ background: BG }}>
       {/* Header */}
       <div className="flex items-center gap-3 px-4 pt-5 pb-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
         <button onClick={() => navigate(-1)} className="p-1 -ml-1">
