@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { HandHeart, Clock, Users } from 'lucide-react';
 import api from '../utils/api';
 import { useAuth } from '../contexts/AuthContext';
 import PostGrid from '../components/PostGrid';
@@ -221,9 +222,9 @@ export default function Profile() {
           </div>
 
           <div className="grid grid-cols-3 gap-2">
-            <StatCard icon="🙏" label="Total Prayers" value={stats.totalSessions || stats.totalPeoplePrayedFor || 0} />
-            <StatCard icon="⏱️" label="Prayer Time" value={formatDuration(stats.totalPrayerSeconds)} />
-            <StatCard icon="👥" label="Prayed For" value={stats.totalPeoplePrayedFor} />
+            <StatCard Icon={HandHeart} iconColor="#f59e0b" label="Total Prayers" value={stats.totalSessions || stats.totalPeoplePrayedFor || 0} />
+            <StatCard Icon={Clock} iconColor="#3b82f6" label="Prayer Time" value={formatDuration(stats.totalPrayerSeconds)} />
+            <StatCard Icon={Users} iconColor="#a855f7" label="Prayed For" value={stats.totalPeoplePrayedFor} />
           </div>
 
           {isOwnProfile && stats.todaySeconds > 0 && (
@@ -431,11 +432,13 @@ export default function Profile() {
   );
 }
 
-function StatCard({ icon, label, value }) {
+function StatCard({ Icon, iconColor, label, value }) {
   return (
     <div className="bg-white rounded-xl p-2.5 border border-gray-100 shadow-sm text-center">
-      <span className="text-xl">{icon}</span>
-      <p className="text-sm font-bold text-gray-900 mt-0.5 leading-tight">{value}</p>
+      <div className="flex justify-center mb-1">
+        <Icon size={20} strokeWidth={1.5} color={iconColor} />
+      </div>
+      <p className="text-sm font-bold text-gray-900 leading-tight">{value}</p>
       <p className="text-[10px] text-gray-400 mt-0.5">{label}</p>
     </div>
   );

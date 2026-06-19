@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Globe, MapPin, RefreshCw, Flame, BookOpen, Users, Plus, Bookmark } from 'lucide-react';
 import api from '../utils/api';
 import { fadeUp, fadeIn, scaleIn, slideInRight, slideUp, staggerContainer, staggerContainerFast, staggerItem } from '../utils/animations';
 import { useAuth } from '../contexts/AuthContext';
@@ -100,7 +101,7 @@ function PrayerCard({ request, currentUserId, onPray, onUserClick, onMarkAnswere
             <div className="flex items-center gap-1.5">
               {request.currentlyPrayingCount > 0
                 ? <span className="text-xs text-emerald-600 font-semibold bg-emerald-50 px-2 py-1 rounded-full">{request.currentlyPrayingCount} praying now</span>
-                : <span className="text-xs text-gray-400">🙏 {request.totalPrayerCount || 0} prayed</span>}
+                : <span className="text-xs text-gray-400 flex items-center gap-1"><Users size={11} strokeWidth={1.5} /> {request.totalPrayerCount || 0} prayed</span>}
             </div>
             <div className="flex items-center gap-2">
               {isOwner && !request.isAnswered && (
@@ -274,7 +275,7 @@ export default function PrayerPage() {
         <div className="bg-white/15 backdrop-blur border border-white/20 rounded-2xl px-4 py-3">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
-              <span className="text-base">🙏</span>
+              <BookOpen size={16} strokeWidth={1.5} className="text-white/80" />
               <p className="text-white font-semibold text-sm">Daily Goal: {quota?.completed ?? '–'} / {quota?.target ?? '–'}</p>
             </div>
             <button onClick={() => setShowSettings(true)} className="w-7 h-7 bg-white/20 rounded-full flex items-center justify-center">
@@ -296,23 +297,20 @@ export default function PrayerPage() {
         <motion.div {...fadeUp} transition={{ delay: 0.1, duration: 0.3 }} className="flex gap-3 mb-5">
           <motion.button whileTap={{ scale: 0.96 }} transition={{ type: 'spring', stiffness: 400, damping: 20 }}
             onClick={() => setShowQueue(true)}
-            className="flex-1 bg-amber-400 text-gray-900 font-bold rounded-2xl py-3.5 text-sm shadow-md">
-            🙏 Start Daily Prayers
+            className="flex-1 bg-amber-400 text-gray-900 font-bold rounded-2xl py-3.5 text-sm shadow-md flex items-center justify-center gap-2">
+            <Flame size={15} strokeWidth={1.5} />
+            Start Daily Prayers
           </motion.button>
           <motion.button whileTap={{ scale: 0.96 }} transition={{ type: 'spring', stiffness: 400, damping: 20 }}
             onClick={() => setShowNewRequest(true)}
             className="flex-1 bg-white border border-gray-200 text-gray-700 font-semibold rounded-2xl py-3.5 text-sm flex items-center justify-center gap-1.5">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-            </svg>
+            <Plus size={15} strokeWidth={2} />
             Share Request
           </motion.button>
           <motion.button whileTap={{ scale: 0.9 }} transition={{ type: 'spring', stiffness: 400, damping: 20 }}
             onClick={() => setShowMyRequests(true)}
             className="w-12 h-12 bg-white border border-gray-200 rounded-2xl flex items-center justify-center flex-shrink-0">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
-            </svg>
+            <Bookmark size={18} strokeWidth={1.5} color="#6b7280" />
           </motion.button>
         </motion.div>
 
@@ -330,14 +328,14 @@ export default function PrayerPage() {
           <div className="flex gap-2 mb-2">
             <motion.button whileTap={{ scale: 0.96 }} onClick={() => { setNearMe(false); loadFeed(false, { nearMe: false }); }}
               className={`flex-1 py-2 rounded-full text-xs font-bold border transition-all ${!nearMe ? 'prayer-gradient text-white border-transparent shadow-sm' : 'bg-white text-gray-500 border-gray-200'}`}>
-              🌍 Worldwide
+              <Globe size={13} strokeWidth={2} className="inline mr-1" /> Worldwide
             </motion.button>
             <motion.button whileTap={{ scale: 0.96 }} onClick={() => {
               if (!userCoords) { setShowLocationBanner(true); return; }
               setNearMe(true); loadFeed(false, { nearMe: true, radius, coords: userCoords });
             }}
               className={`flex-1 py-2 rounded-full text-xs font-bold border transition-all ${nearMe ? 'prayer-gradient text-white border-transparent shadow-sm' : 'bg-white text-gray-500 border-gray-200'}`}>
-              📍 Near Me
+              <MapPin size={13} strokeWidth={2} className="inline mr-1" /> Near Me
             </motion.button>
           </div>
           <AnimatePresence>
@@ -369,7 +367,7 @@ export default function PrayerPage() {
         {/* Refresh */}
         <button onClick={() => loadFeed(true)}
           className="w-full text-center text-xs text-gray-400 mb-3 py-1 active:text-faith-600 transition-colors">
-          {refreshing ? '🌍 Refreshing rankings...' : '↻ Refresh rankings'}
+          <span className="flex items-center justify-center gap-1.5"><RefreshCw size={12} strokeWidth={2} />{refreshing ? 'Refreshing rankings...' : 'Refresh rankings'}</span>
         </button>
 
         {/* Prayer feed */}
@@ -378,7 +376,7 @@ export default function PrayerPage() {
         ) : filteredTop3.length === 0 && filteredRest.length === 0 ? (
           <motion.div {...fadeIn} className="text-center py-16">
             <div className="w-16 h-16 prayer-gradient rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-              <span className="text-3xl">🕊️</span>
+              <BookOpen size={28} strokeWidth={1.5} color="white" />
             </div>
             <p className="font-semibold text-gray-700">{nearMe ? 'No prayers found nearby' : 'No prayer requests yet'}</p>
             <p className="text-sm text-gray-400 mt-1">{nearMe ? `Try increasing the radius beyond ${radius} km` : 'Be the first to share one!'}</p>
@@ -388,7 +386,7 @@ export default function PrayerPage() {
             {filteredTop3.length > 0 && (
               <>
                 <motion.div {...fadeIn} className="mb-3">
-                  <p className="font-bold text-gray-900 text-sm">{nearMe ? '📍 Top Prayers Near You' : '🌍 Top Prayers Worldwide'}</p>
+                  <p className="font-bold text-gray-900 text-sm flex items-center gap-1.5">{nearMe ? <><MapPin size={13} strokeWidth={2} className="text-faith-600" /> Top Prayers Near You</> : <><Globe size={13} strokeWidth={2} className="text-faith-600" /> Top Prayers Worldwide</>}</p>
                   <p className="text-xs text-amber-600 mt-0.5">{nearMe ? `Within ${radius} km · sorted by most prayed` : 'Updated live · sorted by most prayed'}</p>
                 </motion.div>
                 <motion.div className="space-y-3 mb-6" variants={{ animate: { transition: { staggerChildren: 0.1 } } }} initial="initial" animate="animate">

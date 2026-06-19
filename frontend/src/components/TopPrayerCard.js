@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { Globe } from 'lucide-react';
 import Avatar from './Avatar';
 
 const MEDAL = { 1: '🥇', 2: '🥈', 3: '🥉' };
@@ -83,9 +84,9 @@ export default function TopPrayerCard({ request, currentUserId, onPray, onUserCl
             initial={{ scale: 1.15, color: '#f59e0b' }}
             animate={{ scale: 1, color: '#d97706' }}
             transition={{ duration: 0.3 }}
-            className="text-xs font-semibold mt-2"
+            className="text-xs font-semibold mt-2 flex items-center gap-1"
           >
-            🌍 {request.prayerCount} {request.prayerCount === 1 ? 'person' : 'people'} praying worldwide
+            <Globe size={11} strokeWidth={2} /> {request.prayerCount} {request.prayerCount === 1 ? 'person' : 'people'} praying worldwide
           </motion.p>
           {showDistance && request.distanceKm != null && (
             <p className="text-xs text-gray-400 mt-0.5">📍 {request.distanceKm} km away</p>

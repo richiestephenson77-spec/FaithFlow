@@ -3,70 +3,18 @@ import { useSocket } from '../contexts/SocketContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Home, Compass, Search, MessageCircle, User, Bell } from 'lucide-react';
 import Toast from './Toast';
 import Logo from './Logo';
 import CreatePostModal from './CreatePostModal';
-import { pageTransition, springTap } from '../utils/animations';
-
-function HomeIcon({ active }) {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill={active ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-      <polyline points="9 22 9 12 15 12 15 22" />
-    </svg>
-  );
-}
-
-function ExploreIcon({ active }) {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill={active ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10" />
-      <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
-    </svg>
-  );
-}
-
-function SearchIcon({ active }) {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="11" cy="11" r="8" />
-      <line x1="21" y1="21" x2="16.65" y2="16.65" />
-    </svg>
-  );
-}
-
-function ChatIcon({ active }) {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill={active ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-    </svg>
-  );
-}
-
-function ProfileIcon({ active }) {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill={active ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-      <circle cx="12" cy="7" r="4" />
-    </svg>
-  );
-}
-
-function BellIcon() {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1e3a8a" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-      <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-    </svg>
-  );
-}
+import { springTap } from '../utils/animations';
 
 const navItems = [
-  { to: '/', label: 'Home', Icon: HomeIcon, end: true },
-  { to: '/explore', label: 'Explore', Icon: ExploreIcon },
-  { to: '/search', label: 'Search', Icon: SearchIcon },
-  { to: '/messages', label: 'Chats', Icon: ChatIcon },
-  { to: '/profile', label: 'Profile', Icon: ProfileIcon },
+  { to: '/', label: 'Home', Icon: Home, end: true },
+  { to: '/explore', label: 'Explore', Icon: Compass },
+  { to: '/search', label: 'Search', Icon: Search },
+  { to: '/messages', label: 'Chats', Icon: MessageCircle },
+  { to: '/profile', label: 'Profile', Icon: User },
 ];
 
 const HIDE_FAB_ON = ['/prayer', '/bible', '/messages'];
@@ -104,7 +52,7 @@ export default function Layout() {
         <Logo size="sm" light={false} />
         <div className="flex items-center justify-end w-10">
           <button onClick={() => navigate('/notifications')} className="relative">
-            <BellIcon />
+            <Bell size={22} strokeWidth={1.5} color="#1e3a8a" />
             {unreadCount > 0 && (
               <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center leading-none font-bold">
                 {unreadCount > 9 ? '9+' : unreadCount}
@@ -162,7 +110,7 @@ export default function Layout() {
             {({ isActive }) => (
               <>
                 <motion.div className="relative" whileTap={{ scale: 0.82 }} transition={{ type: 'spring', stiffness: 500, damping: 25 }}>
-                  <Icon active={isActive} />
+                  <Icon size={22} strokeWidth={isActive ? 2.5 : 1.5} />
                   {label === 'Chats' && unreadMessages > 0 && (
                     <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[9px] rounded-full w-4 h-4 flex items-center justify-center leading-none font-bold">
                       {unreadMessages > 9 ? '9+' : unreadMessages}
