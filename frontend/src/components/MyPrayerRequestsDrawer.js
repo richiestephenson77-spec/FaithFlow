@@ -1,7 +1,24 @@
 import { useState, useEffect } from 'react';
+import { Globe, Lock, Shield } from 'lucide-react';
 import api from '../utils/api';
 import Avatar from './Avatar';
 import TestimonyModal from './TestimonyModal';
+
+const VISIBILITY_OPTIONS = [
+  { id: 'PUBLIC',      label: 'Public',      Icon: Globe,  bg: 'bg-gray-100', text: 'text-gray-600' },
+  { id: 'PRIVATE',     label: 'Private',     Icon: Lock,   bg: 'bg-purple-50', text: 'text-purple-600' },
+  { id: 'PASTOR_ONLY', label: 'Pastor Only', Icon: Shield, bg: 'bg-green-50',  text: 'text-green-600' },
+];
+
+function VisibilityBadge({ visibility }) {
+  const opt = VISIBILITY_OPTIONS.find(o => o.id === visibility) || VISIBILITY_OPTIONS[0];
+  return (
+    <span className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full ${opt.bg} ${opt.text}`}>
+      <opt.Icon size={9} strokeWidth={2} />
+      {opt.label}
+    </span>
+  );
+}
 
 function getTimeAgo(dateStr) {
   const diff = Date.now() - new Date(dateStr);
@@ -23,6 +40,7 @@ export default function MyPrayerRequestsDrawer({ onClose }) {
   const [updateText, setUpdateText] = useState('');
   const [testimony, setTestimony] = useState(null);     // request for testimony modal
   const [deleting, setDeleting] = useState(null);       // request awaiting delete confirm
+  const [changingPrivacy, setChangingPrivacy] = useState(null); // request for privacy change
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -64,6 +82,14 @@ export default function MyPrayerRequestsDrawer({ onClose }) {
   function handleTestimonySaved(updatedReq) {
     setRequests(prev => prev.map(r => r.id === updatedReq.id ? { ...r, ...updatedReq } : r));
     setTestimony(null);
+  }
+
+  async function changePrivacy(req, visibility) {
+    try {
+      const res = await api.put(`/prayers/${req.id}`, { visibility });
+      setRequests(prev => prev.map(r => r.id === req.id ? { ...r, visibility: res.data.visibility } : r));
+    } catch {}
+    setChangingPrivacy(null);
   }
 
   async function confirmDelete() {
@@ -115,18 +141,12 @@ export default function MyPrayerRequestsDrawer({ onClose }) {
               >
                 <div className="flex items-start justify-between gap-2">
                   <p className="font-semibold text-gray-900 text-sm leading-snug flex-1">{req.title}</p>
-                  <div className="flex items-center gap-1 flex-shrink-0">
-                    {req.visibility && req.visibility !== 'PUBLIC' && (
-                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
-                        req.visibility === 'PRIVATE' ? 'bg-gray-100 text-gray-500' : 'bg-purple-50 text-purple-600'
-                      }`}>
-                        {req.visibility === 'PRIVATE' ? '🔒' : '✝️'}
-                      </span>
-                    )}
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                    <VisibilityBadge visibility={req.visibility || 'PUBLIC'} />
                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                       req.isAnswered ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'
                     }`}>
-                      {req.isAnswered ? '🙌 Answered' : 'Active'}
+                      {req.isAnswered ? 'Answered' : 'Active'}
                     </span>
                   </div>
                 </div>
@@ -163,6 +183,7 @@ export default function MyPrayerRequestsDrawer({ onClose }) {
                 <ActionItem icon="🙌" label="Mark as Answered" onClick={() => { setTestimony(selected); setSelected(null); }} />
               )}
               <ActionItem icon="💬" label="Add Update" onClick={() => { setUpdating(selected); setSelected(null); }} />
+              <ActionItem icon="🔒" label="Change Privacy" onClick={() => { setChangingPrivacy(selected); setSelected(null); }} />
               <ActionItem icon="🗑️" label="Delete Request" danger onClick={() => { setDeleting(selected); setSelected(null); }} />
               <button
                 onClick={() => setSelected(null)}
@@ -237,6 +258,46 @@ export default function MyPrayerRequestsDrawer({ onClose }) {
               <button onClick={saveUpdate} disabled={saving || !updateText.trim()}
                 className="w-full prayer-gradient text-white rounded-2xl py-3.5 font-bold text-sm disabled:opacity-40">
                 {saving ? 'Posting...' : '💬 Post Update'}
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Change Privacy sheet */}
+      {changingPrivacy && (
+        <>
+          <div className="fixed inset-0 z-50 bg-black/60" onClick={() => setChangingPrivacy(null)} />
+          <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md z-50 bg-white rounded-t-3xl pb-8 shadow-2xl"
+            style={{ animation: 'slideUp 0.2s ease-out' }}>
+            <div className="px-4 pt-4 pb-3 border-b border-gray-100">
+              <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-3" />
+              <h3 className="font-bold text-gray-900 text-sm text-center">Change Privacy</h3>
+            </div>
+            <div className="px-4 py-3 space-y-2">
+              {VISIBILITY_OPTIONS.map(opt => {
+                const active = (changingPrivacy.visibility || 'PUBLIC') === opt.id;
+                return (
+                  <button
+                    key={opt.id}
+                    onClick={() => changePrivacy(changingPrivacy, opt.id)}
+                    className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl text-sm font-semibold transition-colors text-left ${
+                      active ? 'bg-gray-900 text-white' : 'text-gray-800 hover:bg-gray-50'
+                    }`}
+                  >
+                    <opt.Icon size={18} strokeWidth={1.8} />
+                    <div>
+                      <p>{opt.label}</p>
+                      {opt.id === 'PRIVATE' && <p className="text-xs font-normal opacity-60 mt-0.5">Only pastors can see</p>}
+                      {opt.id === 'PASTOR_ONLY' && <p className="text-xs font-normal opacity-60 mt-0.5">Selected pastors only</p>}
+                      {opt.id === 'PUBLIC' && <p className="text-xs font-normal opacity-60 mt-0.5">Visible to everyone</p>}
+                    </div>
+                    {active && <svg className="ml-auto" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
+                  </button>
+                );
+              })}
+              <button onClick={() => setChangingPrivacy(null)} className="w-full text-center py-3.5 text-sm font-semibold text-gray-400">
+                Cancel
               </button>
             </div>
           </div>

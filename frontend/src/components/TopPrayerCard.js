@@ -16,7 +16,8 @@ function getTimeAgo(dateStr) {
 }
 
 export default function TopPrayerCard({ request, currentUserId, onPray, onUserClick, onMarkAnswered, onViewTestimony, rank, showDistance }) {
-  const isOwner = request.user?.id === currentUserId;
+  // Use backend-provided isOwner — user.id is null when prayer is anonymized
+  const isOwner = request.isOwner ?? (request.user?.id === currentUserId);
   const borderColor = BORDER[rank] || '#e5e7eb';
   const medal = MEDAL[rank];
 

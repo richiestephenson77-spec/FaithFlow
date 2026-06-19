@@ -1,10 +1,35 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { HandHeart, Clock, Users } from 'lucide-react';
+import { HandHeart, Clock, Users, Globe, Lock, Shield, MoreHorizontal } from 'lucide-react';
 import api from '../utils/api';
 import { useAuth } from '../contexts/AuthContext';
 import PostGrid from '../components/PostGrid';
 import FollowListModal from '../components/FollowListModal';
+
+const VIS_OPTS = {
+  PUBLIC:      { label: 'Public',      Icon: Globe,  bg: 'bg-gray-100',   text: 'text-gray-500' },
+  PRIVATE:     { label: 'Private',     Icon: Lock,   bg: 'bg-purple-50',  text: 'text-purple-600' },
+  PASTOR_ONLY: { label: 'Pastor Only', Icon: Shield, bg: 'bg-green-50',   text: 'text-green-600' },
+};
+
+function VisibilityBadge({ visibility }) {
+  const opt = VIS_OPTS[visibility] || VIS_OPTS.PUBLIC;
+  return (
+    <span className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full ${opt.bg} ${opt.text}`}>
+      <opt.Icon size={9} strokeWidth={2} /> {opt.label}
+    </span>
+  );
+}
+
+function getTimeAgo(dateStr) {
+  const diff = Date.now() - new Date(dateStr);
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return 'just now';
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h ago`;
+  return `${Math.floor(h / 24)}d ago`;
+}
 
 function formatDuration(seconds) {
   if (!seconds) return '0m';
@@ -31,6 +56,8 @@ export default function Profile() {
   const [following, setFollowing] = useState(false);
   const [followModal, setFollowModal] = useState(null); // 'followers' | 'following'
   const [showBadgeModal, setShowBadgeModal] = useState(false);
+  const [prayerMenu, setPrayerMenu] = useState(null);   // prayer with open ··· menu
+  const [deletingPrayer, setDeletingPrayer] = useState(null);
   const [quotaStats, setQuotaStats] = useState(null);
 
   const profilePhotoRef = useRef();
@@ -77,6 +104,14 @@ export default function Profile() {
         _count: { ...p._count, followers: p._count.followers + (res.data.following ? 1 : -1) },
       }));
     } catch {}
+  }
+
+  async function deletePrayer(prayer) {
+    try {
+      await api.delete(`/prayers/${prayer.id}`);
+      setProfile(p => ({ ...p, prayerRequests: p.prayerRequests.filter(r => r.id !== prayer.id) }));
+    } catch {}
+    setDeletingPrayer(null);
   }
 
   async function handleSave() {
@@ -299,9 +334,36 @@ export default function Profile() {
               <p className="text-center text-gray-400 py-6">No prayer requests yet</p>
             ) : (
               profile.prayerRequests?.map(r => (
-                <div key={r.id} className="bg-white rounded-xl p-4 border border-gray-100 shadow-sm">
-                  <p className="font-semibold text-gray-800 text-sm">{r.title}</p>
-                  <p className="text-gray-500 text-sm mt-1 line-clamp-2">{r.body}</p>
+                <div key={r.id} className={`bg-white rounded-2xl p-4 border shadow-sm ${r.isAnswered ? 'border-emerald-100' : 'border-gray-100'}`}>
+                  <div className="flex items-start gap-2">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap mb-1">
+                        <VisibilityBadge visibility={r.visibility || 'PUBLIC'} />
+                        {r.isAnswered && (
+                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">Answered</span>
+                        )}
+                        {r.isUrgent && (
+                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-red-50 text-red-600 uppercase tracking-wide">Urgent</span>
+                        )}
+                      </div>
+                      <p className="font-semibold text-gray-800 text-sm">{r.title}</p>
+                      <p className="text-gray-400 text-xs mt-1 line-clamp-2">{r.body}</p>
+                      <div className="flex items-center gap-3 mt-2">
+                        <span className="text-xs text-gray-400">{getTimeAgo(r.createdAt)}</span>
+                        {r._count?.sessions != null && (
+                          <span className="text-xs text-gray-400">🙏 {r._count.sessions} prayed</span>
+                        )}
+                      </div>
+                    </div>
+                    {isOwnProfile && (
+                      <button
+                        onClick={() => setPrayerMenu(r)}
+                        className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 flex-shrink-0 -mt-1"
+                      >
+                        <MoreHorizontal size={16} color="#9ca3af" />
+                      </button>
+                    )}
+                  </div>
                 </div>
               ))
             )}
@@ -360,6 +422,51 @@ export default function Profile() {
                     <p className="font-bold text-gray-900 text-sm">{value}</p>
                   </div>
                 ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Prayer ··· menu sheet */}
+      {prayerMenu && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex flex-col justify-end" onClick={() => setPrayerMenu(null)}>
+          <div className="bg-white rounded-t-3xl w-full max-w-md mx-auto pb-8 fade-in" onClick={e => e.stopPropagation()}>
+            <div className="px-4 pt-4 pb-3 border-b border-gray-100">
+              <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-3" />
+              <p className="font-bold text-gray-900 text-sm text-center line-clamp-1">{prayerMenu.title}</p>
+            </div>
+            <div className="px-4 py-2 space-y-1">
+              <button onClick={() => { setDeletingPrayer(prayerMenu); setPrayerMenu(null); }}
+                className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl text-sm font-semibold text-red-500 hover:bg-red-50 text-left">
+                <span className="text-xl w-7 text-center">🗑️</span> Delete Prayer Request
+              </button>
+              <button onClick={() => setPrayerMenu(null)} className="w-full text-center py-3.5 text-sm font-semibold text-gray-400">
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Prayer delete confirm */}
+      {deletingPrayer && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex flex-col justify-end" onClick={() => setDeletingPrayer(null)}>
+          <div className="bg-white rounded-t-3xl w-full max-w-md mx-auto pb-8 fade-in" onClick={e => e.stopPropagation()}>
+            <div className="px-4 pt-5 pb-4 text-center">
+              <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                <span className="text-2xl">🗑️</span>
+              </div>
+              <h3 className="font-bold text-gray-900 mb-1">Delete Prayer Request?</h3>
+              <p className="text-sm text-gray-400 mb-5 px-4">This will permanently remove "{deletingPrayer.title}" and all its prayer history.</p>
+              <div className="px-4 space-y-2">
+                <button onClick={() => deletePrayer(deletingPrayer)}
+                  className="w-full bg-red-500 text-white rounded-2xl py-3.5 font-bold text-sm">
+                  Yes, Delete
+                </button>
+                <button onClick={() => setDeletingPrayer(null)} className="w-full text-gray-500 font-semibold text-sm py-3">
+                  Cancel
+                </button>
               </div>
             </div>
           </div>

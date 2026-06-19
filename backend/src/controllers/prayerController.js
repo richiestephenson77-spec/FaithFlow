@@ -81,9 +81,9 @@ async function getFeed(req, res) {
     filtered.sort((a, b) => b._count.sessions - a._count.sessions);
 
     const format = (r, index) => {
-      // Only anonymize if the prayer is non-public AND the viewer is not the poster
-      const shouldAnonymize = r.isAnonymous && r.userId !== userId;
-      const displayLocation = r.user?.location ? `From ${r.user.location}` : 'Anonymous Believer';
+      // Private/PastorOnly prayers are always anonymous in the feed — even to the poster
+      const shouldAnonymize = r.visibility !== 'PUBLIC';
+      const displayLocation = r.user?.location ? `From ${r.user.location}` : 'Undisclosed location';
       const userField = shouldAnonymize
         ? { id: null, name: null, profilePhoto: null, churchName: null }
         : { ...r.user, latitude: undefined, longitude: undefined };
@@ -93,6 +93,7 @@ async function getFeed(req, res) {
         currentlyPrayingCount: r.sessions.filter(s => s.userId).length,
         totalPrayerCount: r._count.sessions,
         userHasPrayed: r.sessions.some(s => s.userId === userId),
+        isOwner: r.userId === userId,
         isTop3: index < 3,
         rank: index + 1,
         distanceKm: r._distanceKm != null ? Math.round(r._distanceKm * 10) / 10 : null,
@@ -313,14 +314,22 @@ async function getMyRequests(req, res) {
 
 async function editRequest(req, res) {
   const { id } = req.params;
-  const { title, body } = req.body;
+  const { title, body, visibility, isUrgent } = req.body;
   try {
     const request = await prisma.prayerRequest.findUnique({ where: { id } });
     if (!request || request.userId !== req.user.id)
       return res.status(403).json({ error: 'Not authorized' });
+    const data = {};
+    if (title) data.title = title;
+    if (body !== undefined) data.body = body;
+    if (visibility && ['PUBLIC', 'PRIVATE', 'PASTOR_ONLY'].includes(visibility)) {
+      data.visibility = visibility;
+      data.isAnonymous = visibility !== 'PUBLIC';
+    }
+    if (isUrgent !== undefined) data.isUrgent = Boolean(isUrgent);
     const updated = await prisma.prayerRequest.update({
       where: { id },
-      data: { title: title || request.title, body: body || request.body },
+      data,
       include: { user: { select: { id: true, name: true, profilePhoto: true, churchName: true } }, _count: { select: { sessions: true } } },
     });
     res.json({ ...updated, totalPrayerCount: updated._count.sessions });

@@ -50,7 +50,8 @@ function SkeletonCard() {
 
 function PrayerCard({ request, currentUserId, onPray, onUserClick, onMarkAnswered, onViewTestimony, showDistance }) {
   const timeAgo = getTimeAgo(request.createdAt);
-  const isOwner = request.user?.id === currentUserId;
+  // Use backend-provided isOwner — user.id is null for anonymized prayers
+  const isOwner = request.isOwner ?? (request.user?.id === currentUserId);
   const catLabel = request.category && request.category !== 'GENERAL' ? CATEGORY_LABELS[request.category] : null;
 
   return (
