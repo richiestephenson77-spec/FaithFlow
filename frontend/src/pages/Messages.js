@@ -58,22 +58,22 @@ export default function Messages() {
 
   return (
     <div className="bg-gray-50 min-h-full">
-      <div className="prayer-gradient px-4 pt-4 pb-7">
-        <h2 className="text-xl font-bold text-white mb-3">Messages</h2>
+      <div className="bg-gray-50 px-4 pt-4 pb-3">
+        <h2 className="text-2xl font-bold text-gray-900 mb-3">Messages</h2>
         <div className="relative">
-          <svg className="absolute left-3 top-1/2 -translate-y-1/2 text-white/60" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <svg className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
           </svg>
           <input
             value={search}
             onChange={e => handleSearch(e.target.value)}
             placeholder="Find a believer to message..."
-            className="w-full bg-white/20 text-white placeholder-white/60 rounded-2xl pl-9 pr-4 py-2.5 text-sm focus:outline-none border border-white/20"
+            className="w-full bg-white text-gray-700 placeholder-gray-400 rounded-2xl pl-9 pr-4 py-2.5 text-sm focus:outline-none border border-gray-200"
           />
         </div>
       </div>
 
-      <div className="-mt-3 rounded-t-3xl bg-gray-50 pt-4 pb-24">
+      <div className="bg-gray-50 pt-2 pb-24">
         {/* Search results */}
         {search.length >= 2 && (
           <div className="px-4 mb-4">

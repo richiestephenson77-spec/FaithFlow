@@ -37,13 +37,12 @@ export default function Search() {
 
   return (
     <div className="bg-gray-50 min-h-full">
-      {/* Header */}
-      <div className="prayer-gradient px-5 pt-5 pb-8">
-        <h2 className="text-2xl font-bold text-white mb-1">Find Believers</h2>
-        <p className="text-white/70 text-sm">Connect with your faith community</p>
+      <div className="bg-gray-50 px-5 pt-5 pb-4">
+        <h2 className="text-2xl font-bold text-gray-900 mb-0.5">Find Believers</h2>
+        <p className="text-sm text-gray-400">Connect with your faith community</p>
       </div>
 
-      <div className="-mt-3 rounded-t-3xl bg-gray-50 px-4 pt-5 pb-4">
+      <div className="bg-gray-50 px-4 pt-3 pb-4">
         {/* Search Input */}
         <div className="relative mb-5">
           <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">

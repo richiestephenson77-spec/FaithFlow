@@ -156,13 +156,12 @@ export default function Explore() {
     <div className="bg-gray-50 min-h-full">
       {toast && <ComingSoonToast />}
 
-      {/* Header */}
-      <div className="prayer-gradient px-5 pt-5 pb-8">
-        <h2 className="text-2xl font-bold text-white mb-1">Explore</h2>
-        <p className="text-white/70 text-sm">Deepen your faith journey</p>
+      <div className="bg-gray-50 px-5 pt-5 pb-4">
+        <h2 className="text-2xl font-bold text-gray-900 mb-0.5">Explore</h2>
+        <p className="text-sm text-gray-400">Deepen your faith journey</p>
       </div>
 
-      <div className="-mt-3 rounded-t-3xl bg-gray-50 px-4 pt-6 pb-6">
+      <div className="bg-gray-50 px-4 pt-3 pb-6">
         <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Features</p>
 
         <motion.div className="grid grid-cols-2 gap-3" variants={gridContainer} initial="initial" animate="animate">
