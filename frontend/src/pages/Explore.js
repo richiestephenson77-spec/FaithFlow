@@ -3,6 +3,16 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { BookOpen, MapPin, Shield, Users, Heart, Handshake, Search, ArrowRight } from 'lucide-react';
 
+const cardVariants = {
+  hidden: { opacity: 0, y: 24, scale: 0.97 },
+  show: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.35, ease: 'easeOut' } },
+};
+
+const heroVariants = {
+  hidden: { opacity: 0, y: 32, scale: 0.95 },
+  show: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.4, ease: 'easeOut' } },
+};
+
 const features = [
   {
     id: 'bible',
@@ -76,88 +86,105 @@ const features = [
 
 function SmallCard({ feature, onTap }) {
   return (
-    <motion.button
-      whileTap={{ scale: 0.97 }}
-      transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-      onClick={() => onTap(feature)}
-      className="relative flex flex-col p-6 rounded-3xl text-left overflow-hidden"
-      style={{ height: 180, background: feature.gradient }}
+    <motion.div
+      variants={cardVariants}
+      initial="hidden"
+      whileInView="show"
+      viewport={{ once: true, margin: '-40px' }}
     >
-      {!feature.active && (
-        <span
-          className="absolute top-3 right-3 text-[10px] font-medium px-2 py-0.5 rounded-full"
-          style={{ background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.3)', border: '1px solid rgba(255,255,255,0.1)' }}
-        >
-          Coming Soon
-        </span>
-      )}
-
-      <div
-        className="flex items-center justify-center rounded-[12px] flex-shrink-0"
-        style={{
-          width: 44,
-          height: 44,
-          background: feature.active ? feature.accent + '33' : feature.accent + '1A',
-        }}
+      <motion.button
+        whileTap={{ scale: feature.active ? 0.96 : 0.98 }}
+        transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+        onClick={() => onTap(feature)}
+        className="relative flex flex-col p-6 rounded-3xl text-left overflow-hidden w-full"
+        style={{ height: 180, background: feature.gradient }}
       >
-        <feature.Icon
-          size={20}
-          color={feature.active ? feature.accent : feature.accent + '80'}
-          strokeWidth={1.8}
-        />
-      </div>
+        {!feature.active && (
+          <motion.span
+            animate={{ opacity: [0.5, 1, 0.5] }}
+            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+            className="absolute top-3 right-3 text-[10px] font-medium px-2 py-0.5 rounded-full"
+            style={{ background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.3)', border: '1px solid rgba(255,255,255,0.1)' }}
+          >
+            Coming Soon
+          </motion.span>
+        )}
 
-      <p className="text-white font-semibold text-base mt-3 leading-tight">{feature.label}</p>
-      <p className="text-slate-400 text-xs mt-1 leading-relaxed flex-1">{feature.subtitle}</p>
-
-      {feature.active && (
-        <div className="flex justify-end mt-2">
-          <ArrowRight size={14} color="rgba(255,255,255,0.3)" />
+        <div
+          className="flex items-center justify-center rounded-[12px] flex-shrink-0"
+          style={{
+            width: 44,
+            height: 44,
+            background: feature.active ? feature.accent + '33' : feature.accent + '1A',
+          }}
+        >
+          <feature.Icon
+            size={20}
+            color={feature.active ? feature.accent : feature.accent + '80'}
+            strokeWidth={1.8}
+          />
         </div>
-      )}
-    </motion.button>
+
+        <p className={`font-semibold text-base mt-3 leading-tight ${feature.active ? 'text-white' : 'text-slate-400'}`}>
+          {feature.label}
+        </p>
+        <p className="text-slate-400 text-xs mt-1 leading-relaxed flex-1">{feature.subtitle}</p>
+
+        {feature.active && (
+          <div className="flex justify-end mt-2">
+            <ArrowRight size={14} color="rgba(255,255,255,0.3)" />
+          </div>
+        )}
+      </motion.button>
+    </motion.div>
   );
 }
 
 function HeroCard({ feature, onTap }) {
   return (
-    <motion.button
-      whileTap={{ scale: 0.98 }}
-      transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-      onClick={() => onTap(feature)}
-      className="relative w-full flex flex-col p-6 rounded-3xl text-left overflow-hidden"
-      style={{ height: 160, background: feature.gradient }}
+    <motion.div
+      variants={heroVariants}
+      initial="hidden"
+      whileInView="show"
+      viewport={{ once: true, margin: '-40px' }}
     >
-      {/* Glow */}
-      <div
-        className="absolute bottom-0 right-0 w-40 h-40 rounded-full pointer-events-none"
-        style={{ background: 'radial-gradient(circle, rgba(167,139,250,0.18) 0%, transparent 70%)', transform: 'translate(30%, 30%)' }}
-      />
-
-      <div className="flex items-start justify-between">
+      <motion.button
+        whileTap={{ scale: 0.98 }}
+        transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+        onClick={() => onTap(feature)}
+        className="relative w-full flex flex-col p-6 rounded-3xl text-left overflow-hidden"
+        style={{ height: 160, background: feature.gradient }}
+      >
         <div
-          className="flex items-center justify-center rounded-[12px] flex-shrink-0"
-          style={{ width: 44, height: 44, background: feature.accent + '33' }}
-        >
-          <feature.Icon size={20} color={feature.accent} strokeWidth={1.8} />
+          className="absolute bottom-0 right-0 w-40 h-40 rounded-full pointer-events-none"
+          style={{ background: 'radial-gradient(circle, rgba(167,139,250,0.18) 0%, transparent 70%)', transform: 'translate(30%, 30%)' }}
+        />
+
+        <div className="flex items-start justify-between">
+          <div
+            className="flex items-center justify-center rounded-[12px] flex-shrink-0"
+            style={{ width: 44, height: 44, background: feature.accent + '33' }}
+          >
+            <feature.Icon size={20} color={feature.accent} strokeWidth={1.8} />
+          </div>
+          <span className="text-[10px] font-semibold text-purple-300/60 tracking-widest uppercase mt-1">
+            Anonymous Space
+          </span>
         </div>
-        <span className="text-[10px] font-semibold text-purple-300/60 tracking-widest uppercase mt-1">
-          Anonymous Space
-        </span>
-      </div>
 
-      <p className="text-white font-semibold text-base mt-4 leading-tight">{feature.label}</p>
-      <p className="text-slate-400 text-xs mt-1">{feature.subtitle}</p>
+        <p className="text-white font-semibold text-base mt-4 leading-tight">{feature.label}</p>
+        <p className="text-slate-400 text-xs mt-1">{feature.subtitle}</p>
 
-      <div className="mt-auto pt-3 flex justify-end">
-        <span
-          className="text-sm font-medium px-4 py-1.5 rounded-full flex items-center gap-1.5"
-          style={{ background: 'rgba(167,139,250,0.2)', color: '#C4B5FD' }}
-        >
-          Enter <ArrowRight size={12} />
-        </span>
-      </div>
-    </motion.button>
+        <div className="mt-auto pt-3 flex justify-end">
+          <span
+            className="text-sm font-medium px-4 py-1.5 rounded-full flex items-center gap-1.5"
+            style={{ background: 'rgba(167,139,250,0.2)', color: '#C4B5FD' }}
+          >
+            Enter <ArrowRight size={12} />
+          </span>
+        </div>
+      </motion.button>
+    </motion.div>
   );
 }
 
@@ -187,18 +214,28 @@ export default function Explore() {
       )}
 
       {/* Header */}
-      <div className="px-4 pt-6 pb-5">
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, ease: 'easeOut' }}
+        className="px-4 pt-6 pb-5"
+      >
         <h2 className="text-3xl font-bold text-white">Explore</h2>
         <p className="text-sm text-slate-400 mt-1">Deepen your faith journey</p>
-      </div>
+      </motion.div>
 
       {/* Cards */}
       <div className="px-4 space-y-3 pb-32">
-        {/* Row 1 */}
-        <div className="grid grid-cols-2 gap-3">
+        {/* Row 1 — stagger pair */}
+        <motion.div
+          className="grid grid-cols-2 gap-3"
+          variants={{ hidden: {}, show: { transition: { staggerChildren: 0.08 } } }}
+          initial="hidden"
+          animate="show"
+        >
           <SmallCard feature={bible} onTap={handleTap} />
           <SmallCard feature={churches} onTap={handleTap} />
-        </div>
+        </motion.div>
 
         {/* Row 2 — full width hero */}
         <HeroCard feature={confessions} onTap={handleTap} />
