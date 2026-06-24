@@ -158,6 +158,7 @@ model ConfessionComment {
   confessionId String
   userId       String
   content      String
+  isAnonymous  Boolean    @default(false)
   createdAt    DateTime   @default(now())
   confession   Confession @relation(fields: [confessionId], references: [id], onDelete: Cascade)
   user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)

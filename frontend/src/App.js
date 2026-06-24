@@ -97,7 +97,7 @@ function AppRoutes() {
         <Route path="messages" element={<Messages />} />
         <Route path="messages/:conversationId" element={<ChatThread />} />
         <Route path="confessions" element={<Confessions />} />
-        <Route path="confessions/:id" element={<ConfessionDetail />} />
+        <Route path="/confessions/:id" element={<ConfessionDetail />} />
         <Route path="prayer-cells" element={<PrayerCellDirectory />} />
         <Route path="prayer-cells/:cellId/host" element={<PrayerCellHostRoom />} />
         <Route path="prayer-cells/:cellId/guest" element={<PrayerCellGuestRoom />} />

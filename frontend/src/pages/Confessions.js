@@ -248,7 +248,13 @@ function ConfessionCard({ confession: c, onHeart, onRead }) {
       <div className="flex items-center justify-between mt-4 pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
         <div className="flex items-center gap-4" onClick={e => e.stopPropagation()}>
           <HeartButton hasHearted={c.hasHearted} heartCount={c.heartCount} onHeart={onHeart} />
-          <div className="flex items-center gap-1.5">
+          <div
+            className="flex items-center gap-1.5 cursor-pointer"
+            onClick={(e) => {
+              e.stopPropagation();
+              onRead();
+            }}
+          >
             <MessageCircle size={16} strokeWidth={1.8} color="rgba(255,255,255,0.4)" />
             <span className="text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>{c.commentCount}</span>
           </div>

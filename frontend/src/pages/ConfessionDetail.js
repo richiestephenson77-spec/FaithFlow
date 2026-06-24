@@ -102,6 +102,9 @@ export default function ConfessionDetail() {
   async function handleSend() {
     if (!commentText.trim() || sending) return;
     const text = commentText.trim();
+    console.log('Sending comment:', { id, text, isAnonymous });
+    console.log('Token exists:', !!localStorage.getItem('token'));
+    console.log('API base:', process.env.REACT_APP_API_URL || '/api');
     setCommentText('');
     setSending(true);
 
@@ -120,10 +123,21 @@ export default function ConfessionDetail() {
     try {
       const res = await api.post(`/confessions/${id}/comments`, { content: text, isAnonymous });
       setComments(prev => prev.map(cm => cm.id === optimistic.id ? res.data : cm));
-    } catch {
+      // Update count based on actual comments length
+      setConfession(c => c ? { ...c, commentCount: comments.length + 1 } : c);
+    } catch (err) {
+      console.error('Comment send failed:', err?.response?.status, err?.response?.data);
       setComments(prev => prev.filter(cm => cm.id !== optimistic.id));
       setConfession(c => c ? { ...c, commentCount: c.commentCount - 1 } : c);
-      showToast('Failed to send — please try again');
+
+      if (err?.response?.status === 401) {
+        showToast('Session expired — please log in again');
+        setSending(false);
+        return;
+      }
+
+      const msg = err?.response?.data?.error || 'Failed to send — please try again';
+      showToast(msg);
     }
     setSending(false);
   }
@@ -171,7 +185,7 @@ export default function ConfessionDetail() {
               <div className="flex items-center gap-1.5">
                 <MessageCircle size={18} strokeWidth={1.8} color="rgba(255,255,255,0.4)" />
                 <span className="text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
-                  {confession.commentCount} {confession.commentCount === 1 ? 'person' : 'people'} responded
+                  {comments.length} {comments.length === 1 ? 'person' : 'people'} responded
                 </span>
               </div>
             </div>

@@ -11,7 +11,7 @@ router.get('/', authenticate, async (req, res) => {
       totalPeoplesPrayedFor: true, isVerifiedPastor: true, prayerWarriorBadge: true,
     };
 
-    const [activeCells, recentCells] = await Promise.all([
+    const [activeCells, allRecentCells] = await Promise.all([
       prisma.prayerCell.findMany({
         where: { isActive: true },
         include: {
@@ -26,13 +26,23 @@ router.get('/', authenticate, async (req, res) => {
       prisma.prayerCell.findMany({
         where: {
           isActive: false,
-          endedAt: { gte: new Date(Date.now() - 30 * 60 * 1000) },
+          endedAt: { gte: new Date(Date.now() - 60 * 60 * 1000) },
         },
         include: { host: { select: hostSelect } },
         orderBy: { endedAt: 'desc' },
-        take: 5,
       }),
     ]);
+
+    // Deduplicate: keep only the most recent cell per host (max 10)
+    const seenHosts = new Set();
+    const recentCells = [];
+    for (const cell of allRecentCells) {
+      if (!seenHosts.has(cell.hostId)) {
+        seenHosts.add(cell.hostId);
+        recentCells.push(cell);
+      }
+      if (recentCells.length >= 10) break;
+    }
 
     res.json({ activeCells, recentCells });
   } catch (err) {
