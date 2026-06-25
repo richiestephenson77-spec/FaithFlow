@@ -21,6 +21,8 @@ import Notifications from './pages/Notifications';
 import Community from './pages/Community';
 import Churches from './pages/Churches';
 import ChurchPage from './pages/ChurchPage';
+import FindChurches from './pages/FindChurches';
+import FindChurchDetail from './pages/FindChurchDetail';
 import Explore from './pages/Explore';
 import Bible from './pages/Bible';
 import PrayerDetail from './pages/PrayerDetail';
@@ -101,6 +103,8 @@ function AppRoutes() {
         <Route path="prayer-cells" element={<PrayerCellDirectory />} />
         <Route path="prayer-cells/:cellId/host" element={<PrayerCellHostRoom />} />
         <Route path="prayer-cells/:cellId/guest" element={<PrayerCellGuestRoom />} />
+        <Route path="find-churches" element={<FindChurches />} />
+        <Route path="find-churches/:placeId" element={<FindChurchDetail />} />
         <Route path="pastors" element={<Pastors />} />
         <Route path="my-pastor-requests" element={<MyPastorRequests />} />
         <Route path="pastor-dashboard" element={<PastorDashboard />} />

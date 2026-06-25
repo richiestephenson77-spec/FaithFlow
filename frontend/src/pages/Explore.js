@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { BookOpen, MapPin, Shield, Users, Heart, Handshake, Search, ArrowRight, Radio } from 'lucide-react';
+import { BookOpen, MapPin, Shield, Users, Heart, Handshake, Search, ArrowRight, Radio, Navigation } from 'lucide-react';
 
 const cardVariants = {
   hidden: { opacity: 0, y: 24, scale: 0.97 },
@@ -91,6 +91,16 @@ const features = [
     accent: '#22D3EE',
     Icon: Search,
     active: false,
+  },
+  {
+    id: 'findChurches',
+    label: 'Nearby Churches',
+    subtitle: 'Discover churches near you',
+    route: '/find-churches',
+    gradient: 'linear-gradient(135deg, #1A3A2A, #0D2018)',
+    accent: '#34D399',
+    Icon: Navigation,
+    active: true,
   },
 ];
 
@@ -211,7 +221,7 @@ export default function Explore() {
     }
   }
 
-  const [bible, churches, confessions, pastors, answered, cells, partners, believers] = features;
+  const [bible, churches, confessions, pastors, answered, cells, partners, believers, findChurches] = features;
 
   return (
     <div className="min-h-full" style={{ background: '#0A0F1E' }}>
@@ -265,6 +275,7 @@ export default function Explore() {
         {/* Row 5 */}
         <div className="grid grid-cols-2 gap-3">
           <SmallCard feature={believers} onTap={handleTap} />
+          <SmallCard feature={findChurches} onTap={handleTap} />
         </div>
       </div>
     </div>
