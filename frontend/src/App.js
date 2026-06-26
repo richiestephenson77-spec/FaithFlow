@@ -26,6 +26,7 @@ import FindChurchDetail from './pages/FindChurchDetail';
 import Explore from './pages/Explore';
 import Bible from './pages/Bible';
 import BibleDictionary from './pages/BibleDictionary';
+import BibleMaps from './pages/BibleMaps';
 import PrayerDetail from './pages/PrayerDetail';
 import BibleBot from './pages/BibleBot';
 import PrayerPage from './pages/PrayerPage';
@@ -107,6 +108,7 @@ function AppRoutes() {
         <Route path="find-churches" element={<FindChurches />} />
         <Route path="find-churches/:placeId" element={<FindChurchDetail />} />
         <Route path="bible-dictionary" element={<BibleDictionary />} />
+        <Route path="bible-maps" element={<BibleMaps />} />
         <Route path="pastors" element={<Pastors />} />
         <Route path="my-pastor-requests" element={<MyPastorRequests />} />
         <Route path="pastor-dashboard" element={<PastorDashboard />} />
