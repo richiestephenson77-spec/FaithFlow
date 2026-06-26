@@ -28,7 +28,7 @@ const item = {
   show: { opacity: 1, y: 0, transition: { duration: 0.3 } },
 };
 
-export default function FindChurches() {
+export default function FindChurches({ embedded = false }) {
   const navigate = useNavigate();
   const [location, setLocation] = useState(null);
   const [locationDenied, setLocationDenied] = useState(false);
@@ -86,17 +86,18 @@ export default function FindChurches() {
   }
 
   return (
-    <div className="bg-gray-50 min-h-full">
-      {/* Header */}
-      <div className="px-4 pt-5 pb-4 flex items-center gap-3 bg-white border-b border-gray-100">
-        <button onClick={() => navigate(-1)} className="p-1 -ml-1">
-          <ChevronLeft size={22} color="#111827" strokeWidth={2} />
-        </button>
-        <div>
-          <h2 className="text-lg font-bold text-gray-900 leading-tight">Find Churches</h2>
-          <p className="text-xs text-gray-400">Churches near you</p>
+    <div className={embedded ? '' : 'bg-gray-50 min-h-full'}>
+      {!embedded && (
+        <div className="px-4 pt-5 pb-4 flex items-center gap-3 bg-white border-b border-gray-100">
+          <button onClick={() => navigate(-1)} className="p-1 -ml-1">
+            <ChevronLeft size={22} color="#111827" strokeWidth={2} />
+          </button>
+          <div>
+            <h2 className="text-lg font-bold text-gray-900 leading-tight">Find Churches</h2>
+            <p className="text-xs text-gray-400">Churches near you</p>
+          </div>
         </div>
-      </div>
+      )}
 
       {locationDenied ? (
         <div className="flex flex-col items-center py-20 px-8">

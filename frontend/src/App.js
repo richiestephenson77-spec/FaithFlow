@@ -23,6 +23,7 @@ import Churches from './pages/Churches';
 import ChurchPage from './pages/ChurchPage';
 import FindChurches from './pages/FindChurches';
 import FindChurchDetail from './pages/FindChurchDetail';
+import ChurchesHub from './pages/ChurchesHub';
 import Explore from './pages/Explore';
 import Bible from './pages/Bible';
 import BibleDictionary from './pages/BibleDictionary';
@@ -107,6 +108,7 @@ function AppRoutes() {
         <Route path="prayer-cells/:cellId/guest" element={<PrayerCellGuestRoom />} />
         <Route path="find-churches" element={<FindChurches />} />
         <Route path="find-churches/:placeId" element={<FindChurchDetail />} />
+        <Route path="churches-hub" element={<ChurchesHub />} />
         <Route path="bible-dictionary" element={<BibleDictionary />} />
         <Route path="bible-maps" element={<BibleMaps />} />
         <Route path="pastors" element={<Pastors />} />

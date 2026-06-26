@@ -3,7 +3,7 @@ import api from '../utils/api';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
-export default function Churches() {
+export default function Churches({ embedded = false }) {
   const [search, setSearch] = useState('');
   const [churches, setChurches] = useState([]);
   const [myChurch, setMyChurch] = useState(null);
@@ -40,29 +40,45 @@ export default function Churches() {
   }
 
   return (
-    <div className="bg-gray-50 min-h-full">
-      {/* Header */}
-      <div className="prayer-gradient px-5 pt-5 pb-8">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-bold text-white">Churches</h2>
-            <p className="text-white/70 text-sm mt-0.5">Find your faith community</p>
+    <div className={embedded ? '' : 'bg-gray-50 min-h-full'}>
+      {!embedded && (
+        <div className="prayer-gradient px-5 pt-5 pb-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-bold text-white">Churches</h2>
+              <p className="text-white/70 text-sm mt-0.5">Find your faith community</p>
+            </div>
+            {!myChurch ? (
+              <button onClick={() => setShowCreate(true)}
+                className="bg-white text-faith-700 text-xs font-bold px-4 py-2 rounded-full shadow-lg">
+                + Register
+              </button>
+            ) : (
+              <button onClick={() => navigate(`/churches/${myChurch.id}`)}
+                className="bg-white/20 backdrop-blur-sm text-white text-xs font-semibold px-4 py-2 rounded-full border border-white/30">
+                My Church
+              </button>
+            )}
           </div>
-          {!myChurch ? (
-            <button onClick={() => setShowCreate(true)}
-              className="bg-white text-faith-700 text-xs font-bold px-4 py-2 rounded-full shadow-lg">
-              + Register
-            </button>
-          ) : (
-            <button onClick={() => navigate(`/churches/${myChurch.id}`)}
-              className="bg-white/20 backdrop-blur-sm text-white text-xs font-semibold px-4 py-2 rounded-full border border-white/30">
-              My Church
-            </button>
-          )}
         </div>
-      </div>
+      )}
 
-      <div className="-mt-3 rounded-t-3xl bg-gray-50 px-4 pt-5 pb-4">
+      <div className={embedded ? 'px-4 pt-4 pb-4' : '-mt-3 rounded-t-3xl bg-gray-50 px-4 pt-5 pb-4'}>
+        {embedded && (
+          <div className="flex items-center justify-end mb-3">
+            {!myChurch ? (
+              <button onClick={() => setShowCreate(true)}
+                className="prayer-gradient text-white text-xs font-bold px-4 py-2 rounded-full shadow-sm">
+                + Register Church
+              </button>
+            ) : (
+              <button onClick={() => navigate(`/churches/${myChurch.id}`)}
+                className="bg-faith-100 text-faith-700 text-xs font-semibold px-4 py-2 rounded-full">
+                My Church
+              </button>
+            )}
+          </div>
+        )}
         {/* Search */}
         <div className="relative mb-5">
           <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
