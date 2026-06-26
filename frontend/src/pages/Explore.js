@@ -19,7 +19,7 @@ const features = [
     label: 'Bible',
     subtitle: 'Read & search scripture',
     route: '/bible',
-    gradient: 'linear-gradient(135deg, #1E3A5F, #0F2240)',
+    gradient: 'linear-gradient(135deg, #1a2a3a, #0d1a26)',
     accent: '#F59E0B',
     Icon: BookOpen,
     active: true,
@@ -29,7 +29,7 @@ const features = [
     label: 'Churches',
     subtitle: 'Find local · Join community',
     route: '/churches-hub',
-    gradient: 'linear-gradient(135deg, #1A3A2A, #0D2018)',
+    gradient: 'linear-gradient(135deg, #1a2e1a, #0d1a0d)',
     accent: '#34D399',
     Icon: Church,
     active: true,
@@ -50,8 +50,8 @@ const features = [
     label: 'Prayer Cells',
     subtitle: 'Join a live audio prayer session',
     route: '/prayer-cells',
-    gradient: 'linear-gradient(135deg, #1F3A2A, #0D2018)',
-    accent: '#f59e0b',
+    gradient: 'linear-gradient(135deg, #2a1a0d, #1a0d05)',
+    accent: '#F97316',
     Icon: Radio,
     active: true,
   },
@@ -60,8 +60,8 @@ const features = [
     label: 'Pray w/ Pastor',
     subtitle: 'Connect with verified pastors',
     route: '/pastors',
-    gradient: 'linear-gradient(135deg, #3A1F1F, #220F0F)',
-    accent: '#F87171',
+    gradient: 'linear-gradient(135deg, #1a1a2e, #0d0d1a)',
+    accent: '#60A5FA',
     Icon: Users,
     active: true,
   },
@@ -70,8 +70,8 @@ const features = [
     label: 'Bible Dictionary',
     subtitle: 'Search any word, name or topic',
     route: '/bible-dictionary',
-    gradient: 'linear-gradient(135deg, #1a3a1a, #0d1f0d)',
-    accent: '#34D399',
+    gradient: 'linear-gradient(135deg, #1a2a1a, #0d1a0d)',
+    accent: '#4ADE80',
     Icon: BookMarked,
     active: true,
   },
@@ -80,8 +80,8 @@ const features = [
     label: 'Bible Maps',
     subtitle: 'Explore the Biblical world through time',
     route: '/bible-maps',
-    gradient: 'linear-gradient(135deg, #1a2a0a, #0d1505)',
-    accent: '#A3B566',
+    gradient: 'linear-gradient(135deg, #2a1a0a, #1a0f05)',
+    accent: '#F5C842',
     Icon: Map,
     active: true,
   },
@@ -110,7 +110,7 @@ const features = [
 
 function SectionLabel({ children }) {
   return (
-    <p className="text-[10px] text-white/30 uppercase tracking-widest mx-4 mb-2 mt-5">
+    <p className="text-[10px] text-white/25 uppercase tracking-[0.2em] mx-4 mb-3 mt-6">
       {children}
     </p>
   );
@@ -169,17 +169,17 @@ function ComingSoonCard({ feature }) {
   return (
     <div
       className="relative flex flex-col p-3 rounded-2xl flex-shrink-0"
-      style={{ width: 120, height: 100, background: '#111', opacity: 0.5 }}
+      style={{ width: 120, height: 90, background: '#111', opacity: 0.4 }}
     >
       <span
-        className="absolute top-2 right-2 text-[9px] font-medium px-1.5 py-0.5 rounded-full"
+        className="absolute top-2 right-2 text-xs font-medium px-1.5 py-0.5 rounded-full"
         style={{ background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.2)' }}
       >
         Soon
       </span>
       <feature.Icon size={16} color="rgba(255,255,255,0.2)" strokeWidth={1.8} />
       <p className="font-medium text-xs mt-2 leading-tight text-white/30">{feature.label}</p>
-      <p className="text-white/20 text-[10px] mt-0.5 leading-snug">{feature.subtitle}</p>
+      <p className="text-white/20 text-xs mt-0.5 leading-snug">{feature.subtitle}</p>
     </div>
   );
 }
@@ -243,7 +243,7 @@ export default function Explore() {
   const [bible, churches, confessions, cells, pastors, bibleDictionary, bibleMaps, answered, partners, believers] = features;
 
   return (
-    <div className="min-h-full" style={{ background: '#0A0F1E' }}>
+    <div className="min-h-full" style={{ background: '#0d0d0d' }}>
       {toast && (
         <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 w-[85%] max-w-xs">
           <div className="bg-white/10 backdrop-blur-md text-white text-sm font-medium px-4 py-3 rounded-2xl shadow-xl text-center border border-white/10">
@@ -281,11 +281,16 @@ export default function Explore() {
           <HeroCard feature={confessions} onTap={handleTap} />
         </div>
 
-        {/* Section 3 — Grid 2x2 */}
+        {/* Section 3 — Connect */}
         <SectionLabel>Connect</SectionLabel>
         <div className="grid grid-cols-2 gap-3 mx-4">
           <GridCard feature={cells} onTap={handleTap} />
           <GridCard feature={pastors} onTap={handleTap} />
+        </div>
+
+        {/* Section 3b — Learn */}
+        <SectionLabel>Learn</SectionLabel>
+        <div className="grid grid-cols-2 gap-3 mx-4">
           <GridCard feature={bibleDictionary} onTap={handleTap} />
           <GridCard feature={bibleMaps} onTap={handleTap} />
         </div>
