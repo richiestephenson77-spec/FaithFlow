@@ -35,14 +35,18 @@ export default function FindChurches() {
   const [churches, setChurches] = useState([]);
   const [loading, setLoading] = useState(false);
   const [radius, setRadius] = useState(5000);
+  const [error, setError] = useState('');
 
   const fetchChurches = useCallback(async (lat, lng, r) => {
     setLoading(true);
+    setError('');
     try {
       const res = await api.get(`/find-churches/nearby?lat=${lat}&lng=${lng}&radius=${r}`);
       setChurches(res.data.churches || []);
     } catch (err) {
-      console.error(err);
+      console.error('Failed to fetch churches:', err?.response?.status, err?.response?.data);
+      setChurches([]);
+      setError(err?.response?.data?.message || err?.response?.data?.error || 'Could not load churches right now');
     }
     setLoading(false);
   }, []);
@@ -136,6 +140,19 @@ export default function FindChurches() {
                 {[1, 2, 3].map(i => (
                   <div key={i} className="h-24 rounded-2xl bg-gray-200 animate-pulse" />
                 ))}
+              </motion.div>
+            ) : error ? (
+              <motion.div key="error" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="text-center py-16 px-8">
+                <Church size={44} color="#fca5a5" strokeWidth={1.5} className="mx-auto" />
+                <p className="font-semibold text-gray-700 mt-4">Something went wrong</p>
+                <p className="text-sm text-gray-400 mt-1">{error}</p>
+                <button
+                  onClick={() => location && fetchChurches(location.lat, location.lng, radius)}
+                  className="mt-6 px-6 py-3 rounded-full text-white font-semibold text-sm"
+                  style={{ background: '#f59e0b' }}
+                >
+                  Try Again
+                </button>
               </motion.div>
             ) : churches.length === 0 ? (
               <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="text-center py-16 px-8">

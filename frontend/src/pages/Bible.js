@@ -1,8 +1,11 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { X } from 'lucide-react';
 import BookPicker from '../components/BookPicker';
 import ChapterVersePicker from '../components/ChapterVersePicker';
+import WordSpan from '../components/WordSpan';
+import api from '../utils/api';
 
 // bible-api.com — free, no API key, public domain KJV
 const BASE = 'https://bible-api.com';
@@ -96,6 +99,9 @@ export default function Bible() {
   const [searchResults, setSearchResults] = useState([]);
   const [searching, setSearching] = useState(false);
   const [searched, setSearched] = useState(false);
+  const [wordPopup, setWordPopup] = useState(null);
+  const [wordData, setWordData] = useState(null);
+  const [wordLoading, setWordLoading] = useState(false);
 
   const verseCountCache = useRef({});
 
@@ -166,6 +172,19 @@ export default function Bible() {
     setShowChapterVersePicker(false);
     setChapter(ch);
     setJumpToVerse(v);
+  }
+
+  async function handleWordLongPress(word, verseRef) {
+    setWordPopup({ word, verseRef });
+    setWordLoading(true);
+    setWordData(null);
+    try {
+      const res = await api.get(`/bible/word-lookup?word=${encodeURIComponent(word)}`);
+      setWordData(res.data);
+    } catch {
+      setWordData({ error: true });
+    }
+    setWordLoading(false);
   }
 
   function copyVerse(v) {
@@ -301,7 +320,14 @@ export default function Bible() {
                       }`}
                     >
                       <sup className="text-xs text-amber-600 font-sans align-top mr-1 select-none">{v.verse}</sup>
-                      {v.text.trim()}{' '}
+                      {v.text.trim().split(/\s+/).map((w, wi) => (
+                        <WordSpan
+                          key={wi}
+                          rawWord={w}
+                          verseRef={`${book.name} ${chapter}:${v.verse}`}
+                          onLongPress={handleWordLongPress}
+                        />
+                      ))}
                       <button
                         onClick={() => copyVerse(v)}
                         className="opacity-0 group-hover:opacity-100 focus:opacity-100 inline-flex items-center justify-center w-5 h-5 align-middle rounded bg-gray-100 transition-opacity ml-0.5"
@@ -439,6 +465,88 @@ export default function Bible() {
           onClose={() => setShowChapterVersePicker(false)}
         />
       )}
+
+      <AnimatePresence>
+        {wordPopup && (
+          <motion.div
+            className="fixed inset-0 z-50"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => { setWordPopup(null); setWordData(null); }}
+          >
+            <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+
+            <motion.div
+              className="absolute left-4 right-4 bottom-32 max-w-md mx-auto bg-white rounded-3xl p-5 shadow-2xl"
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-xl font-bold text-gray-900 capitalize">{wordPopup.word}</h3>
+                <button
+                  onClick={() => { setWordPopup(null); setWordData(null); }}
+                  className="w-7 h-7 bg-gray-100 rounded-full flex items-center justify-center"
+                >
+                  <X size={14} className="text-gray-500" />
+                </button>
+              </div>
+
+              {wordLoading && (
+                <div className="flex items-center gap-2 py-4">
+                  <div className="w-4 h-4 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
+                  <span className="text-sm text-gray-400">Looking up "{wordPopup.word}"...</span>
+                </div>
+              )}
+
+              {wordData && !wordData.error && (
+                <div className="space-y-4 max-h-[55vh] overflow-y-auto">
+                  {wordData.root && (
+                    <div className="bg-amber-50 rounded-2xl p-3">
+                      <p className="text-xs text-amber-600 font-semibold uppercase tracking-wider mb-1">
+                        {wordData.root.lang} Origin
+                      </p>
+                      <p className="text-2xl font-bold text-amber-700 mb-1">{wordData.root.word}</p>
+                      <p className="text-sm text-amber-600 italic">{wordData.root.transliteration}</p>
+                      <p className="text-sm text-gray-700 mt-1">"{wordData.root.meaning}"</p>
+                    </div>
+                  )}
+
+                  {wordData.definition && (
+                    <div>
+                      <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-1">Definition</p>
+                      <p className="text-sm text-gray-700 leading-relaxed">{wordData.definition}</p>
+                    </div>
+                  )}
+
+                  {wordData.verses?.length > 0 && (
+                    <div>
+                      <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-2">In Scripture</p>
+                      {wordData.verses.slice(0, 3).map((v, i) => (
+                        <div key={i} className="mb-2 pb-2 border-b border-gray-100 last:border-0">
+                          <p className="text-xs font-semibold text-amber-600 mb-0.5">{v.reference}</p>
+                          <p className="text-xs text-gray-600 leading-relaxed font-serif italic">{v.text}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {wordData?.error && (
+                <p className="text-sm text-gray-400 py-2">
+                  No biblical data found for "{wordPopup.word}"
+                </p>
+              )}
+
+              <p className="text-xs text-gray-300 text-center mt-4">Tap outside to close</p>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }

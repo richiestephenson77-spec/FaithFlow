@@ -19,6 +19,7 @@ const quotaRoutes = require('./routes/quota');
 const supportRoutes = require('./routes/support');
 const prayerCellRoutes = require('./routes/prayerCells');
 const findChurchesRoutes = require('./routes/findChurches');
+const bibleRoutes = require('./routes/bible');
 
 const app = express();
 const server = http.createServer(app);
@@ -58,6 +59,7 @@ app.use('/api/quota', quotaRoutes);
 app.use('/api/support', supportRoutes);
 app.use('/api/prayer-cells', prayerCellRoutes);
 app.use('/api/find-churches', findChurchesRoutes);
+app.use('/api/bible', bibleRoutes);
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 

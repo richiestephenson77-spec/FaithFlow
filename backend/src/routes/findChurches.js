@@ -12,13 +12,20 @@ router.get('/nearby', authenticate, async (req, res) => {
   }
 
   try {
+    console.log('Key exists:', !!GOOGLE_KEY);
     const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=${radius}&type=church&key=${GOOGLE_KEY}`;
+    console.log('Calling Google Places URL:', url.replace(GOOGLE_KEY, '***KEY***'));
 
     const response = await fetch(url);
     const data = await response.json();
 
+    console.log('Google response HTTP status:', response.status);
+    console.log('Google data.status:', data.status);
+    console.log('Google result count:', data.results?.length ?? 0);
+    if (data.error_message) console.log('Google error_message:', data.error_message);
+
     if (data.status !== 'OK' && data.status !== 'ZERO_RESULTS') {
-      return res.status(500).json({ error: data.status });
+      return res.status(500).json({ error: data.status, message: data.error_message });
     }
 
     const churches = (data.results || []).map(place => ({
@@ -47,13 +54,19 @@ router.get('/details/:placeId', authenticate, async (req, res) => {
   const { placeId } = req.params;
 
   try {
+    console.log('Key exists:', !!GOOGLE_KEY);
     const url = `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=name,formatted_address,formatted_phone_number,website,opening_hours,photos,rating,user_ratings_total,geometry&key=${GOOGLE_KEY}`;
+    console.log('Calling Google Places URL:', url.replace(GOOGLE_KEY, '***KEY***'));
 
     const response = await fetch(url);
     const data = await response.json();
 
+    console.log('Google response HTTP status:', response.status);
+    console.log('Google data.status:', data.status);
+    if (data.error_message) console.log('Google error_message:', data.error_message);
+
     if (data.status !== 'OK') {
-      return res.status(404).json({ error: 'Church not found' });
+      return res.status(404).json({ error: 'Church not found', message: data.error_message });
     }
 
     const place = data.result;

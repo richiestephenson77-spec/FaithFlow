@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { BookOpen, MapPin, Shield, Users, Heart, Handshake, Search, ArrowRight, Radio, Navigation } from 'lucide-react';
+import { BookOpen, MapPin, Shield, Users, Heart, Handshake, Search, ArrowRight, Radio, Navigation, BookMarked } from 'lucide-react';
 
 const cardVariants = {
   hidden: { opacity: 0, y: 24, scale: 0.97 },
@@ -100,6 +100,16 @@ const features = [
     gradient: 'linear-gradient(135deg, #1A3A2A, #0D2018)',
     accent: '#34D399',
     Icon: Navigation,
+    active: true,
+  },
+  {
+    id: 'bibleDictionary',
+    label: 'Bible Dictionary',
+    subtitle: 'Search any word, name or topic',
+    route: '/bible-dictionary',
+    gradient: 'linear-gradient(135deg, #1a3a1a, #0d1f0d)',
+    accent: '#34D399',
+    Icon: BookMarked,
     active: true,
   },
 ];
@@ -221,7 +231,7 @@ export default function Explore() {
     }
   }
 
-  const [bible, churches, confessions, pastors, answered, cells, partners, believers, findChurches] = features;
+  const [bible, churches, confessions, pastors, answered, cells, partners, believers, findChurches, bibleDictionary] = features;
 
   return (
     <div className="min-h-full" style={{ background: '#0A0F1E' }}>
@@ -276,6 +286,11 @@ export default function Explore() {
         <div className="grid grid-cols-2 gap-3">
           <SmallCard feature={believers} onTap={handleTap} />
           <SmallCard feature={findChurches} onTap={handleTap} />
+        </div>
+
+        {/* Row 6 */}
+        <div className="grid grid-cols-2 gap-3">
+          <SmallCard feature={bibleDictionary} onTap={handleTap} />
         </div>
       </div>
     </div>
