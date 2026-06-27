@@ -8,10 +8,11 @@ import { BIBLE_ERAS, BIBLE_LOCATIONS } from '../data/bibleMaps';
 
 const MAPBOX_TOKEN = process.env.REACT_APP_MAPBOX_TOKEN;
 
-// Best-effort dark/parchment restyle of the dark-v11 base style:
+// Best-effort dark/ancient restyle of the streets-v12 base style:
 // hides roads/labels, recolors water/land/borders. Layer ids are
-// matched by pattern since Mapbox's exact layer set can shift
-// between style versions.
+// matched by pattern (not exact names) since streets-v12 splits
+// roads/labels into many differently-named layers depending on
+// zoom and region (e.g. road-secondary-tertiary, settlement-major-label).
 function customizeMapStyle(map) {
   try {
     const layers = map.getStyle()?.layers || [];
@@ -23,11 +24,11 @@ function customizeMapStyle(map) {
         } else if (/label|poi|place|settlement/i.test(id) && !/country/i.test(id)) {
           map.setLayoutProperty(id, 'visibility', 'none');
         } else if (/water/i.test(id) && layer.type === 'fill') {
-          map.setPaintProperty(id, 'fill-color', '#0e2438');
+          map.setPaintProperty(id, 'fill-color', '#1a3a5c');
         } else if (/^background$/i.test(id) && layer.type === 'background') {
-          map.setPaintProperty(id, 'background-color', '#3a3320');
-        } else if (/^land$|landcover/i.test(id) && layer.type === 'fill') {
-          map.setPaintProperty(id, 'fill-color', '#3a3320');
+          map.setPaintProperty(id, 'background-color', '#2d3a1e');
+        } else if (/^land$|landcover|landuse/i.test(id) && layer.type === 'fill') {
+          map.setPaintProperty(id, 'fill-color', '#2d3a1e');
         } else if (/border|boundar/i.test(id) && layer.type === 'line') {
           map.setPaintProperty(id, 'line-color', '#d4a843');
           map.setPaintProperty(id, 'line-opacity', 0.6);
@@ -123,9 +124,9 @@ export default function BibleMaps() {
         <Map
           ref={mapRef}
           mapboxAccessToken={MAPBOX_TOKEN}
-          initialViewState={{ longitude: 36, latitude: 31, zoom: 4.5 }}
+          initialViewState={{ longitude: 36, latitude: 31, zoom: 5 }}
           style={{ width: '100%', height: '100%' }}
-          mapStyle="mapbox://styles/mapbox/dark-v11"
+          mapStyle="mapbox://styles/mapbox/streets-v12"
           minZoom={3}
           maxZoom={10}
           onLoad={handleMapLoad}
