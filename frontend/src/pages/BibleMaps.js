@@ -119,7 +119,7 @@ export default function BibleMaps() {
   return (
     <div className="min-h-screen flex flex-col" style={{ background: '#0d0a05' }}>
       {/* Map area with overlaid header */}
-      <div className="relative" style={{ height: '58vh' }}>
+      <div className="relative" style={{ height: '55vh' }}>
         <Map
           ref={mapRef}
           mapboxAccessToken={MAPBOX_TOKEN}
