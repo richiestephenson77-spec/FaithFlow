@@ -40,6 +40,42 @@ function customizeMapStyle(map) {
   } catch (err) {
     console.error('Map style customization failed:', err);
   }
+
+  // Explicit fallback for known streets-v12 layer names — covers
+  // cases the pattern matcher above can miss (e.g. national-park
+  // is a fill layer but doesn't match the land/landcover pattern).
+  try {
+    if (map.getLayer('background')) map.setPaintProperty('background', 'background-color', '#1a1205');
+    if (map.getLayer('water')) map.setPaintProperty('water', 'fill-color', '#0d2137');
+    if (map.getLayer('land')) map.setPaintProperty('land', 'fill-color', '#1e2a0f');
+    if (map.getLayer('landcover')) map.setPaintProperty('landcover', 'fill-color', '#1e2a0f');
+    if (map.getLayer('national-park')) map.setPaintProperty('national-park', 'fill-color', '#1e2a0f');
+    if (map.getLayer('admin-0-boundary')) map.setPaintProperty('admin-0-boundary', 'line-color', '#5a4a2a');
+
+    const layersToHide = [
+      'road-motorway', 'road-trunk', 'road-primary',
+      'road-secondary', 'road-tertiary', 'road-street',
+      'road-minor', 'tunnel', 'bridge',
+      'road-motorway-trunk', 'road-construction',
+      'road-path', 'road-label', 'road-number-shield',
+      'place-city', 'place-city-capital',
+      'place-town', 'place-village',
+      'place-suburb', 'place-neighbourhood',
+      'poi-label', 'airport-label', 'transit-label',
+      'waterway-label', 'natural-line-label',
+      'natural-point-label', 'water-line-label',
+      'water-point-label', 'country-label',
+      'state-label', 'settlement-label',
+      'settlement-subdivision-label',
+    ];
+    layersToHide.forEach(layer => {
+      if (map.getLayer(layer)) {
+        map.setLayoutProperty(layer, 'visibility', 'none');
+      }
+    });
+  } catch (err) {
+    console.error('Map style explicit-layer fallback failed:', err);
+  }
 }
 
 // Pull a "Book Chapter:Verse" style reference out of free-text info,
@@ -116,6 +152,8 @@ export default function BibleMaps() {
       </div>
     );
   }
+
+  console.log('Token:', process.env.REACT_APP_MAPBOX_TOKEN?.slice(0, 10));
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: '#0d0a05' }}>
