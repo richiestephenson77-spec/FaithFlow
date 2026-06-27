@@ -23,14 +23,14 @@ function customizeMapStyle(map) {
         } else if (/label|poi|place|settlement/i.test(id) && !/country/i.test(id)) {
           map.setLayoutProperty(id, 'visibility', 'none');
         } else if (/water/i.test(id) && layer.type === 'fill') {
-          map.setPaintProperty(id, 'fill-color', '#0a1628');
+          map.setPaintProperty(id, 'fill-color', '#0e2438');
         } else if (/^background$/i.test(id) && layer.type === 'background') {
-          map.setPaintProperty(id, 'background-color', '#1a2410');
+          map.setPaintProperty(id, 'background-color', '#3a3320');
         } else if (/^land$|landcover/i.test(id) && layer.type === 'fill') {
-          map.setPaintProperty(id, 'fill-color', '#1a2410');
+          map.setPaintProperty(id, 'fill-color', '#3a3320');
         } else if (/border|boundar/i.test(id) && layer.type === 'line') {
-          map.setPaintProperty(id, 'line-color', '#92702a');
-          map.setPaintProperty(id, 'line-opacity', 0.4);
+          map.setPaintProperty(id, 'line-color', '#d4a843');
+          map.setPaintProperty(id, 'line-opacity', 0.6);
         }
       } catch {
         // layer doesn't support this property — skip
@@ -119,7 +119,7 @@ export default function BibleMaps() {
   return (
     <div className="min-h-screen flex flex-col" style={{ background: '#0d0a05' }}>
       {/* Map area with overlaid header */}
-      <div className="relative" style={{ height: '60vh' }}>
+      <div className="relative" style={{ height: '58vh' }}>
         <Map
           ref={mapRef}
           mapboxAccessToken={MAPBOX_TOKEN}
@@ -129,11 +129,11 @@ export default function BibleMaps() {
           minZoom={3}
           maxZoom={10}
           onLoad={handleMapLoad}
+          attributionControl={false}
         >
           {visibleLocations.map(location => {
             const name = location.names[currentEra.id];
             const isImportant = name.includes('✦');
-            const displayName = name.replace(' ✦', '');
 
             return (
               <Marker
@@ -143,11 +143,6 @@ export default function BibleMaps() {
                 onClick={(e) => { e.originalEvent.stopPropagation(); selectLocation(location); }}
               >
                 <div className="relative cursor-pointer flex flex-col items-center">
-                  <div className="absolute -top-7 whitespace-nowrap text-[11px] font-semibold drop-shadow-lg pointer-events-none bg-black/40 backdrop-blur px-2 py-0.5 rounded-full border border-white/10"
-                    style={{ color: isImportant ? '#fff' : 'rgba(255,255,255,0.5)', fontFamily: isImportant ? undefined : 'serif' }}
-                  >
-                    {displayName}
-                  </div>
                   {isImportant && (
                     <div className="absolute rounded-full bg-amber-500/30 animate-ping" style={{ width: 20, height: 20 }} />
                   )}
@@ -162,6 +157,11 @@ export default function BibleMaps() {
             );
           })}
         </Map>
+
+        {/* Mapbox/OSM attribution (required by ToS) — sits above the timeline's overlap */}
+        <div className="absolute bottom-7 right-2 text-[10px] text-white/30 text-right px-2 py-1 z-10 pointer-events-none">
+          © Mapbox © OpenStreetMap
+        </div>
 
         {/* Overlaid header */}
         <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 pt-5 z-10">
