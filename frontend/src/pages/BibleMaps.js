@@ -1,142 +1,185 @@
-import { useState, useCallback } from 'react';
+import { useState, useRef, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ComposableMap, Geographies, Geography, Marker, ZoomableGroup } from 'react-simple-maps';
-import { ChevronLeft, X } from 'lucide-react';
+import Map, { Marker } from 'react-map-gl/mapbox';
+import 'mapbox-gl/dist/mapbox-gl.css';
+import { ChevronLeft, X, BookOpen, ArrowRight } from 'lucide-react';
 import { BIBLE_ERAS, BIBLE_LOCATIONS } from '../data/bibleMaps';
 
-const GEO_URL = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json';
+const MAPBOX_TOKEN = process.env.REACT_APP_MAPBOX_TOKEN;
+
+// Best-effort dark/parchment restyle of the dark-v11 base style:
+// hides roads/labels, recolors water/land/borders. Layer ids are
+// matched by pattern since Mapbox's exact layer set can shift
+// between style versions.
+function customizeMapStyle(map) {
+  try {
+    const layers = map.getStyle()?.layers || [];
+    layers.forEach(layer => {
+      const id = layer.id;
+      try {
+        if (/road|street|bridge|tunnel/i.test(id)) {
+          map.setLayoutProperty(id, 'visibility', 'none');
+        } else if (/label|poi|place|settlement/i.test(id) && !/country/i.test(id)) {
+          map.setLayoutProperty(id, 'visibility', 'none');
+        } else if (/water/i.test(id) && layer.type === 'fill') {
+          map.setPaintProperty(id, 'fill-color', '#0a1628');
+        } else if (/^background$/i.test(id) && layer.type === 'background') {
+          map.setPaintProperty(id, 'background-color', '#1a2410');
+        } else if (/^land$|landcover/i.test(id) && layer.type === 'fill') {
+          map.setPaintProperty(id, 'fill-color', '#1a2410');
+        } else if (/border|boundar/i.test(id) && layer.type === 'line') {
+          map.setPaintProperty(id, 'line-color', '#92702a');
+          map.setPaintProperty(id, 'line-opacity', 0.4);
+        }
+      } catch {
+        // layer doesn't support this property — skip
+      }
+    });
+  } catch (err) {
+    console.error('Map style customization failed:', err);
+  }
+}
+
+// Pull a "Book Chapter:Verse" style reference out of free-text info,
+// e.g. "...(Gen 14:18)" -> "Gen 14:18"
+function extractReference(text) {
+  if (!text) return null;
+  const match = text.match(/\(([1-3]?\s?[A-Za-z]+\.?\s\d+:\d+(?:-\d+)?)\)/);
+  return match ? match[1] : null;
+}
 
 export default function BibleMaps() {
   const navigate = useNavigate();
+  const mapRef = useRef(null);
   const [eraIndex, setEraIndex] = useState(0);
   const [selectedLocation, setSelectedLocation] = useState(null);
-  const [position, setPosition] = useState({ coordinates: [36, 31], zoom: 4 });
 
   const currentEra = BIBLE_ERAS[eraIndex];
 
-  const handleMoveEnd = useCallback((pos) => setPosition(pos), []);
+  const visibleLocations = useMemo(
+    () => BIBLE_LOCATIONS.filter(l => l.names[currentEra.id]),
+    [currentEra]
+  );
 
   function changeEra(i) {
     setEraIndex(i);
     setSelectedLocation(null);
   }
 
+  function handleMapLoad(e) {
+    customizeMapStyle(e.target);
+  }
+
   function zoomIn() {
-    setPosition(p => ({ ...p, zoom: Math.min(p.zoom * 1.5, 12) }));
+    mapRef.current?.getMap().zoomIn();
   }
 
   function zoomOut() {
-    setPosition(p => ({ ...p, zoom: Math.max(p.zoom / 1.5, 2) }));
+    mapRef.current?.getMap().zoomOut();
+  }
+
+  function flyTo(coords) {
+    mapRef.current?.getMap().flyTo({ center: coords, zoom: 6, duration: 800 });
+  }
+
+  function selectLocation(loc) {
+    setSelectedLocation(loc);
+    flyTo(loc.coordinates);
+  }
+
+  function goNext() {
+    if (!selectedLocation) return;
+    const idx = visibleLocations.findIndex(l => l.id === selectedLocation.id);
+    const next = visibleLocations[(idx + 1) % visibleLocations.length];
+    selectLocation(next);
+  }
+
+  function readInBible() {
+    navigate('/bible');
+  }
+
+  const reference = selectedLocation ? extractReference(selectedLocation.info?.[currentEra.id]) : null;
+
+  if (!MAPBOX_TOKEN) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center px-8" style={{ background: '#0d0a05' }}>
+        <button onClick={() => navigate(-1)} className="absolute top-5 left-4 p-1">
+          <ChevronLeft size={22} color="white" strokeWidth={2} />
+        </button>
+        <p className="text-white font-semibold text-center">Bible Maps needs setup</p>
+        <p className="text-white/50 text-sm text-center mt-2 leading-relaxed">
+          Missing <code className="text-amber-400">REACT_APP_MAPBOX_TOKEN</code>. Add a free Mapbox public
+          token to your environment variables to enable the map.
+        </p>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: '#1a1205' }}>
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 pt-5 pb-3 flex-shrink-0 relative z-20">
-        <div className="flex items-center gap-3">
-          <button onClick={() => navigate(-1)} className="p-1 -ml-1">
-            <ChevronLeft size={22} color="white" strokeWidth={2} />
-          </button>
-          <h2 className="text-base font-bold text-white">Bible Maps</h2>
-        </div>
-        <span className="text-xs font-medium px-3 py-1.5 rounded-full bg-amber-500/20 text-amber-400">
-          {currentEra.year} · {currentEra.label}
-        </span>
-      </div>
-
-      {/* Map area */}
-      <div className="relative flex-1 min-h-[300px]" style={{ background: '#0a2a1a' }}>
-        <ComposableMap
-          projection="geoMercator"
-          projectionConfig={{ scale: 800, center: [36, 31] }}
+    <div className="min-h-screen flex flex-col" style={{ background: '#0d0a05' }}>
+      {/* Map area with overlaid header */}
+      <div className="relative" style={{ height: '60vh' }}>
+        <Map
+          ref={mapRef}
+          mapboxAccessToken={MAPBOX_TOKEN}
+          initialViewState={{ longitude: 36, latitude: 31, zoom: 4.5 }}
           style={{ width: '100%', height: '100%' }}
+          mapStyle="mapbox://styles/mapbox/dark-v11"
+          minZoom={3}
+          maxZoom={10}
+          onLoad={handleMapLoad}
         >
-          <ZoomableGroup
-            zoom={position.zoom}
-            center={position.coordinates}
-            onMoveEnd={handleMoveEnd}
-            minZoom={2}
-            maxZoom={12}
-          >
-            <Geographies geography={GEO_URL}>
-              {({ geographies }) =>
-                geographies.map(geo => (
-                  <Geography
-                    key={geo.rsmKey}
-                    geography={geo}
-                    fill="#2d4a1e"
-                    stroke="#1a2e10"
-                    strokeWidth={0.5}
-                    style={{
-                      default: { outline: 'none' },
-                      hover: { outline: 'none' },
-                      pressed: { outline: 'none' },
-                    }}
-                  />
-                ))
-              }
-            </Geographies>
+          {visibleLocations.map(location => {
+            const name = location.names[currentEra.id];
+            const isImportant = name.includes('✦');
+            const displayName = name.replace(' ✦', '');
 
-            {BIBLE_LOCATIONS.map(location => {
-              const name = location.names[currentEra.id];
-              if (!name) return null;
-
-              const isImportant = name.includes('✦');
-              const displayName = name.replace(' ✦', '');
-
-              return (
-                <Marker
-                  key={location.id}
-                  coordinates={location.coordinates}
-                  onClick={() => setSelectedLocation(location)}
-                >
-                  <circle
-                    r={isImportant ? 5 : 3}
-                    fill={isImportant ? currentEra.color : '#8B7355'}
-                    stroke="#FBF8F3"
-                    strokeWidth={1}
-                    className="cursor-pointer"
-                  />
-                  {isImportant && (
-                    <circle
-                      r={8}
-                      fill="none"
-                      stroke={currentEra.color}
-                      strokeWidth={1}
-                      opacity={0.5}
-                      className="animate-ping"
-                    />
-                  )}
-                  <text
-                    textAnchor="middle"
-                    y={-10}
-                    style={{
-                      fontFamily: 'serif',
-                      fontSize: isImportant ? '6px' : '5px',
-                      fill: isImportant ? '#FBF8F3' : '#A89070',
-                      fontWeight: isImportant ? 'bold' : 'normal',
-                      pointerEvents: 'none',
-                    }}
+            return (
+              <Marker
+                key={location.id}
+                longitude={location.coordinates[0]}
+                latitude={location.coordinates[1]}
+                onClick={(e) => { e.originalEvent.stopPropagation(); selectLocation(location); }}
+              >
+                <div className="relative cursor-pointer flex flex-col items-center">
+                  <div className="absolute -top-7 whitespace-nowrap text-[11px] font-semibold drop-shadow-lg pointer-events-none bg-black/40 backdrop-blur px-2 py-0.5 rounded-full border border-white/10"
+                    style={{ color: isImportant ? '#fff' : 'rgba(255,255,255,0.5)', fontFamily: isImportant ? undefined : 'serif' }}
                   >
                     {displayName}
-                  </text>
-                </Marker>
-              );
-            })}
-          </ZoomableGroup>
-        </ComposableMap>
+                  </div>
+                  {isImportant && (
+                    <div className="absolute rounded-full bg-amber-500/30 animate-ping" style={{ width: 20, height: 20 }} />
+                  )}
+                  <div
+                    className="rounded-full border-2 border-white/80"
+                    style={isImportant
+                      ? { width: 10, height: 10, background: '#f59e0b' }
+                      : { width: 6, height: 6, background: 'rgba(255,255,255,0.6)' }}
+                  />
+                </div>
+              </Marker>
+            );
+          })}
+        </Map>
+
+        {/* Overlaid header */}
+        <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 pt-5 z-10">
+          <button onClick={() => navigate(-1)} className="w-9 h-9 rounded-full bg-black/40 backdrop-blur flex items-center justify-center">
+            <ChevronLeft size={20} color="white" strokeWidth={2} />
+          </button>
+          <span className="bg-black/40 backdrop-blur rounded-full px-4 py-2 text-white text-sm font-medium">
+            Bible Maps
+          </span>
+          <span className="text-xs font-medium px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-400 whitespace-nowrap">
+            {currentEra.label} · {currentEra.year}
+          </span>
+        </div>
 
         {/* Zoom controls */}
-        <div className="absolute top-4 right-4 flex flex-col gap-2 z-10">
-          <button
-            onClick={zoomIn}
-            className="w-8 h-8 bg-black/40 backdrop-blur rounded-full flex items-center justify-center text-white text-lg"
-          >+</button>
-          <button
-            onClick={zoomOut}
-            className="w-8 h-8 bg-black/40 backdrop-blur rounded-full flex items-center justify-center text-white text-lg"
-          >−</button>
+        <div className="absolute top-20 right-4 flex flex-col gap-2 z-10">
+          <button onClick={zoomIn} className="w-10 h-10 rounded-full bg-black/40 backdrop-blur border border-white/10 flex items-center justify-center text-white text-xl">+</button>
+          <button onClick={zoomOut} className="w-10 h-10 rounded-full bg-black/40 backdrop-blur border border-white/10 flex items-center justify-center text-white text-xl">−</button>
         </div>
 
         {/* Location popup */}
@@ -146,33 +189,53 @@ export default function BibleMaps() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 20 }}
-              className="absolute bottom-4 left-4 right-4 border rounded-2xl p-4 z-10"
-              style={{ background: '#1a1205', borderColor: 'rgba(120,53,15,0.4)' }}
+              className="absolute bottom-4 left-4 right-4 bg-black/80 backdrop-blur-xl border border-amber-500/20 rounded-2xl p-4 z-10"
+              style={{ boxShadow: '0 0 40px rgba(245,158,11,0.15)' }}
             >
-              <div className="flex justify-between items-start mb-2">
+              <div className="flex justify-between items-start">
                 <div>
-                  <h3 className="text-white font-bold text-base">
-                    {selectedLocation.names[currentEra.id]?.replace(' ✦', '')}
-                  </h3>
-                  <span className="text-amber-500 text-xs">{currentEra.label}</span>
+                  <p className="text-white font-bold text-base">
+                    📍 {selectedLocation.names[currentEra.id]?.replace(' ✦', '')}
+                  </p>
+                  <p className="text-amber-400 text-xs mt-0.5">{currentEra.label}</p>
                 </div>
-                <button
-                  onClick={() => setSelectedLocation(null)}
-                  className="w-6 h-6 bg-white/10 rounded-full flex items-center justify-center flex-shrink-0"
-                >
+                <button onClick={() => setSelectedLocation(null)} className="w-6 h-6 bg-white/10 rounded-full flex items-center justify-center flex-shrink-0">
                   <X size={12} className="text-white" />
                 </button>
               </div>
+
+              <div className="border-t border-white/10 my-3" />
+
               <p className="text-white/70 text-sm leading-relaxed font-serif italic">
                 {selectedLocation.info?.[currentEra.id] || 'An important location in biblical history.'}
               </p>
+
+              <div className="flex items-center gap-2 mt-4">
+                <button
+                  onClick={readInBible}
+                  className="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold text-white bg-white/10 rounded-full py-2"
+                >
+                  <BookOpen size={12} /> Read in Bible
+                </button>
+                {visibleLocations.length > 1 && (
+                  <button
+                    onClick={goNext}
+                    className="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold text-amber-400 bg-amber-500/15 rounded-full py-2"
+                  >
+                    Next <ArrowRight size={12} />
+                  </button>
+                )}
+              </div>
+              {reference && (
+                <p className="text-amber-500 text-xs mt-2 text-center">{reference}</p>
+              )}
             </motion.div>
           )}
         </AnimatePresence>
       </div>
 
-      {/* Timeline */}
-      <div className="flex-shrink-0 border-t" style={{ background: '#0d0a05', borderColor: 'rgba(120,53,15,0.3)' }}>
+      {/* Timeline panel */}
+      <div className="flex-1 bg-black/60 backdrop-blur-xl border-t border-white/10 rounded-t-3xl px-5 pt-5 pb-8 -mt-6 relative z-10">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentEra.id}
@@ -180,35 +243,33 @@ export default function BibleMaps() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="px-4 pt-4 pb-2"
           >
             <div className="flex items-center justify-between">
-              <span className="text-amber-500 text-xs font-mono">{currentEra.year}</span>
+              <span className="font-mono text-amber-400 text-sm">{currentEra.year}</span>
               <span className="text-white/40 text-xs">{eraIndex + 1} of {BIBLE_ERAS.length}</span>
             </div>
-            <h2 className="text-white font-bold text-lg mt-0.5">{currentEra.label}</h2>
-            <p className="text-white/50 text-xs mt-1 leading-relaxed">{currentEra.description}</p>
+            <h2 className="text-white font-bold text-xl font-serif mt-1">{currentEra.label}</h2>
+            <div className="mt-2 h-[2px] w-12" style={{ background: 'linear-gradient(90deg, #f59e0b, transparent)' }} />
+            <p className="text-white/60 text-sm leading-relaxed mt-3">{currentEra.description}</p>
           </motion.div>
         </AnimatePresence>
 
-        <div className="px-4 pb-2">
+        <div className="mt-5">
           <input
             type="range"
             min={0}
             max={BIBLE_ERAS.length - 1}
             value={eraIndex}
             onChange={e => changeEra(Number(e.target.value))}
-            className="w-full cursor-pointer"
-            style={{ accentColor: currentEra.color }}
+            className="bible-maps-slider w-full cursor-pointer"
+            style={{ '--slider-progress': `${(eraIndex / (BIBLE_ERAS.length - 1)) * 100}%` }}
           />
-          <div className="flex justify-between mt-1">
+          <div className="flex justify-between mt-1.5">
             {BIBLE_ERAS.map((era, i) => (
               <button
                 key={era.id}
                 onClick={() => changeEra(i)}
-                className={`text-[9px] font-mono transition-colors ${
-                  i === eraIndex ? 'text-amber-400 font-bold' : 'text-white/20'
-                }`}
+                className={`text-[9px] font-mono transition-colors ${i === eraIndex ? 'text-amber-400 font-bold' : 'text-white/30'}`}
               >
                 {era.year}
               </button>
@@ -216,14 +277,15 @@ export default function BibleMaps() {
           </div>
         </div>
 
-        <div className="flex items-center justify-center gap-1.5 pb-4">
+        <div className="flex items-center justify-center gap-3 mt-5">
           {BIBLE_ERAS.map((era, i) => (
             <button
               key={era.id}
               onClick={() => changeEra(i)}
-              className={`w-2 h-2 rounded-full transition-all ${
-                i === eraIndex ? 'bg-amber-500 scale-125' : 'bg-white/20'
-              }`}
+              className="rounded-full transition-all"
+              style={i === eraIndex
+                ? { width: 10, height: 10, background: '#f59e0b' }
+                : { width: 8, height: 8, background: 'rgba(255,255,255,0.2)' }}
             />
           ))}
         </div>
