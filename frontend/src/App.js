@@ -35,6 +35,7 @@ import Messages from './pages/Messages';
 import ChatThread from './pages/ChatThread';
 import Confessions from './pages/Confessions';
 import ConfessionDetail from './pages/ConfessionDetail';
+import Onboarding from './pages/Onboarding';
 import Pastors from './pages/Pastors';
 import MyPastorRequests from './pages/MyPastorRequests';
 import PastorDashboard from './pages/PastorDashboard';
@@ -69,6 +70,7 @@ function AppRoutes() {
     <Routes>
       <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
       <Route path="/signup" element={<PublicRoute><Signup /></PublicRoute>} />
+      <Route path="/onboarding" element={<Onboarding />} />
       <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route

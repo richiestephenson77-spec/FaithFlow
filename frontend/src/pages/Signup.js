@@ -24,7 +24,7 @@ export default function Signup() {
     try {
       await signup(form);
       track('user_signed_up', { method: 'email' });
-      navigate('/');
+      navigate('/onboarding');
     } catch (err) {
       setError(err.response?.data?.error || 'Signup failed');
     } finally {
