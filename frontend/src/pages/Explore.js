@@ -82,8 +82,11 @@ const features = [
   {
     id: 'partners',
     label: 'Prayer Partners',
+    subtitle: 'Pray for each other for 7 days',
+    route: '/prayer-partners',
+    border: '#8B5CF6',
     Icon: Handshake,
-    active: false,
+    active: true,
   },
   {
     id: 'believers',
@@ -224,20 +227,20 @@ export default function Explore() {
           <HeroCard feature={confessions} onTap={handleTap} />
         </div>
 
-        {/* Row 3 — Connect 2x2 */}
+        {/* Row 3 — Connect 3x2 */}
         <SectionLabel>Connect</SectionLabel>
         <div className="grid grid-cols-2 gap-3 mx-4">
           <GridCard feature={cells} onTap={handleTap} />
           <GridCard feature={pastors} onTap={handleTap} />
           <GridCard feature={bibleDictionary} onTap={handleTap} />
           <GridCard feature={bibleMaps} onTap={handleTap} />
+          <GridCard feature={partners} onTap={handleTap} />
         </div>
 
         {/* Row 4 — Coming Soon */}
         <SectionLabel muted>Coming Soon</SectionLabel>
         <div className="flex gap-2 overflow-x-auto px-4 pb-2 no-scrollbar">
           <ComingSoonPill feature={answered} />
-          <ComingSoonPill feature={partners} />
           <ComingSoonPill feature={believers} />
         </div>
       </div>

@@ -9,6 +9,7 @@ async function getProfile(req, res) {
       select: {
         id: true, name: true, bio: true, churchName: true,
         location: true, profilePhoto: true, coverPhoto: true, createdAt: true,
+        gender: true,
         prayerStreak: true, longestPrayerStreak: true,
         prayerWarriorBadge: true, totalPeoplesPrayedFor: true, prayerWarriorEarnedAt: true, dailyPrayerQuota: true,
         _count: { select: { followers: true, following: true, prayerRequests: true, posts: true } },
@@ -66,12 +67,13 @@ async function getMe(req, res) {
 }
 
 async function updateProfile(req, res) {
-  const { name, bio, churchName, location } = req.body;
+  const { name, bio, churchName, location, gender } = req.body;
   const profilePhoto = req.files?.profilePhoto?.[0]?.path || undefined;
   const coverPhoto = req.files?.coverPhoto?.[0]?.path || undefined;
 
   try {
     const data = { name, bio, churchName, location };
+    if (gender === 'male' || gender === 'female') data.gender = gender;
     if (profilePhoto) data.profilePhoto = profilePhoto;
     if (coverPhoto) data.coverPhoto = coverPhoto;
 
@@ -81,6 +83,7 @@ async function updateProfile(req, res) {
       select: {
         id: true, name: true, bio: true, churchName: true,
         location: true, profilePhoto: true, coverPhoto: true, email: true,
+        gender: true,
       },
     });
     res.json(user);

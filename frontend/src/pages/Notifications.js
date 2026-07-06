@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bell, Heart, MessageCircle, UserPlus, Sparkles } from 'lucide-react';
+import { Bell, Heart, MessageCircle, UserPlus, Sparkles, Users } from 'lucide-react';
 import api from '../utils/api';
 import { useSocket } from '../contexts/SocketContext';
 import Avatar from '../components/Avatar';
@@ -17,11 +17,12 @@ function getTimeAgo(dateStr) {
 }
 
 const TYPE_META = {
-  PRAYER_STARTED:  { Icon: Sparkles,      color: '#f59e0b', bg: '#fffbeb' },
-  PRAYER_ANSWERED: { Icon: Sparkles,      color: '#10b981', bg: '#f0fdf4' },
-  NEW_FOLLOWER:    { Icon: UserPlus,      color: '#6366f1', bg: '#eef2ff' },
-  POST_LIKE:       { Icon: Heart,         color: '#ef4444', bg: '#fef2f2' },
-  POST_COMMENT:    { Icon: MessageCircle, color: '#3b82f6', bg: '#eff6ff' },
+  PRAYER_STARTED:          { Icon: Sparkles,      color: '#f59e0b', bg: '#fffbeb' },
+  PRAYER_ANSWERED:         { Icon: Sparkles,      color: '#10b981', bg: '#f0fdf4' },
+  NEW_FOLLOWER:            { Icon: UserPlus,      color: '#6366f1', bg: '#eef2ff' },
+  POST_LIKE:               { Icon: Heart,         color: '#ef4444', bg: '#fef2f2' },
+  POST_COMMENT:            { Icon: MessageCircle, color: '#3b82f6', bg: '#eff6ff' },
+  PRAYER_PARTNER_MATCHED:  { Icon: Users,         color: '#f59e0b', bg: '#fffbeb' },
 };
 
 function NotificationCard({ n, onFollowBack }) {
@@ -52,7 +53,10 @@ function NotificationCard({ n, onFollowBack }) {
       initial={{ opacity: 0, x: n.isRead ? 0 : -14 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ type: 'spring', stiffness: 300, damping: 28 }}
-      onClick={() => senderId && navigate(`/profile/${senderId}`)}
+      onClick={() => {
+        if (n.type === 'PRAYER_PARTNER_MATCHED') navigate('/prayer-partners');
+        else if (senderId) navigate(`/profile/${senderId}`);
+      }}
       className="relative flex items-start gap-3 px-4 py-3.5 cursor-pointer active:bg-gray-100/60 transition-colors"
       style={{ background: !n.isRead ? 'rgba(251,191,36,0.06)' : 'transparent' }}
     >

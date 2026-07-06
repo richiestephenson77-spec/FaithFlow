@@ -80,6 +80,7 @@ export default function Profile() {
           bio: profileRes.data.bio || '',
           churchName: profileRes.data.churchName || '',
           location: profileRes.data.location || '',
+          gender: profileRes.data.gender || '',
         });
       } catch {}
       setLoading(false);
@@ -121,7 +122,7 @@ export default function Profile() {
     setSaving(true);
     try {
       const formData = new FormData();
-      Object.entries(editForm).forEach(([k, v]) => formData.append(k, v));
+      Object.entries(editForm).forEach(([k, v]) => { if (v !== '') formData.append(k, v); });
       if (profilePhotoRef.current?.files[0]) formData.append('profilePhoto', profilePhotoRef.current.files[0]);
 
       const res = await api.put('/users/me', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
@@ -611,6 +612,25 @@ export default function Profile() {
                 rows={3}
                 className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-faith-500 resize-none"
               />
+              {/* Gender selector */}
+              <div>
+                <p className="text-sm font-medium text-gray-700 mb-2">Gender</p>
+                <div className="flex gap-2">
+                  {['male', 'female'].map(g => (
+                    <button
+                      key={g}
+                      type="button"
+                      onClick={() => setEditForm(p => ({ ...p, gender: g }))}
+                      className="flex-1 py-2.5 rounded-xl text-sm font-medium border transition-colors capitalize"
+                      style={editForm.gender === g
+                        ? { background: '#111827', color: 'white', borderColor: '#111827' }
+                        : { background: 'white', color: '#6b7280', borderColor: '#e5e7eb' }}
+                    >
+                      {g}
+                    </button>
+                  ))}
+                </div>
+              </div>
               <div className="flex gap-3">
                 <button onClick={() => setEditing(false)}
                   className="flex-1 border border-gray-200 text-gray-600 rounded-xl py-3 text-sm font-medium">

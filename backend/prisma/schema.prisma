@@ -71,6 +71,12 @@ model User {
   hostedCells     PrayerCell[]        @relation("PrayerCellHost")
   cellSessions    PrayerCellSession[] @relation("PrayerCellGuest")
 
+  gender          String?
+
+  partnerships1   PrayerPartnership[] @relation("User1Partnerships")
+  partnerships2   PrayerPartnership[] @relation("User2Partnerships")
+  partnerRequests PrayerPartnerRequest[]
+
   @@map("users")
 }
 
@@ -341,6 +347,7 @@ enum NotificationType {
   POST_COMMENT
   CHURCH_POST
   NEW_MESSAGE
+  PRAYER_PARTNER_MATCHED
 }
 
 model Church {
@@ -432,6 +439,31 @@ model PrayerDraft {
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("prayer_drafts")
+}
+
+model PrayerPartnership {
+  id        String   @id @default(cuid())
+  user1Id   String
+  user2Id   String
+  status    String   @default("ACTIVE")
+  startedAt DateTime @default(now())
+  expiresAt DateTime
+  user1     User     @relation("User1Partnerships", fields: [user1Id], references: [id])
+  user2     User     @relation("User2Partnerships", fields: [user2Id], references: [id])
+
+  @@unique([user1Id, user2Id])
+  @@map("prayer_partnerships")
+}
+
+model PrayerPartnerRequest {
+  id        String   @id @default(cuid())
+  userId    String
+  status    String   @default("WAITING")
+  gender    String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@map("prayer_partner_requests")
 }
 
 model DailyQuotaLog {
