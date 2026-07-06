@@ -153,8 +153,6 @@ export default function BibleMaps() {
     );
   }
 
-  console.log('Token:', process.env.REACT_APP_MAPBOX_TOKEN?.slice(0, 10));
-
   return (
     <div className="min-h-screen flex flex-col" style={{ background: '#0d0a05' }}>
       {/* Map area with overlaid header */}

@@ -68,18 +68,13 @@ export default function ConfessionDetail() {
   const commentsEndRef = useRef(null);
 
   useEffect(() => {
-    console.log('Fetching confession for:', id);
     api.get(`/confessions/${id}`)
       .then(res => setConfession(res.data))
       .catch(() => {})
       .finally(() => setLoadingConfession(false));
 
-    console.log('Fetching comments for:', id);
     api.get(`/confessions/${id}/comments`)
-      .then(res => {
-        console.log('Comments received:', res.data);
-        setComments(res.data);
-      })
+      .then(res => setComments(res.data))
       .catch(() => {})
       .finally(() => setLoadingComments(false));
   }, [id]);
@@ -102,9 +97,6 @@ export default function ConfessionDetail() {
   async function handleSend() {
     if (!commentText.trim() || sending) return;
     const text = commentText.trim();
-    console.log('Sending comment:', { id, text, isAnonymous });
-    console.log('Token exists:', !!localStorage.getItem('token'));
-    console.log('API base:', process.env.REACT_APP_API_URL || '/api');
     setCommentText('');
     setSending(true);
 
