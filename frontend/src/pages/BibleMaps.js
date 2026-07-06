@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useMemo } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import Map, { Marker } from 'react-map-gl/mapbox';
@@ -7,51 +7,6 @@ import { ChevronLeft, X, BookOpen, ArrowRight } from 'lucide-react';
 import { BIBLE_ERAS, BIBLE_LOCATIONS } from '../data/bibleMaps';
 
 const MAPBOX_TOKEN = process.env.REACT_APP_MAPBOX_TOKEN;
-
-function applyStyles(map) {
-  try {
-    const allLayers = map.getStyle().layers;
-
-    allLayers.forEach(layer => {
-      const id = layer.id;
-
-      if (id.includes('road') || id.includes('tunnel') ||
-          id.includes('bridge') || id.includes('motorway')) {
-        try { map.setLayoutProperty(id, 'visibility', 'none'); } catch(e) {}
-      }
-
-      if (id.includes('label') || id.includes('place') ||
-          id.includes('poi') || id.includes('airport') ||
-          id.includes('transit') || id.includes('settlement')) {
-        try { map.setLayoutProperty(id, 'visibility', 'none'); } catch(e) {}
-      }
-
-      if (id.includes('water')) {
-        try {
-          if (layer.type === 'fill') {
-            map.setPaintProperty(id, 'fill-color', '#0d2137');
-          } else if (layer.type === 'line') {
-            map.setPaintProperty(id, 'line-color', '#0d2137');
-          }
-        } catch(e) {}
-      }
-
-      if (id === 'land' || id.includes('landcover') ||
-          id.includes('national-park') || id.includes('landuse')) {
-        try { map.setPaintProperty(id, 'fill-color', '#1e2a0f'); } catch(e) {}
-      }
-
-      if (id.includes('admin') && id.includes('boundary')) {
-        try { map.setPaintProperty(id, 'line-color', '#5a4a2a'); } catch(e) {}
-      }
-    });
-
-    try { map.setPaintProperty('background', 'background-color', '#1a1205'); } catch(e) {}
-
-  } catch (err) {
-    console.error('Style apply error:', err);
-  }
-}
 
 // Pull a "Book Chapter:Verse" style reference out of free-text info,
 // e.g. "...(Gen 14:18)" -> "Gen 14:18"
@@ -77,15 +32,6 @@ export default function BibleMaps() {
   function changeEra(i) {
     setEraIndex(i);
     setSelectedLocation(null);
-  }
-
-  function handleMapLoad(e) {
-    const map = e.target;
-    if (!map.isStyleLoaded()) {
-      map.once('styledata', () => applyStyles(map));
-    } else {
-      applyStyles(map);
-    }
   }
 
   function zoomIn() {
@@ -142,10 +88,37 @@ export default function BibleMaps() {
           mapboxAccessToken={MAPBOX_TOKEN}
           initialViewState={{ longitude: 36, latitude: 31, zoom: 5 }}
           style={{ width: '100%', height: '100%' }}
-          mapStyle="mapbox://styles/mapbox/streets-v12"
+          mapStyle={{
+            version: 8,
+            sources: {
+              'osm-tiles': {
+                type: 'raster',
+                tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+                tileSize: 256,
+                attribution: '© OpenStreetMap contributors',
+              },
+            },
+            layers: [
+              {
+                id: 'background',
+                type: 'background',
+                paint: { 'background-color': '#1a1205' },
+              },
+              {
+                id: 'osm-tiles',
+                type: 'raster',
+                source: 'osm-tiles',
+                paint: {
+                  'raster-opacity': 0.3,
+                  'raster-saturation': -1,
+                  'raster-brightness-min': 0,
+                  'raster-brightness-max': 0.2,
+                },
+              },
+            ],
+          }}
           minZoom={3}
           maxZoom={10}
-          onLoad={handleMapLoad}
           attributionControl={false}
         >
           {visibleLocations.map(location => {
