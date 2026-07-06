@@ -8,73 +8,48 @@ import { BIBLE_ERAS, BIBLE_LOCATIONS } from '../data/bibleMaps';
 
 const MAPBOX_TOKEN = process.env.REACT_APP_MAPBOX_TOKEN;
 
-// Best-effort dark/ancient restyle of the streets-v12 base style:
-// hides roads/labels, recolors water/land/borders. Layer ids are
-// matched by pattern (not exact names) since streets-v12 splits
-// roads/labels into many differently-named layers depending on
-// zoom and region (e.g. road-secondary-tertiary, settlement-major-label).
-function customizeMapStyle(map) {
+function applyStyles(map) {
   try {
-    const layers = map.getStyle()?.layers || [];
-    layers.forEach(layer => {
+    const allLayers = map.getStyle().layers;
+
+    allLayers.forEach(layer => {
       const id = layer.id;
-      try {
-        if (/road|street|bridge|tunnel/i.test(id)) {
-          map.setLayoutProperty(id, 'visibility', 'none');
-        } else if (/label|poi|place|settlement/i.test(id) && !/country/i.test(id)) {
-          map.setLayoutProperty(id, 'visibility', 'none');
-        } else if (/water/i.test(id) && layer.type === 'fill') {
-          map.setPaintProperty(id, 'fill-color', '#1a3a5c');
-        } else if (/^background$/i.test(id) && layer.type === 'background') {
-          map.setPaintProperty(id, 'background-color', '#2d3a1e');
-        } else if (/^land$|landcover|landuse/i.test(id) && layer.type === 'fill') {
-          map.setPaintProperty(id, 'fill-color', '#2d3a1e');
-        } else if (/border|boundar/i.test(id) && layer.type === 'line') {
-          map.setPaintProperty(id, 'line-color', '#d4a843');
-          map.setPaintProperty(id, 'line-opacity', 0.6);
-        }
-      } catch {
-        // layer doesn't support this property — skip
+
+      if (id.includes('road') || id.includes('tunnel') ||
+          id.includes('bridge') || id.includes('motorway')) {
+        try { map.setLayoutProperty(id, 'visibility', 'none'); } catch(e) {}
+      }
+
+      if (id.includes('label') || id.includes('place') ||
+          id.includes('poi') || id.includes('airport') ||
+          id.includes('transit') || id.includes('settlement')) {
+        try { map.setLayoutProperty(id, 'visibility', 'none'); } catch(e) {}
+      }
+
+      if (id.includes('water')) {
+        try {
+          if (layer.type === 'fill') {
+            map.setPaintProperty(id, 'fill-color', '#0d2137');
+          } else if (layer.type === 'line') {
+            map.setPaintProperty(id, 'line-color', '#0d2137');
+          }
+        } catch(e) {}
+      }
+
+      if (id === 'land' || id.includes('landcover') ||
+          id.includes('national-park') || id.includes('landuse')) {
+        try { map.setPaintProperty(id, 'fill-color', '#1e2a0f'); } catch(e) {}
+      }
+
+      if (id.includes('admin') && id.includes('boundary')) {
+        try { map.setPaintProperty(id, 'line-color', '#5a4a2a'); } catch(e) {}
       }
     });
-  } catch (err) {
-    console.error('Map style customization failed:', err);
-  }
 
-  // Explicit fallback for known streets-v12 layer names — covers
-  // cases the pattern matcher above can miss (e.g. national-park
-  // is a fill layer but doesn't match the land/landcover pattern).
-  try {
-    if (map.getLayer('background')) map.setPaintProperty('background', 'background-color', '#1a1205');
-    if (map.getLayer('water')) map.setPaintProperty('water', 'fill-color', '#0d2137');
-    if (map.getLayer('land')) map.setPaintProperty('land', 'fill-color', '#1e2a0f');
-    if (map.getLayer('landcover')) map.setPaintProperty('landcover', 'fill-color', '#1e2a0f');
-    if (map.getLayer('national-park')) map.setPaintProperty('national-park', 'fill-color', '#1e2a0f');
-    if (map.getLayer('admin-0-boundary')) map.setPaintProperty('admin-0-boundary', 'line-color', '#5a4a2a');
+    try { map.setPaintProperty('background', 'background-color', '#1a1205'); } catch(e) {}
 
-    const layersToHide = [
-      'road-motorway', 'road-trunk', 'road-primary',
-      'road-secondary', 'road-tertiary', 'road-street',
-      'road-minor', 'tunnel', 'bridge',
-      'road-motorway-trunk', 'road-construction',
-      'road-path', 'road-label', 'road-number-shield',
-      'place-city', 'place-city-capital',
-      'place-town', 'place-village',
-      'place-suburb', 'place-neighbourhood',
-      'poi-label', 'airport-label', 'transit-label',
-      'waterway-label', 'natural-line-label',
-      'natural-point-label', 'water-line-label',
-      'water-point-label', 'country-label',
-      'state-label', 'settlement-label',
-      'settlement-subdivision-label',
-    ];
-    layersToHide.forEach(layer => {
-      if (map.getLayer(layer)) {
-        map.setLayoutProperty(layer, 'visibility', 'none');
-      }
-    });
   } catch (err) {
-    console.error('Map style explicit-layer fallback failed:', err);
+    console.error('Style apply error:', err);
   }
 }
 
@@ -105,7 +80,12 @@ export default function BibleMaps() {
   }
 
   function handleMapLoad(e) {
-    customizeMapStyle(e.target);
+    const map = e.target;
+    if (!map.isStyleLoaded()) {
+      map.once('styledata', () => applyStyles(map));
+    } else {
+      applyStyles(map);
+    }
   }
 
   function zoomIn() {
