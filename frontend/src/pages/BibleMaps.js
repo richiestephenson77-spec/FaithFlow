@@ -109,10 +109,10 @@ export default function BibleMaps() {
                 type: 'raster',
                 source: 'osm-tiles',
                 paint: {
-                  'raster-opacity': 0.3,
+                  'raster-opacity': 0.6,
                   'raster-saturation': -1,
                   'raster-brightness-min': 0,
-                  'raster-brightness-max': 0.2,
+                  'raster-brightness-max': 0.4,
                 },
               },
             ],
