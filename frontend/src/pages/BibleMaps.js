@@ -1,12 +1,18 @@
 import { useState, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import Map, { Marker } from 'react-map-gl/mapbox';
+import Map, { Marker, Source, Layer } from 'react-map-gl/mapbox';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { ChevronLeft, X, BookOpen, ArrowRight } from 'lucide-react';
-import { BIBLE_ERAS, BIBLE_LOCATIONS } from '../data/bibleMaps';
+import { BIBLE_ERAS, BIBLE_LOCATIONS, BIBLE_TERRITORIES } from '../data/bibleMaps';
 
 const MAPBOX_TOKEN = process.env.REACT_APP_MAPBOX_TOKEN;
+
+function polygonCentroid(coords) {
+  const n = coords.length;
+  const [sumLng, sumLat] = coords.reduce(([a, b], [lng, lat]) => [a + lng, b + lat], [0, 0]);
+  return [sumLng / n, sumLat / n];
+}
 
 // Pull a "Book Chapter:Verse" style reference out of free-text info,
 // e.g. "...(Gen 14:18)" -> "Gen 14:18"
@@ -24,10 +30,24 @@ export default function BibleMaps() {
 
   const currentEra = BIBLE_ERAS[eraIndex];
 
+  const [zoom, setZoom] = useState(5);
+
   const visibleLocations = useMemo(
     () => BIBLE_LOCATIONS.filter(l => l.names[currentEra.id]),
     [currentEra]
   );
+
+  const territoryGeoJSON = useMemo(() => {
+    const territories = BIBLE_TERRITORIES[currentEra.id] || [];
+    return {
+      type: 'FeatureCollection',
+      features: territories.map(t => ({
+        type: 'Feature',
+        properties: { id: t.id, name: t.name, color: t.color },
+        geometry: { type: 'Polygon', coordinates: [t.coordinates] },
+      })),
+    };
+  }, [currentEra]);
 
   function changeEra(i) {
     setEraIndex(i);
@@ -92,7 +112,37 @@ export default function BibleMaps() {
           minZoom={3}
           maxZoom={10}
           attributionControl={false}
+          onZoom={e => setZoom(e.viewState.zoom)}
         >
+          {/* Territory fill + outline — updates with each era */}
+          <Source id="territories" type="geojson" data={territoryGeoJSON}>
+            <Layer
+              id="territory-fill"
+              type="fill"
+              paint={{ 'fill-color': ['get', 'color'], 'fill-opacity': 0.22 }}
+            />
+            <Layer
+              id="territory-outline"
+              type="line"
+              paint={{ 'line-color': ['get', 'color'], 'line-width': 1.5, 'line-opacity': 0.6 }}
+            />
+          </Source>
+
+          {/* Territory name labels — hidden when zoomed in past "figures" tier (zoom ≥ 8) */}
+          {zoom < 8 && (BIBLE_TERRITORIES[currentEra.id] || []).map(t => {
+            const [lng, lat] = polygonCentroid(t.coordinates);
+            return (
+              <Marker key={`territory-label-${t.id}`} longitude={lng} latitude={lat}>
+                <span
+                  className="text-[11px] font-serif italic text-white/70 tracking-wide pointer-events-none whitespace-nowrap"
+                  style={{ textShadow: '0 1px 3px rgba(0,0,0,0.8)' }}
+                >
+                  {t.name}
+                </span>
+              </Marker>
+            );
+          })}
+
           {visibleLocations.map(location => {
             const name = location.names[currentEra.id];
             const isImportant = name.includes('✦');
@@ -120,9 +170,12 @@ export default function BibleMaps() {
           })}
         </Map>
 
-        {/* Mapbox/OSM attribution (required by ToS) — sits above the timeline's overlap */}
-        <div className="absolute bottom-7 right-2 text-[10px] text-white/30 text-right px-2 py-1 z-10 pointer-events-none">
-          © Mapbox
+        {/* Attribution + disclaimer */}
+        <div className="absolute bottom-7 left-0 right-0 flex flex-col items-center gap-0.5 z-10 pointer-events-none px-2">
+          <span className="text-[9px] text-white/25 text-center">
+            Territory outlines are approximate for illustrative purposes.
+          </span>
+          <span className="text-[10px] text-white/30 text-right self-end">© Mapbox</span>
         </div>
 
         {/* Overlaid header */}

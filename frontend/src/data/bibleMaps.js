@@ -50,6 +50,43 @@ export const BIBLE_ERAS = [
   },
 ];
 
+// Territory outlines are approximate scholarly reconstructions for
+// illustrative/devotional purposes — not precise cartography. Ancient
+// political borders have no single authoritative source; these polygons
+// reflect general historical consensus. Facts and approximate geography
+// are not copyrightable; only specific artistic renditions are.
+export const BIBLE_TERRITORIES = {
+  abraham: [
+    { id: 'canaan', name: 'Canaan', color: '#C4A35A', coordinates: [[34.9,33.3],[35.9,33.3],[36.0,31.9],[35.9,31.0],[34.8,31.0],[34.2,31.5],[34.3,32.5],[34.9,33.3]] },
+    { id: 'egypt', name: 'Egypt', color: '#5B7A9D', coordinates: [[31.0,31.5],[32.9,31.3],[33.0,29.5],[32.5,24.0],[30.5,24.0],[29.5,29.0],[30.0,31.0],[31.0,31.5]] },
+  ],
+  exodus: [
+    { id: 'egypt', name: 'Egypt', color: '#5B7A9D', coordinates: [[31.0,31.5],[32.9,31.3],[33.0,29.5],[32.5,24.0],[30.5,24.0],[29.5,29.0],[30.0,31.0],[31.0,31.5]] },
+    { id: 'sinai', name: 'Wilderness of Sinai', color: '#8B6914', coordinates: [[32.3,31.2],[34.9,29.5],[34.0,27.7],[32.6,29.0],[32.3,31.2]] },
+    { id: 'canaan', name: 'Canaan', color: '#C4A35A', coordinates: [[34.9,33.3],[35.9,33.3],[36.0,31.9],[35.9,31.0],[34.8,31.0],[34.2,31.5],[34.3,32.5],[34.9,33.3]] },
+  ],
+  judges: [
+    { id: 'israel_tribes', name: 'Twelve Tribes', color: '#6B4E1A', coordinates: [[34.9,33.3],[36.3,33.1],[36.4,31.8],[35.9,31.0],[34.8,31.0],[34.2,31.5],[34.3,32.5],[34.9,33.3]] },
+  ],
+  kingdom: [
+    { id: 'united_kingdom', name: 'United Kingdom of Israel', color: '#4A3728', coordinates: [[34.9,33.5],[36.4,33.3],[36.5,31.6],[35.9,30.9],[34.7,30.9],[34.2,31.5],[34.3,32.6],[34.9,33.5]] },
+  ],
+  divided: [
+    { id: 'israel_north', name: 'Israel (Northern Kingdom)', color: '#6B8E4E', coordinates: [[34.9,33.3],[35.9,33.0],[35.7,32.0],[34.9,31.9],[34.6,32.4],[34.9,33.3]] },
+    { id: 'judah_south', name: 'Judah (Southern Kingdom)', color: '#3D2B1F', coordinates: [[35.4,31.9],[35.9,31.2],[35.3,30.8],[34.6,31.0],[34.7,31.7],[35.4,31.9]] },
+  ],
+  exile: [
+    { id: 'babylon_empire', name: 'Babylonian Empire', color: '#2C1810', coordinates: [[44.0,36.5],[48.0,33.0],[45.0,29.5],[38.0,31.0],[35.0,33.5],[36.0,36.0],[44.0,36.5]] },
+    { id: 'judah_conquered', name: 'Judah (Conquered)', color: '#1A1008', coordinates: [[35.4,31.9],[35.9,31.2],[35.3,30.8],[34.6,31.0],[34.7,31.7],[35.4,31.9]] },
+  ],
+  jesus: [
+    { id: 'galilee_prov', name: 'Galilee', color: '#1A3A2A', coordinates: [[34.9,33.3],[35.9,33.0],[35.7,32.5],[34.9,32.5],[34.9,33.3]] },
+    { id: 'samaria_prov', name: 'Samaria', color: '#2A4A3A', coordinates: [[34.9,32.5],[35.6,32.5],[35.5,31.9],[34.9,31.9],[34.9,32.5]] },
+    { id: 'judea_prov', name: 'Judea', color: '#1A3A2A', coordinates: [[34.9,31.9],[35.5,31.9],[35.3,31.2],[34.6,31.2],[34.7,31.7],[34.9,31.9]] },
+    { id: 'perea_prov', name: 'Perea', color: '#2A4A3A', coordinates: [[35.6,32.8],[36.3,32.8],[36.0,31.5],[35.6,31.9],[35.6,32.8]] },
+  ],
+};
+
 export const BIBLE_LOCATIONS = [
   {
     id: 'jerusalem',
