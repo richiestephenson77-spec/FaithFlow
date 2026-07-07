@@ -122,7 +122,7 @@ export default function BibleMaps() {
 
         {/* Mapbox/OSM attribution (required by ToS) — sits above the timeline's overlap */}
         <div className="absolute bottom-7 right-2 text-[10px] text-white/30 text-right px-2 py-1 z-10 pointer-events-none">
-          © Mapbox © OpenStreetMap
+          © Mapbox
         </div>
 
         {/* Overlaid header */}
