@@ -15,8 +15,6 @@ function polygonCentroid(coords) {
   return [sumLng / n, sumLat / n];
 }
 
-// Pull a "Book Chapter:Verse" style reference out of free-text info,
-// e.g. "...(Gen 14:18)" -> "Gen 14:18"
 function extractReference(text) {
   if (!text) return null;
   const match = text.match(/\(([1-3]?\s?[A-Za-z]+\.?\s\d+:\d+(?:-\d+)?)\)/);
@@ -28,10 +26,9 @@ export default function BibleMaps() {
   const mapRef = useRef(null);
   const [eraIndex, setEraIndex] = useState(0);
   const [selectedLocation, setSelectedLocation] = useState(null);
+  const [zoom, setZoom] = useState(5);
 
   const currentEra = BIBLE_ERAS[eraIndex];
-
-  const [zoom, setZoom] = useState(5);
 
   const visibleLocations = useMemo(
     () => BIBLE_LOCATIONS.filter(l => l.names[currentEra.id]),
@@ -55,7 +52,7 @@ export default function BibleMaps() {
         } catch (_) {}
         return {
           type: 'Feature',
-          properties: { id: t.id, name: t.name, color: t.color },
+          properties: { id: t.id, name: t.name, color: '#A8823C' },
           geometry: { type: 'Polygon', coordinates: [coords] },
         };
       }),
@@ -67,13 +64,8 @@ export default function BibleMaps() {
     setSelectedLocation(null);
   }
 
-  function zoomIn() {
-    mapRef.current?.getMap().zoomIn();
-  }
-
-  function zoomOut() {
-    mapRef.current?.getMap().zoomOut();
-  }
+  function zoomIn() { mapRef.current?.getMap().zoomIn(); }
+  function zoomOut() { mapRef.current?.getMap().zoomOut(); }
 
   function flyTo(coords) {
     mapRef.current?.getMap().flyTo({ center: coords, zoom: 6, duration: 800 });
@@ -91,21 +83,19 @@ export default function BibleMaps() {
     selectLocation(next);
   }
 
-  function readInBible() {
-    navigate('/bible');
-  }
+  function readInBible() { navigate('/bible'); }
 
   const reference = selectedLocation ? extractReference(selectedLocation.info?.[currentEra.id]) : null;
 
   if (!MAPBOX_TOKEN) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-8" style={{ background: '#0d0a05' }}>
+      <div className="min-h-screen flex flex-col items-center justify-center px-8" style={{ background: '#F6F1E4' }}>
         <button onClick={() => navigate(-1)} className="absolute top-5 left-4 p-1">
-          <ChevronLeft size={22} color="white" strokeWidth={2} />
+          <ChevronLeft size={22} color="#232B38" strokeWidth={2} />
         </button>
-        <p className="text-white font-semibold text-center">Bible Maps needs setup</p>
-        <p className="text-white/50 text-sm text-center mt-2 leading-relaxed">
-          Missing <code className="text-amber-400">REACT_APP_MAPBOX_TOKEN</code>. Add a free Mapbox public
+        <p className="font-semibold text-center" style={{ color: '#232B38' }}>Bible Maps needs setup</p>
+        <p className="text-sm text-center mt-2 leading-relaxed" style={{ color: '#5C6270' }}>
+          Missing <code style={{ color: '#7A2E2E' }}>REACT_APP_MAPBOX_TOKEN</code>. Add a free Mapbox public
           token to your environment variables to enable the map.
         </p>
       </div>
@@ -113,42 +103,42 @@ export default function BibleMaps() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: '#0d0a05' }}>
-      {/* Map area with overlaid header */}
+    <div className="min-h-screen flex flex-col" style={{ background: '#F6F1E4' }}>
+      {/* Map area */}
       <div className="relative" style={{ height: '55vh' }}>
         <Map
           ref={mapRef}
           mapboxAccessToken={MAPBOX_TOKEN}
           initialViewState={{ longitude: 36, latitude: 31, zoom: 5 }}
           style={{ width: '100%', height: '100%' }}
-          mapStyle="mapbox://styles/mapbox/dark-v11"
+          mapStyle="mapbox://styles/mapbox/light-v11"
           minZoom={3}
           maxZoom={10}
           attributionControl={false}
           onZoom={e => setZoom(e.viewState.zoom)}
         >
-          {/* Territory fill + outline — updates with each era */}
+          {/* Territory fill + engraved outline */}
           <Source id="territories" type="geojson" data={territoryGeoJSON}>
             <Layer
               id="territory-fill"
               type="fill"
-              paint={{ 'fill-color': ['get', 'color'], 'fill-opacity': 0.22 }}
+              paint={{ 'fill-color': ['get', 'color'], 'fill-opacity': 0.12 }}
             />
             <Layer
               id="territory-outline"
               type="line"
-              paint={{ 'line-color': ['get', 'color'], 'line-width': 1.5, 'line-opacity': 0.6 }}
+              paint={{ 'line-color': ['get', 'color'], 'line-width': 1, 'line-opacity': 0.8 }}
             />
           </Source>
 
-          {/* Territory name labels — hidden when zoomed in past "figures" tier (zoom ≥ 8) */}
+          {/* Territory name labels */}
           {zoom < 8 && (BIBLE_TERRITORIES[currentEra.id] || []).map(t => {
             const [lng, lat] = polygonCentroid(t.coordinates);
             return (
               <Marker key={`territory-label-${t.id}`} longitude={lng} latitude={lat}>
                 <span
-                  className="text-[11px] font-serif italic text-white/70 tracking-wide pointer-events-none whitespace-nowrap"
-                  style={{ textShadow: '0 1px 3px rgba(0,0,0,0.8)' }}
+                  className="text-[11px] font-serif italic tracking-wide pointer-events-none whitespace-nowrap"
+                  style={{ color: 'rgba(35,43,56,0.8)', textShadow: '0 1px 2px rgba(246,241,228,0.9)' }}
                 >
                   {t.name}
                 </span>
@@ -156,10 +146,10 @@ export default function BibleMaps() {
             );
           })}
 
+          {/* Location markers */}
           {visibleLocations.map(location => {
             const name = location.names[currentEra.id];
             const isImportant = name.includes('✦');
-
             return (
               <Marker
                 key={location.id}
@@ -169,13 +159,14 @@ export default function BibleMaps() {
               >
                 <div className="relative cursor-pointer flex flex-col items-center">
                   {isImportant && (
-                    <div className="absolute rounded-full bg-amber-500/30 animate-ping" style={{ width: 20, height: 20 }} />
+                    <div className="absolute rounded-full animate-ping"
+                      style={{ width: 20, height: 20, background: 'rgba(168,130,60,0.25)' }} />
                   )}
                   <div
-                    className="rounded-full border-2 border-white/80"
+                    className="rounded-full border-2"
                     style={isImportant
-                      ? { width: 10, height: 10, background: '#f59e0b' }
-                      : { width: 6, height: 6, background: 'rgba(255,255,255,0.6)' }}
+                      ? { width: 10, height: 10, background: '#A8823C', borderColor: '#FCFAF3' }
+                      : { width: 6, height: 6, background: '#5C6270', borderColor: '#FCFAF3' }}
                   />
                 </div>
               </Marker>
@@ -183,31 +174,59 @@ export default function BibleMaps() {
           })}
         </Map>
 
-        {/* Attribution + disclaimer */}
+        {/* Attribution */}
         <div className="absolute bottom-7 left-0 right-0 flex flex-col items-center gap-0.5 z-10 pointer-events-none px-2">
-          <span className="text-[9px] text-white/25 text-center">
+          <span className="text-[9px] text-center" style={{ color: 'rgba(92,98,112,0.5)' }}>
             Territory outlines are approximate for illustrative purposes.
           </span>
-          <span className="text-[10px] text-white/30 text-right self-end">© Mapbox</span>
+          <span className="text-[10px] text-right self-end" style={{ color: 'rgba(92,98,112,0.5)' }}>© Mapbox</span>
         </div>
 
-        {/* Overlaid header */}
+        {/* Header */}
         <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 pt-5 z-10">
-          <button onClick={() => navigate(-1)} className="w-9 h-9 rounded-full bg-black/40 backdrop-blur flex items-center justify-center">
-            <ChevronLeft size={20} color="white" strokeWidth={2} />
+          <button
+            onClick={() => navigate(-1)}
+            className="w-9 h-9 rounded-full backdrop-blur flex items-center justify-center border"
+            style={{ background: 'rgba(252,250,243,0.9)', borderColor: '#DED2B0' }}
+          >
+            <ChevronLeft size={20} color="#232B38" strokeWidth={2} />
           </button>
-          <span className="bg-black/40 backdrop-blur rounded-full px-4 py-2 text-white text-sm font-medium">
+          <span
+            className="backdrop-blur rounded-full px-4 py-2 text-sm font-medium border"
+            style={{
+              background: 'rgba(252,250,243,0.9)',
+              borderColor: '#DED2B0',
+              color: '#232B38',
+              fontFamily: "'Fraunces', 'Georgia', serif",
+            }}
+          >
             Bible Maps
           </span>
-          <span className="text-xs font-medium px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/30 text-amber-400 whitespace-nowrap">
+          <span
+            className="text-xs font-medium px-3 py-1 rounded-full border whitespace-nowrap"
+            style={{
+              background: 'rgba(122,46,46,0.08)',
+              borderColor: 'rgba(122,46,46,0.22)',
+              color: '#7A2E2E',
+              letterSpacing: '0.02em',
+            }}
+          >
             {currentEra.label} · {currentEra.year}
           </span>
         </div>
 
         {/* Zoom controls */}
         <div className="absolute top-20 right-4 flex flex-col gap-2 z-10">
-          <button onClick={zoomIn} className="w-10 h-10 rounded-full bg-black/40 backdrop-blur border border-white/10 flex items-center justify-center text-white text-xl">+</button>
-          <button onClick={zoomOut} className="w-10 h-10 rounded-full bg-black/40 backdrop-blur border border-white/10 flex items-center justify-center text-white text-xl">−</button>
+          <button
+            onClick={zoomIn}
+            className="w-10 h-10 rounded-full backdrop-blur border flex items-center justify-center text-xl font-light"
+            style={{ background: 'rgba(252,250,243,0.9)', borderColor: '#DED2B0', color: '#232B38' }}
+          >+</button>
+          <button
+            onClick={zoomOut}
+            className="w-10 h-10 rounded-full backdrop-blur border flex items-center justify-center text-xl font-light"
+            style={{ background: 'rgba(252,250,243,0.9)', borderColor: '#DED2B0', color: '#232B38' }}
+          >−</button>
         </div>
 
         {/* Location popup */}
@@ -217,45 +236,51 @@ export default function BibleMaps() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 20 }}
-              className="absolute bottom-4 left-4 right-4 bg-black/80 backdrop-blur-xl border border-amber-500/20 rounded-2xl p-4 z-10"
-              style={{ boxShadow: '0 0 40px rgba(245,158,11,0.15)' }}
+              className="absolute bottom-4 left-4 right-4 backdrop-blur-xl rounded-2xl p-4 z-10 border"
+              style={{ background: 'rgba(252,250,243,0.95)', borderColor: '#DED2B0' }}
             >
               <div className="flex justify-between items-start">
                 <div>
-                  <p className="text-white font-bold text-base">
+                  <p className="font-bold text-base" style={{ color: '#232B38' }}>
                     📍 {selectedLocation.names[currentEra.id]?.replace(' ✦', '')}
                   </p>
-                  <p className="text-amber-400 text-xs mt-0.5">{currentEra.label}</p>
+                  <p className="text-xs mt-0.5" style={{ color: '#7A2E2E' }}>{currentEra.label}</p>
                 </div>
-                <button onClick={() => setSelectedLocation(null)} className="w-6 h-6 bg-white/10 rounded-full flex items-center justify-center flex-shrink-0">
-                  <X size={12} className="text-white" />
+                <button
+                  onClick={() => setSelectedLocation(null)}
+                  className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0"
+                  style={{ background: 'rgba(35,43,56,0.06)' }}
+                >
+                  <X size={12} color="#232B38" />
                 </button>
               </div>
 
-              <div className="border-t border-white/10 my-3" />
+              <div className="my-3" style={{ borderTop: '1px solid #DED2B0' }} />
 
-              <p className="text-white/70 text-sm leading-relaxed font-serif italic">
+              <p className="text-sm leading-relaxed font-serif italic" style={{ color: '#5C6270' }}>
                 {selectedLocation.info?.[currentEra.id] || 'An important location in biblical history.'}
               </p>
 
               <div className="flex items-center gap-2 mt-4">
                 <button
                   onClick={readInBible}
-                  className="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold text-white bg-white/10 rounded-full py-2"
+                  className="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold rounded-full py-2"
+                  style={{ background: 'rgba(35,43,56,0.05)', color: '#232B38' }}
                 >
                   <BookOpen size={12} /> Read in Bible
                 </button>
                 {visibleLocations.length > 1 && (
                   <button
                     onClick={goNext}
-                    className="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold text-amber-400 bg-amber-500/15 rounded-full py-2"
+                    className="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold rounded-full py-2"
+                    style={{ background: 'rgba(122,46,46,0.08)', color: '#7A2E2E' }}
                   >
                     Next <ArrowRight size={12} />
                   </button>
                 )}
               </div>
               {reference && (
-                <p className="text-amber-500 text-xs mt-2 text-center">{reference}</p>
+                <p className="text-xs mt-2 text-center" style={{ color: '#A8823C', letterSpacing: '0.02em' }}>{reference}</p>
               )}
             </motion.div>
           )}
@@ -263,7 +288,10 @@ export default function BibleMaps() {
       </div>
 
       {/* Timeline panel */}
-      <div className="flex-1 bg-black/60 backdrop-blur-xl border-t border-white/10 rounded-t-3xl px-5 pt-5 pb-8 -mt-6 relative z-10">
+      <div
+        className="flex-1 rounded-t-3xl px-5 pt-5 pb-8 -mt-6 relative z-10 border-t"
+        style={{ background: '#FCFAF3', borderColor: '#DED2B0' }}
+      >
         <AnimatePresence mode="wait">
           <motion.div
             key={currentEra.id}
@@ -273,12 +301,21 @@ export default function BibleMaps() {
             transition={{ duration: 0.2 }}
           >
             <div className="flex items-center justify-between">
-              <span className="font-mono text-amber-400 text-sm">{currentEra.year}</span>
-              <span className="text-white/40 text-xs">{eraIndex + 1} of {BIBLE_ERAS.length}</span>
+              <span className="font-mono text-sm" style={{ color: '#7A2E2E', letterSpacing: '0.02em' }}>
+                {currentEra.year}
+              </span>
+              <span className="text-xs" style={{ color: 'rgba(92,98,112,0.6)' }}>
+                {eraIndex + 1} of {BIBLE_ERAS.length}
+              </span>
             </div>
-            <h2 className="text-white font-bold text-xl font-serif mt-1">{currentEra.label}</h2>
-            <div className="mt-2 h-[2px] w-12" style={{ background: 'linear-gradient(90deg, #f59e0b, transparent)' }} />
-            <p className="text-white/60 text-sm leading-relaxed mt-3">{currentEra.description}</p>
+            <h2
+              className="font-bold text-xl mt-1"
+              style={{ color: '#232B38', fontFamily: "'Fraunces', 'Georgia', serif" }}
+            >
+              {currentEra.label}
+            </h2>
+            <div className="mt-2 h-[2px] w-12" style={{ background: 'linear-gradient(90deg, #A8823C, transparent)' }} />
+            <p className="text-sm leading-relaxed mt-3" style={{ color: '#5C6270' }}>{currentEra.description}</p>
           </motion.div>
         </AnimatePresence>
 
@@ -297,7 +334,12 @@ export default function BibleMaps() {
               <button
                 key={era.id}
                 onClick={() => changeEra(i)}
-                className={`text-[9px] font-mono transition-colors ${i === eraIndex ? 'text-amber-400 font-bold' : 'text-white/30'}`}
+                className="text-[9px] font-mono transition-colors"
+                style={{
+                  color: i === eraIndex ? '#7A2E2E' : 'rgba(92,98,112,0.55)',
+                  fontWeight: i === eraIndex ? 700 : 400,
+                  letterSpacing: '0.02em',
+                }}
               >
                 {era.year}
               </button>
@@ -312,8 +354,8 @@ export default function BibleMaps() {
               onClick={() => changeEra(i)}
               className="rounded-full transition-all"
               style={i === eraIndex
-                ? { width: 10, height: 10, background: '#f59e0b' }
-                : { width: 8, height: 8, background: 'rgba(255,255,255,0.2)' }}
+                ? { width: 10, height: 10, background: '#7A2E2E' }
+                : { width: 8, height: 8, background: '#DED2B0' }}
             />
           ))}
         </div>
