@@ -91,6 +91,25 @@ export default function BibleMaps() {
     };
   }, [currentEra]);
 
+  function handleMapLoad(evt) {
+    const map = evt.target;
+    const layersToHide = [
+      'country-label',
+      'state-label',
+      'admin-0-boundary',
+      'admin-0-boundary-disputed',
+      'admin-1-boundary',
+      'admin-1-boundary-bg',
+      'settlement-label',
+      'settlement-subdivision-label',
+    ];
+    layersToHide.forEach(id => {
+      if (map.getLayer(id)) {
+        map.setLayoutProperty(id, 'visibility', 'none');
+      }
+    });
+  }
+
   function changeEra(i) {
     setEraIndex(i);
     setSelectedLocation(null);
@@ -154,6 +173,7 @@ export default function BibleMaps() {
           minZoom={3}
           maxZoom={10}
           attributionControl={false}
+          onLoad={handleMapLoad}
           onZoom={e => setZoom(e.viewState.zoom)}
         >
           {/* Territory fill + engraved outline */}
