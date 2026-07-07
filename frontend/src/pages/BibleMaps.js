@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Map, { Marker, Source, Layer } from 'react-map-gl/mapbox';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { ChevronLeft, X, BookOpen, ArrowRight } from 'lucide-react';
+import * as turf from '@turf/turf';
 import { BIBLE_ERAS, BIBLE_LOCATIONS, BIBLE_TERRITORIES } from '../data/bibleMaps';
 
 const MAPBOX_TOKEN = process.env.REACT_APP_MAPBOX_TOKEN;
@@ -41,11 +42,23 @@ export default function BibleMaps() {
     const territories = BIBLE_TERRITORIES[currentEra.id] || [];
     return {
       type: 'FeatureCollection',
-      features: territories.map(t => ({
-        type: 'Feature',
-        properties: { id: t.id, name: t.name, color: t.color },
-        geometry: { type: 'Polygon', coordinates: [t.coordinates] },
-      })),
+      features: territories.map(t => {
+        let coords = t.coordinates;
+        try {
+          const ring = coords[coords.length - 1][0] === coords[0][0] && coords[coords.length - 1][1] === coords[0][1]
+            ? coords.slice(0, -1)
+            : coords;
+          const line = turf.lineString(ring);
+          const curved = turf.bezierSpline(line, { resolution: 10000, sharpness: 0.85 });
+          const smoothed = curved.geometry.coordinates;
+          coords = [...smoothed, smoothed[0]];
+        } catch (_) {}
+        return {
+          type: 'Feature',
+          properties: { id: t.id, name: t.name, color: t.color },
+          geometry: { type: 'Polygon', coordinates: [coords] },
+        };
+      }),
     };
   }, [currentEra]);
 
