@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Globe, MapPin, RefreshCw, Flame, BookOpen, Users, Plus, Bookmark, Play, Target, Settings, TrendingUp, Pencil } from 'lucide-react';
+import { Globe, MapPin, RefreshCw, Flame, BookOpen, Users, Plus, Bookmark, Play, Target, Settings, TrendingUp, Pencil, Lock, Cross } from 'lucide-react';
 import api from '../utils/api';
 import { fadeUp, fadeIn, scaleIn, slideInRight, slideUp, staggerContainer, staggerContainerFast, staggerItem } from '../utils/animations';
 import { useAuth } from '../contexts/AuthContext';
@@ -83,8 +83,8 @@ function PrayerCard({ request, currentUserId, onPray, onUserClick, onMarkAnswere
             </div>
             <div className="flex items-center gap-1.5 flex-shrink-0">
               {request.visibility && request.visibility !== 'PUBLIC' && (
-                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${request.visibility === 'PRIVATE' ? 'bg-gray-100 text-gray-500' : 'bg-purple-50 text-purple-600'}`}>
-                  {request.visibility === 'PRIVATE' ? '🔒' : '✝️'}
+                <span className={`flex items-center text-[10px] font-bold px-1.5 py-0.5 rounded-full ${request.visibility === 'PRIVATE' ? 'bg-gray-100 text-gray-500' : 'bg-purple-50 text-purple-600'}`}>
+                  {request.visibility === 'PRIVATE' ? <Lock size={10} strokeWidth={2.5} /> : <Cross size={10} strokeWidth={2.5} />}
                 </span>
               )}
               <span className="text-[10px] text-gray-400 whitespace-nowrap">{timeAgo}</span>
@@ -92,7 +92,7 @@ function PrayerCard({ request, currentUserId, onPray, onUserClick, onMarkAnswere
           </div>
           <div className="flex items-center gap-2 mt-2 mb-1">
             <h4 className="font-bold text-gray-900 text-sm">{request.title}</h4>
-            {showDistance && request.distanceKm != null && <span className="text-[10px] text-gray-400 whitespace-nowrap">📍 {request.distanceKm} km</span>}
+            {showDistance && request.distanceKm != null && <span className="flex items-center gap-0.5 text-[10px] text-gray-400 whitespace-nowrap"><MapPin size={10} strokeWidth={2} />{request.distanceKm} km</span>}
           </div>
           <p className="text-sm text-gray-500 leading-relaxed line-clamp-3">{request.body}</p>
           {request.isAnswered && request.testimonyMessage && (
@@ -282,7 +282,7 @@ export default function PrayerPage() {
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.15, duration: 0.3 }}
             className="flex items-center gap-1.5 mb-5"
           >
-            <Flame size={14} strokeWidth={2} color="#f59e0b" />
+            <Flame size={14} strokeWidth={2} color="#C9932F" />
             <p className="text-white/60 text-xs font-medium">{streak} day streak</p>
           </motion.div>
         )}
@@ -300,7 +300,7 @@ export default function PrayerPage() {
               <p className="text-white/70 text-xs font-medium">Daily Goal</p>
             </div>
             <div className="flex items-center gap-3">
-              <span className="text-amber-400 font-bold text-sm">{quota?.completed ?? 0} / {quota?.target ?? '–'}</span>
+              <span className="text-[#C9932F] font-bold text-sm">{quota?.completed ?? 0} / {quota?.target ?? '–'}</span>
               <button onClick={() => setShowSettings(true)} className="text-white/40 hover:text-white/70 transition-colors">
                 <Settings size={14} strokeWidth={1.5} />
               </button>
@@ -311,10 +311,10 @@ export default function PrayerPage() {
               initial={{ width: 0 }}
               animate={{ width: `${pct}%` }}
               transition={{ duration: 0.8, ease: 'easeOut', delay: 0.3 }}
-              className="h-full rounded-full bg-amber-400"
+              className="h-full rounded-full bg-[#C9932F]"
             />
           </div>
-          {quota?.isComplete && <p className="text-amber-400 text-xs font-medium mt-2">Goal complete for today</p>}
+          {quota?.isComplete && <p className="text-[#C9932F] text-xs font-medium mt-2">Goal complete for today</p>}
         </motion.div>
       </div>
 
@@ -325,7 +325,7 @@ export default function PrayerPage() {
           <motion.button
             whileTap={{ scale: 0.97 }} transition={{ type: 'spring', stiffness: 400, damping: 20 }}
             onClick={() => setShowQueue(true)}
-            className="flex-1 flex items-center justify-center gap-2 bg-amber-400 text-gray-900 font-medium rounded-xl text-sm shadow-sm"
+            className="flex-1 flex items-center justify-center gap-2 bg-[#C9932F] text-gray-900 font-medium rounded-xl text-sm shadow-sm"
             style={{ height: 44 }}
           >
             <Play size={14} strokeWidth={2} />
@@ -439,7 +439,7 @@ export default function PrayerPage() {
           whileTap={{ scale: 0.97 }}
           onClick={() => navigate('/prayer-cells')}
           className="mx-0 mb-4 rounded-2xl p-4 flex items-center justify-between cursor-pointer"
-          style={{ background: 'linear-gradient(135deg, #f59e0b, #f97316)' }}
+          style={{ background: '#C9932F' }}
         >
           <div>
             <div className="flex items-center gap-2">

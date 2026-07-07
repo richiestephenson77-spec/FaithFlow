@@ -1,8 +1,7 @@
 import { motion } from 'framer-motion';
-import { Globe } from 'lucide-react';
+import { Globe, MapPin } from 'lucide-react';
 import Avatar from './Avatar';
 
-const MEDAL = { 1: '🥇', 2: '🥈', 3: '🥉' };
 const BORDER = { 1: '#F5C842', 2: '#C0C0C0', 3: '#CD7F32' };
 
 function getTimeAgo(dateStr) {
@@ -19,22 +18,22 @@ export default function TopPrayerCard({ request, currentUserId, onPray, onUserCl
   // Use backend-provided isOwner — user.id is null when prayer is anonymized
   const isOwner = request.isOwner ?? (request.user?.id === currentUserId);
   const borderColor = BORDER[rank] || '#e5e7eb';
-  const medal = MEDAL[rank];
 
   return (
     <div
       className="bg-white rounded-2xl p-4 shadow-sm relative"
       style={{ border: `2px solid ${borderColor}` }}
     >
-      {/* Medal badge — bounces in */}
-      <motion.span
-        className="absolute -top-3 -left-1 text-2xl select-none"
+      {/* Rank badge — bounces in */}
+      <motion.div
+        className="absolute -top-3 -left-1 w-7 h-7 rounded-full flex items-center justify-center select-none"
+        style={{ background: borderColor, boxShadow: '0 1px 4px rgba(0,0,0,0.18)' }}
         initial={{ scale: 0, rotate: -15 }}
         animate={{ scale: 1, rotate: 0 }}
         transition={{ type: 'spring', stiffness: 300, damping: 14, delay: 0.15 * rank }}
       >
-        {medal}
-      </motion.span>
+        <span className="text-white font-bold" style={{ fontSize: 11 }}>{rank}</span>
+      </motion.div>
 
       {request.isUrgent && (
         <span className="absolute top-3 right-3 bg-red-50 text-red-600 text-[10px] font-bold px-2 py-0.5 rounded-full border border-red-100 uppercase tracking-wide">
@@ -82,15 +81,15 @@ export default function TopPrayerCard({ request, currentUserId, onPray, onUserCl
           {/* Live count — re-animates when count changes */}
           <motion.p
             key={request.prayerCount}
-            initial={{ scale: 1.15, color: '#f59e0b' }}
-            animate={{ scale: 1, color: '#d97706' }}
+            initial={{ scale: 1.15, color: '#C9932F' }}
+            animate={{ scale: 1, color: '#B8822A' }}
             transition={{ duration: 0.3 }}
             className="text-xs font-semibold mt-2 flex items-center gap-1"
           >
             <Globe size={11} strokeWidth={2} /> {request.prayerCount} {request.prayerCount === 1 ? 'person' : 'people'} praying worldwide
           </motion.p>
           {showDistance && request.distanceKm != null && (
-            <p className="text-xs text-gray-400 mt-0.5">📍 {request.distanceKm} km away</p>
+            <p className="flex items-center gap-0.5 text-xs text-gray-400 mt-0.5"><MapPin size={10} strokeWidth={2} />{request.distanceKm} km away</p>
           )}
 
           <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-50">
