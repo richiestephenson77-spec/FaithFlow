@@ -105,7 +105,7 @@ export default function BibleMaps() {
   return (
     <div className="min-h-screen flex flex-col" style={{ background: '#F6F1E4' }}>
       {/* Map area */}
-      <div className="relative" style={{ height: '55vh' }}>
+      <div className="relative" style={{ height: '68vh' }}>
         <Map
           ref={mapRef}
           mapboxAccessToken={MAPBOX_TOKEN}
@@ -289,7 +289,7 @@ export default function BibleMaps() {
 
       {/* Timeline panel */}
       <div
-        className="flex-1 rounded-t-3xl px-5 pt-5 pb-8 -mt-6 relative z-10 border-t"
+        className="flex-1 rounded-t-3xl px-5 pt-3 pb-4 -mt-4 relative z-10 border-t"
         style={{ background: '#FCFAF3', borderColor: '#DED2B0' }}
       >
         <AnimatePresence mode="wait">
@@ -309,17 +309,17 @@ export default function BibleMaps() {
               </span>
             </div>
             <h2
-              className="font-bold text-xl mt-1"
+              className="font-bold text-lg mt-0.5"
               style={{ color: '#232B38', fontFamily: "'Fraunces', 'Georgia', serif" }}
             >
               {currentEra.label}
             </h2>
-            <div className="mt-2 h-[2px] w-12" style={{ background: 'linear-gradient(90deg, #A8823C, transparent)' }} />
-            <p className="text-sm leading-relaxed mt-3" style={{ color: '#5C6270' }}>{currentEra.description}</p>
+            <div className="mt-1.5 h-[2px] w-10" style={{ background: 'linear-gradient(90deg, #A8823C, transparent)' }} />
+            <p className="text-sm leading-snug mt-2 line-clamp-2" style={{ color: '#5C6270' }}>{currentEra.description}</p>
           </motion.div>
         </AnimatePresence>
 
-        <div className="mt-5">
+        <div className="mt-3">
           <input
             type="range"
             min={0}
@@ -347,7 +347,7 @@ export default function BibleMaps() {
           </div>
         </div>
 
-        <div className="flex items-center justify-center gap-3 mt-5">
+        <div className="flex items-center justify-center gap-3 mt-3">
           {BIBLE_ERAS.map((era, i) => (
             <button
               key={era.id}
