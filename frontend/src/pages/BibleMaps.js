@@ -5,7 +5,7 @@ import Map, { Marker, Source, Layer } from 'react-map-gl/mapbox';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { ChevronLeft, X, BookOpen, ArrowRight } from 'lucide-react';
 import * as turf from '@turf/turf';
-import { BIBLE_ERAS, BIBLE_LOCATIONS, BIBLE_TERRITORIES } from '../data/bibleMaps';
+import { BIBLE_ERAS, BIBLE_LOCATIONS, BIBLE_TERRITORIES, BIBLE_FIGURES } from '../data/bibleMaps';
 
 const MAPBOX_TOKEN = process.env.REACT_APP_MAPBOX_TOKEN;
 
@@ -21,14 +21,46 @@ function extractReference(text) {
   return match ? match[1] : null;
 }
 
+function RobedFigureSVG({ accessory = 'none' }) {
+  return (
+    <svg viewBox="0 0 24 28" width="24" height="28" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+      {/* Halo */}
+      {accessory === 'halo' && (
+        <circle cx="12" cy="6.5" r="5" fill="none" stroke="#A8823C" strokeWidth="1.2" opacity="0.85" />
+      )}
+      {/* Head */}
+      <circle cx="12" cy="7" r="3.5" fill="#7A5C3E" />
+      {/* Robe body */}
+      <path d="M5 27 Q6 17 12 15 Q18 17 19 27Z" fill="#7A5C3E" opacity="0.9" />
+      {/* Robe collar/shoulders */}
+      <path d="M8.5 13.5 Q12 16 15.5 13.5 L16 15.5 Q12 18 8 15.5Z" fill="#5C3E28" />
+      {/* Crown */}
+      {accessory === 'crown' && (
+        <g transform="translate(8,2.5)">
+          <rect x="0" y="2" width="8" height="2.5" rx="0.5" fill="#B8860B" />
+          <polygon points="0,2 1.5,0 3,2" fill="#B8860B" />
+          <polygon points="3,2 4,0.5 5,2" fill="#FDE68A" />
+          <polygon points="5,2 6.5,0 8,2" fill="#B8860B" />
+        </g>
+      )}
+      {/* Staff */}
+      {accessory === 'staff' && (
+        <line x1="18" y1="10" x2="20" y2="27" stroke="#5C3E28" strokeWidth="1.3" strokeLinecap="round" />
+      )}
+    </svg>
+  );
+}
+
 export default function BibleMaps() {
   const navigate = useNavigate();
   const mapRef = useRef(null);
   const [eraIndex, setEraIndex] = useState(0);
   const [selectedLocation, setSelectedLocation] = useState(null);
+  const [selectedFigure, setSelectedFigure] = useState(null);
   const [zoom, setZoom] = useState(5);
 
   const currentEra = BIBLE_ERAS[eraIndex];
+  const eraFigures = useMemo(() => BIBLE_FIGURES.filter(f => f.era === currentEra.id), [currentEra]);
 
   const visibleLocations = useMemo(
     () => BIBLE_LOCATIONS.filter(l => l.names[currentEra.id]),
@@ -62,6 +94,7 @@ export default function BibleMaps() {
   function changeEra(i) {
     setEraIndex(i);
     setSelectedLocation(null);
+    setSelectedFigure(null);
   }
 
   function zoomIn() { mapRef.current?.getMap().zoomIn(); }
@@ -72,8 +105,14 @@ export default function BibleMaps() {
   }
 
   function selectLocation(loc) {
+    setSelectedFigure(null);
     setSelectedLocation(loc);
     flyTo(loc.coordinates);
+  }
+
+  function selectFigure(fig) {
+    setSelectedLocation(null);
+    setSelectedFigure(fig);
   }
 
   function goNext() {
@@ -254,13 +293,10 @@ export default function BibleMaps() {
                   <X size={12} color="#232B38" />
                 </button>
               </div>
-
               <div className="my-3" style={{ borderTop: '1px solid #DED2B0' }} />
-
               <p className="text-sm leading-relaxed font-serif italic" style={{ color: '#5C6270' }}>
                 {selectedLocation.info?.[currentEra.id] || 'An important location in biblical history.'}
               </p>
-
               <div className="flex items-center gap-2 mt-4">
                 <button
                   onClick={readInBible}
@@ -281,6 +317,61 @@ export default function BibleMaps() {
               </div>
               {reference && (
                 <p className="text-xs mt-2 text-center" style={{ color: '#A8823C', letterSpacing: '0.02em' }}>{reference}</p>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Figure popup — same card pattern as location popup */}
+        <AnimatePresence>
+          {selectedFigure && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              className="absolute bottom-4 left-4 right-4 backdrop-blur-xl rounded-2xl p-4 z-10 border"
+              style={{ background: 'rgba(252,250,243,0.95)', borderColor: '#DED2B0' }}
+            >
+              <div className="flex justify-between items-start">
+                <div className="flex items-center gap-2.5">
+                  <div
+                    className="w-9 h-9 rounded-full border flex items-center justify-center overflow-hidden flex-shrink-0"
+                    style={{ background: '#F6F1E4', borderColor: '#DED2B0' }}
+                  >
+                    <RobedFigureSVG accessory={selectedFigure.accessory} />
+                  </div>
+                  <div>
+                    <p className="font-bold text-base leading-tight" style={{ color: '#232B38' }}>
+                      {selectedFigure.name}
+                    </p>
+                    <p className="text-xs mt-0.5" style={{ color: '#7A2E2E' }}>{selectedFigure.title}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setSelectedFigure(null)}
+                  className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ml-2"
+                  style={{ background: 'rgba(35,43,56,0.06)' }}
+                >
+                  <X size={12} color="#232B38" />
+                </button>
+              </div>
+              <div className="my-3" style={{ borderTop: '1px solid #DED2B0' }} />
+              <p className="text-sm leading-relaxed font-serif italic" style={{ color: '#5C6270' }}>
+                {selectedFigure.info}
+              </p>
+              <div className="flex items-center gap-2 mt-4">
+                <button
+                  onClick={readInBible}
+                  className="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold rounded-full py-2"
+                  style={{ background: 'rgba(35,43,56,0.05)', color: '#232B38' }}
+                >
+                  <BookOpen size={12} /> Read in Bible
+                </button>
+              </div>
+              {selectedFigure.reference && (
+                <p className="text-xs mt-2 text-center" style={{ color: '#A8823C', letterSpacing: '0.02em' }}>
+                  {selectedFigure.reference}
+                </p>
               )}
             </motion.div>
           )}
@@ -316,6 +407,44 @@ export default function BibleMaps() {
             </h2>
             <div className="mt-1.5 h-[2px] w-10" style={{ background: 'linear-gradient(90deg, #A8823C, transparent)' }} />
             <p className="text-sm leading-snug mt-2 line-clamp-2" style={{ color: '#5C6270' }}>{currentEra.description}</p>
+
+            {/* Figure strip */}
+            {eraFigures.length > 0 && (
+              <div
+                className="flex gap-3 overflow-x-auto mt-2 pb-1 -mx-1 px-1"
+                style={{ scrollbarWidth: 'none' }}
+              >
+                {eraFigures.map(figure => (
+                  <button
+                    key={figure.id}
+                    onClick={() => selectFigure(figure)}
+                    className="flex flex-col items-center flex-shrink-0 w-14"
+                  >
+                    <div
+                      className="w-9 h-9 rounded-full border flex items-center justify-center overflow-hidden"
+                      style={{
+                        background: selectedFigure?.id === figure.id ? '#F6F1E4' : '#FCFAF3',
+                        borderColor: selectedFigure?.id === figure.id ? '#A8823C' : '#DED2B0',
+                      }}
+                    >
+                      <RobedFigureSVG accessory={figure.accessory} />
+                    </div>
+                    <span
+                      className="text-[9px] font-semibold mt-1 truncate w-full text-center"
+                      style={{ color: selectedFigure?.id === figure.id ? '#7A2E2E' : '#232B38' }}
+                    >
+                      {figure.name}
+                    </span>
+                    <span
+                      className="text-[8px] truncate w-full text-center leading-tight"
+                      style={{ color: 'rgba(92,98,112,0.7)' }}
+                    >
+                      {figure.hook}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
           </motion.div>
         </AnimatePresence>
 
