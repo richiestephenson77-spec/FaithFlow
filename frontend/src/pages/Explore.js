@@ -2,6 +2,9 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { BookOpen, Church, Shield, Users, Heart, Handshake, Search, ArrowRight, Radio, BookMarked, Map } from 'lucide-react';
 
+const ACCENT = '#C9932F';
+const ACCENT_BG = 'rgba(201,147,47,0.12)';
+
 const cardVariants = {
   hidden: { opacity: 0, y: 16, scale: 0.98 },
   show: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.3, ease: 'easeOut' } },
@@ -13,8 +16,6 @@ const features = [
     label: 'Bible',
     subtitle: 'Read & search scripture',
     route: '/bible',
-    border: '#F59E0B',
-    iconBg: '#FEF3C7',
     Icon: BookOpen,
     active: true,
   },
@@ -23,8 +24,6 @@ const features = [
     label: 'Churches',
     subtitle: 'Find local · Join community',
     route: '/churches-hub',
-    border: '#10B981',
-    iconBg: '#D1FAE5',
     Icon: Church,
     active: true,
   },
@@ -41,7 +40,6 @@ const features = [
     label: 'Prayer Cells',
     subtitle: 'Join a live audio prayer session',
     route: '/prayer-cells',
-    border: '#F97316',
     Icon: Radio,
     active: true,
   },
@@ -50,7 +48,6 @@ const features = [
     label: 'Pray w/ Pastor',
     subtitle: 'Connect with verified pastors',
     route: '/pastors',
-    border: '#3B82F6',
     Icon: Users,
     active: true,
   },
@@ -59,7 +56,6 @@ const features = [
     label: 'Bible Dictionary',
     subtitle: 'Search any word, name or topic',
     route: '/bible-dictionary',
-    border: '#22C55E',
     Icon: BookMarked,
     active: true,
   },
@@ -68,7 +64,6 @@ const features = [
     label: 'Bible Maps',
     subtitle: 'Explore the Biblical world through time',
     route: '/bible-maps',
-    border: '#F5C842',
     Icon: Map,
     active: true,
     isNew: true,
@@ -84,7 +79,6 @@ const features = [
     label: 'Prayer Partners',
     subtitle: 'Pray for each other for 7 days',
     route: '/prayer-partners',
-    border: '#8B5CF6',
     Icon: Handshake,
     active: true,
   },
@@ -112,13 +106,13 @@ function FeaturedCard({ feature, onTap }) {
         transition={{ type: 'spring', stiffness: 400, damping: 20 }}
         onClick={() => onTap(feature)}
         className="relative flex flex-col p-5 rounded-2xl text-left w-full bg-white shadow-sm"
-        style={{ height: 140, borderTop: `3px solid ${feature.border}` }}
+        style={{ height: 140, borderTop: `3px solid ${ACCENT}` }}
       >
         <div
           className="flex items-center justify-center rounded-xl flex-shrink-0"
-          style={{ width: 36, height: 36, background: feature.iconBg }}
+          style={{ width: 36, height: 36, background: ACCENT_BG }}
         >
-          <feature.Icon size={18} color={feature.border} strokeWidth={1.8} />
+          <feature.Icon size={18} color={ACCENT} strokeWidth={1.8} />
         </div>
         <p className="font-bold text-base mt-3 leading-tight text-gray-900">{feature.label}</p>
         <p className="text-gray-400 text-xs mt-1 leading-relaxed flex-1">{feature.subtitle}</p>
@@ -138,14 +132,14 @@ function GridCard({ feature, onTap }) {
         transition={{ type: 'spring', stiffness: 400, damping: 20 }}
         onClick={() => onTap(feature)}
         className="relative flex flex-col p-4 rounded-2xl text-left w-full bg-white shadow-sm"
-        style={{ height: 110, borderLeft: `4px solid ${feature.border}` }}
+        style={{ height: 110, borderLeft: `4px solid ${ACCENT}` }}
       >
         {feature.isNew && (
           <span className="absolute top-2 right-2 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-600">
             NEW
           </span>
         )}
-        <feature.Icon size={24} color={feature.border} strokeWidth={1.8} />
+        <feature.Icon size={24} color={ACCENT} strokeWidth={1.8} />
         <p className="font-semibold text-sm mt-2 leading-tight text-gray-900">{feature.label}</p>
         <p className="text-gray-400 text-xs mt-0.5 leading-snug">{feature.subtitle}</p>
       </motion.button>

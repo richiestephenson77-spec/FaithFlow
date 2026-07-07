@@ -80,8 +80,8 @@ export default function Layout() {
             transition={{ type: 'spring', stiffness: 300, damping: 20, delay: 0.35 }}
             whileTap={{ scale: 0.93 }}
             onClick={() => navigate('/prayer')}
-            className="fixed bottom-[72px] left-1/2 -translate-x-1/2 z-40 px-7 py-3 rounded-full font-bold text-sm text-white shadow-xl"
-            style={{ background: 'linear-gradient(135deg, #f59e0b, #f97316)', boxShadow: '0 4px 20px rgba(249,115,22,0.45)' }}
+            className="fixed bottom-[72px] left-1/2 -translate-x-1/2 z-40 px-7 py-3 rounded-full font-bold text-sm shadow-xl"
+            style={{ background: '#C9932F', color: '#0A0F1E', boxShadow: '0 4px 20px rgba(201,147,47,0.35)', border: '3px solid white' }}
           >
             Pray
           </motion.button>
