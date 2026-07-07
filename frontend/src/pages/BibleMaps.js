@@ -88,35 +88,7 @@ export default function BibleMaps() {
           mapboxAccessToken={MAPBOX_TOKEN}
           initialViewState={{ longitude: 36, latitude: 31, zoom: 5 }}
           style={{ width: '100%', height: '100%' }}
-          mapStyle={{
-            version: 8,
-            sources: {
-              'osm-tiles': {
-                type: 'raster',
-                tiles: ['https://tiles.stadiamaps.com/tiles/stamen_toner/{z}/{x}/{y}.png'],
-                tileSize: 256,
-                attribution: '© Stamen Design © OpenStreetMap contributors',
-              },
-            },
-            layers: [
-              {
-                id: 'background',
-                type: 'background',
-                paint: { 'background-color': '#1a1205' },
-              },
-              {
-                id: 'osm-tiles',
-                type: 'raster',
-                source: 'osm-tiles',
-                paint: {
-                  'raster-opacity': 0.6,
-                  'raster-saturation': -1,
-                  'raster-brightness-min': 0,
-                  'raster-brightness-max': 0.4,
-                },
-              },
-            ],
-          }}
+          mapStyle="mapbox://styles/mapbox/dark-v11"
           minZoom={3}
           maxZoom={10}
           attributionControl={false}
