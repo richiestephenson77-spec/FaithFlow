@@ -93,9 +93,9 @@ export default function BibleMaps() {
             sources: {
               'osm-tiles': {
                 type: 'raster',
-                tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+                tiles: ['https://tiles.stadiamaps.com/tiles/stamen_toner/{z}/{x}/{y}.png'],
                 tileSize: 256,
-                attribution: '© OpenStreetMap contributors',
+                attribution: '© Stamen Design © OpenStreetMap contributors',
               },
             },
             layers: [
