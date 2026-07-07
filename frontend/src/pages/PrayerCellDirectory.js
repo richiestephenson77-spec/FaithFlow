@@ -1,20 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Mic, Cross, Award } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Mic, Award, BadgeCheck } from 'lucide-react';
 import api from '../utils/api';
 import Avatar from '../components/Avatar';
 import { useSocket } from '../contexts/SocketContext';
 
-const BG = '#0A0F1E';
-const CARD_BG = '#141A2E';
-const CARD_BORDER = 'rgba(255,255,255,0.06)';
 const GOLD = '#C9932F';
-const GOLD_GLOW = 'rgba(201,147,47,0.15)';
-const LIVE_RED = '#DC5F5F';
-const TEXT_PRIMARY = '#F5F3EE';
-const TEXT_SECONDARY = 'rgba(245,243,238,0.5)';
-const TEXT_TERTIARY = 'rgba(245,243,238,0.3)';
+const LIVE_RED = '#ED4956';
 
 function timeAgo(date) {
   const mins = Math.floor((Date.now() - new Date(date)) / 60000);
@@ -24,23 +17,25 @@ function timeAgo(date) {
   return `${hrs}h ago`;
 }
 
-function PulseDot({ size = 6, color = LIVE_RED }) {
+function LiveAvatar({ user }) {
   return (
-    <span className="relative flex-shrink-0" style={{ width: size, height: size }}>
-      {[1.8, 1.4].map((scale, i) => (
-        <motion.span
-          key={i}
-          className="absolute inset-0 rounded-full"
-          style={{ background: color }}
-          animate={{ scale: [1, scale], opacity: [0.5, 0] }}
-          transition={{ duration: 1.4, repeat: Infinity, delay: i * 0.3, ease: 'easeOut' }}
-        />
-      ))}
+    <div className="relative flex-shrink-0">
+      {/* Instagram-style live ring: color ring → white gap → avatar */}
+      <div className="rounded-full p-[2px]" style={{ background: LIVE_RED }}>
+        <div className="rounded-full p-[2px] bg-white">
+          <div className="rounded-full overflow-hidden" style={{ width: 48, height: 48 }}>
+            <Avatar user={user} size="md" />
+          </div>
+        </div>
+      </div>
+      {/* LIVE pill — bottom-centre, overlapping */}
       <span
-        className="absolute inset-0 rounded-full"
-        style={{ background: color }}
-      />
-    </span>
+        className="absolute left-1/2 -translate-x-1/2 -bottom-1 text-white font-bold rounded uppercase tracking-wide"
+        style={{ fontSize: 8, background: LIVE_RED, padding: '1px 5px', borderRadius: 3 }}
+      >
+        LIVE
+      </span>
+    </div>
   );
 }
 
@@ -101,24 +96,24 @@ export default function PrayerCellDirectory() {
   }
 
   return (
-    <div className="min-h-screen pb-32" style={{ background: BG }}>
+    <div className="min-h-screen pb-32" style={{ background: '#FAFAFA' }}>
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
-        className="px-5 pt-5 pb-4 flex items-center gap-3"
+        className="px-4 pt-5 pb-4 flex items-center gap-3"
       >
         <button onClick={() => navigate(-1)} className="p-1 -ml-1 flex-shrink-0">
-          <ChevronLeft size={22} color={TEXT_PRIMARY} strokeWidth={2} />
+          <ChevronLeft size={22} color="#262626" strokeWidth={2} />
         </button>
         <div>
-          <h2 className="text-xl font-bold leading-tight" style={{ color: TEXT_PRIMARY }}>Prayer Cells</h2>
-          <p className="text-xs mt-0.5" style={{ color: TEXT_SECONDARY }}>Live prayer sessions</p>
+          <h2 className="text-xl font-bold leading-tight" style={{ color: '#262626' }}>Prayer Cells</h2>
+          <p className="text-xs mt-0.5" style={{ color: '#8E8E8E' }}>Live prayer sessions</p>
         </div>
       </motion.div>
 
-      {/* Start hosting CTA */}
+      {/* Start a Prayer Cell CTA */}
       <motion.div
         initial={{ opacity: 0, scale: 0.97 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -126,55 +121,52 @@ export default function PrayerCellDirectory() {
         className="mx-4 mt-1"
       >
         <motion.button
-          whileTap={{ scale: 0.97 }}
+          whileTap={{ scale: 0.98 }}
           onClick={handleStartHosting}
           disabled={starting}
-          className="w-full flex items-center justify-between p-5 rounded-2xl"
-          style={{ background: GOLD, boxShadow: '0 4px 20px rgba(201,147,47,0.25)' }}
+          className="w-full flex items-center justify-between px-4 py-3.5 rounded-2xl bg-white"
+          style={{ border: '1px solid #DBDBDB' }}
         >
           <div className="flex items-center gap-3">
-            <Mic size={24} color={BG} strokeWidth={1.8} />
+            <Mic size={20} color={GOLD} strokeWidth={1.8} />
             <div className="text-left">
-              <p className="font-bold text-base leading-tight" style={{ color: BG }}>
+              <p className="font-bold text-sm leading-tight" style={{ color: '#262626' }}>
                 {starting ? 'Starting…' : 'Start a Prayer Cell'}
               </p>
-              <p className="text-xs mt-0.5" style={{ color: 'rgba(10,15,30,0.6)' }}>Open your room · pray for others</p>
+              <p className="text-xs mt-0.5" style={{ color: '#8E8E8E' }}>Open your room · pray for others</p>
             </div>
           </div>
-          <ChevronRight size={20} color={BG} />
+          <ChevronRight size={18} color="#C7C7C7" />
         </motion.button>
       </motion.div>
 
-      {/* Live cells */}
+      {/* Live Now */}
       <div className="mt-6 px-4">
-        <div className="flex items-center gap-2 mb-3">
-          <PulseDot size={6} color={LIVE_RED} />
-          <p className="font-bold text-sm" style={{ color: TEXT_PRIMARY }}>Live Now</p>
-        </div>
+        <p className="font-semibold text-sm mb-1" style={{ color: '#262626' }}>Live Now</p>
 
         {loading ? (
-          <div className="space-y-3">
+          <div className="mt-2 space-y-0">
             {[1, 2].map(i => (
-              <div key={i} className="h-24 rounded-2xl animate-pulse" style={{ background: 'rgba(255,255,255,0.04)' }} />
+              <div key={i} className="flex items-center gap-3 py-3 border-b border-[#DBDBDB]">
+                <div className="w-14 h-14 rounded-full animate-pulse" style={{ background: '#F0F0F0' }} />
+                <div className="flex-1 space-y-2">
+                  <div className="h-3 w-28 rounded animate-pulse" style={{ background: '#F0F0F0' }} />
+                  <div className="h-2.5 w-20 rounded animate-pulse" style={{ background: '#F0F0F0' }} />
+                </div>
+              </div>
             ))}
           </div>
         ) : activeCells.length === 0 ? (
-          <div className="flex flex-col items-center py-12">
-            {/* Concentric rings empty state */}
-            <div className="relative flex items-center justify-center" style={{ width: 80, height: 80 }}>
-              <div className="absolute rounded-full" style={{ width: 80, height: 80, border: `1px solid ${GOLD}`, opacity: 0.1 }} />
-              <div className="absolute rounded-full" style={{ width: 56, height: 56, border: `1px solid ${GOLD}`, opacity: 0.2 }} />
-              <div className="absolute rounded-full" style={{ width: 32, height: 32, border: `1px solid ${GOLD}`, opacity: 0.3 }} />
-              <Mic size={16} color={GOLD} strokeWidth={1.8} />
-            </div>
-            <p className="font-semibold mt-4" style={{ color: TEXT_SECONDARY }}>No active prayer cells</p>
-            <p className="text-sm mt-1" style={{ color: TEXT_TERTIARY }}>Be the first to open one</p>
+          <div className="flex flex-col items-center py-14">
+            <Mic size={24} color="#C7C7C7" strokeWidth={1.5} />
+            <p className="font-semibold mt-4" style={{ color: '#262626' }}>No active prayer cells</p>
+            <p className="text-sm mt-1" style={{ color: '#8E8E8E' }}>Be the first to open one</p>
             <motion.button
-              whileTap={{ scale: 0.97 }}
+              whileTap={{ scale: 0.98 }}
               onClick={handleStartHosting}
               disabled={starting}
-              className="mt-6 px-6 py-3 rounded-full font-semibold text-sm"
-              style={{ background: GOLD, color: BG }}
+              className="mt-6 px-6 py-2.5 rounded-lg bg-white font-semibold text-sm"
+              style={{ border: '1px solid #DBDBDB', color: '#262626' }}
             >
               Start Hosting
             </motion.button>
@@ -182,13 +174,12 @@ export default function PrayerCellDirectory() {
         ) : (
           <AnimatePresence>
             <motion.div
-              className="space-y-3"
-              variants={{ show: { transition: { staggerChildren: 0.08 } } }}
+              variants={{ show: { transition: { staggerChildren: 0.06 } } }}
               initial="hidden"
               animate="show"
             >
               {activeCells.map(cell => (
-                <CellCard
+                <CellRow
                   key={cell.id}
                   cell={cell}
                   onJoin={() => handleJoin(cell)}
@@ -202,117 +193,87 @@ export default function PrayerCellDirectory() {
 
       {/* Recent sessions */}
       {!loading && recentCells.length > 0 && (
-        <div className="mt-8 px-4">
-          <p className="font-bold text-sm mb-3" style={{ color: TEXT_TERTIARY }}>
-            Recent Sessions
-          </p>
-          <div className="space-y-3">
-            {recentCells.map(cell => (
-              <RecentCellCard key={cell.id} cell={cell} />
-            ))}
-          </div>
+        <div className="mt-6 px-4">
+          <p className="font-semibold text-sm mb-1" style={{ color: '#8E8E8E' }}>Recent Sessions</p>
+          {recentCells.map(cell => (
+            <RecentCellRow key={cell.id} cell={cell} />
+          ))}
         </div>
       )}
     </div>
   );
 }
 
-function CellCard({ cell, onJoin, joining }) {
+function CellRow({ cell, onJoin, joining }) {
   const guestCount = cell.sessions?.length ?? 0;
 
   return (
     <motion.div
-      variants={{ hidden: { opacity: 0, y: 16 }, show: { opacity: 1, y: 0, transition: { duration: 0.3 } } }}
-      className="rounded-2xl p-4"
-      style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}` }}
+      variants={{ hidden: { opacity: 0, y: 10 }, show: { opacity: 1, y: 0, transition: { duration: 0.25 } } }}
+      className="flex items-center gap-3 py-3 border-b border-[#DBDBDB]"
     >
-      <div className="flex items-center gap-3">
-        <div className="relative flex-shrink-0">
-          <div
-            className="rounded-full overflow-hidden"
-            style={{
-              width: 48, height: 48,
-              boxShadow: cell.host.isVerifiedPastor ? `0 0 0 2px ${GOLD}` : 'none',
-            }}
-          >
-            <Avatar user={cell.host} size="md" />
-          </div>
+      <LiveAvatar user={cell.host} />
+
+      <div className="flex-1 min-w-0">
+        {/* Name + verified mark */}
+        <div className="flex items-center gap-1.5">
+          <p className="font-semibold text-sm truncate" style={{ color: '#262626' }}>{cell.host.name}</p>
+          {cell.host.isVerifiedPastor && (
+            <BadgeCheck size={14} color={GOLD} strokeWidth={2} className="flex-shrink-0" />
+          )}
         </div>
 
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <p className="font-semibold text-sm" style={{ color: TEXT_PRIMARY }}>{cell.host.name}</p>
-            {cell.host.isVerifiedPastor && (
-              <span className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium"
-                style={{ background: GOLD_GLOW, color: GOLD }}>
-                <Cross size={10} strokeWidth={2.5} />
-                Pastor
-              </span>
-            )}
-            {cell.host.prayerWarriorBadge && (
-              <span className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium"
-                style={{ background: CARD_BORDER, color: TEXT_SECONDARY }}>
-                <Award size={10} strokeWidth={2} />
-                Warrior
-              </span>
-            )}
-          </div>
-          <div className="flex items-center gap-2 mt-1 flex-wrap">
-            <p className="text-xs font-medium" style={{ color: GOLD }}>
-              {cell.sessionCount} prayed this session
-            </p>
-            <p className="text-xs" style={{ color: TEXT_TERTIARY }}>
-              · {cell.host.totalPeoplesPrayedFor} total
-            </p>
-          </div>
-          <div className="flex items-center gap-1.5 mt-1">
-            <PulseDot size={4} color={LIVE_RED} />
-            <p className="text-xs" style={{ color: TEXT_TERTIARY }}>
-              Live · Started {timeAgo(cell.startedAt)}
-              {guestCount > 0 && ` · ${guestCount} in room`}
-            </p>
-          </div>
+        {/* Stats + warrior */}
+        <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+          <p className="text-xs" style={{ color: '#8E8E8E' }}>
+            {cell.sessionCount} prayed · {cell.host.totalPeoplesPrayedFor} total
+          </p>
+          {cell.host.prayerWarriorBadge && (
+            <>
+              <span style={{ color: '#C7C7C7', fontSize: 10 }}>·</span>
+              <Award size={10} color="#8E8E8E" strokeWidth={2} />
+              <span className="text-xs" style={{ color: '#8E8E8E' }}>Warrior</span>
+            </>
+          )}
         </div>
 
-        <motion.button
-          whileTap={{ scale: 0.95 }}
-          onClick={onJoin}
-          disabled={joining}
-          className="flex-shrink-0 text-sm font-semibold px-4 py-2 rounded-full"
-          style={{ background: GOLD, color: BG }}
-        >
-          {joining ? '…' : 'Join'}
-        </motion.button>
+        {/* Time / room count */}
+        <p className="text-xs mt-0.5" style={{ color: '#C7C7C7' }}>
+          Started {timeAgo(cell.startedAt)}{guestCount > 0 ? ` · ${guestCount} in room` : ''}
+        </p>
       </div>
+
+      {/* Join button — outlined, Instagram "Follow" style */}
+      <motion.button
+        whileTap={{ scale: 0.96 }}
+        onClick={onJoin}
+        disabled={joining}
+        className="flex-shrink-0 font-semibold text-xs px-4 py-1.5 rounded-lg bg-white"
+        style={{ border: '1px solid #DBDBDB', color: '#262626' }}
+      >
+        {joining ? '…' : 'Join'}
+      </motion.button>
     </motion.div>
   );
 }
 
-function RecentCellCard({ cell }) {
+function RecentCellRow({ cell }) {
   return (
-    <div
-      className="rounded-2xl p-4"
-      style={{ background: CARD_BG, border: `1px solid ${CARD_BORDER}`, opacity: 0.65 }}
-    >
-      <div className="flex items-center gap-3">
-        <div className="rounded-full overflow-hidden flex-shrink-0" style={{ width: 48, height: 48 }}>
-          <Avatar user={cell.host} size="md" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="font-semibold text-sm" style={{ color: TEXT_PRIMARY }}>{cell.host.name}</p>
-          <p className="text-xs mt-0.5" style={{ color: GOLD }}>
-            Prayed for {cell.sessionCount} {cell.sessionCount === 1 ? 'person' : 'people'}
-          </p>
-          <div className="flex items-center gap-1.5 mt-1">
-            <div className="rounded-full flex-shrink-0" style={{ width: 4, height: 4, background: TEXT_TERTIARY }} />
-            <p className="text-xs" style={{ color: TEXT_TERTIARY }}>Ended {timeAgo(cell.endedAt)}</p>
-          </div>
-        </div>
-        <span className="flex-shrink-0 text-xs font-medium px-3 py-1.5 rounded-full"
-          style={{ background: CARD_BORDER, color: TEXT_TERTIARY }}>
-          Ended
-        </span>
+    <div className="flex items-center gap-3 py-3 border-b border-[#DBDBDB]">
+      {/* Plain avatar, no live ring */}
+      <div className="rounded-full overflow-hidden flex-shrink-0" style={{ width: 52, height: 52 }}>
+        <Avatar user={cell.host} size="md" />
       </div>
+
+      <div className="flex-1 min-w-0">
+        <p className="font-semibold text-sm truncate" style={{ color: '#262626' }}>{cell.host.name}</p>
+        <p className="text-xs mt-0.5" style={{ color: '#8E8E8E' }}>
+          Prayed for {cell.sessionCount} {cell.sessionCount === 1 ? 'person' : 'people'}
+        </p>
+        <p className="text-xs mt-0.5" style={{ color: '#C7C7C7' }}>Ended {timeAgo(cell.endedAt)}</p>
+      </div>
+
+      <span className="flex-shrink-0 text-xs" style={{ color: '#C7C7C7' }}>Ended</span>
     </div>
   );
 }
