@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, MoreHorizontal } from 'lucide-react';
+import { Flame, BookOpen, Radio, ChevronRight, MoreHorizontal } from 'lucide-react';
 import api from '../utils/api';
 import { track } from '../utils/analytics';
 import { useAuth } from '../contexts/AuthContext';
@@ -148,6 +148,7 @@ export default function Home() {
   const [prayerToast, setPrayerToast] = useState(null);
   const [optionsPost, setOptionsPost] = useState(null);
   const [feedToast, setFeedToast] = useState('');
+  const [liveCount, setLiveCount] = useState(null);
 
   function showFeedToast(msg) {
     setFeedToast(msg);
@@ -168,6 +169,10 @@ export default function Home() {
       .then(res => setPosts(res.data))
       .catch(() => {})
       .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    api.get('/prayers/live-count').then(res => setLiveCount(res.data.count)).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -203,18 +208,43 @@ export default function Home() {
       )}
 
       <div className="px-4 pt-4 pb-24">
-        {/* Prayer Room entry button */}
+        {/* Prayer Room entry tile */}
         <motion.button
           {...fadeUp}
           {...springTap}
           onClick={() => navigate('/prayer')}
-          className="w-full flex items-center justify-between px-5 rounded-xl mb-5"
-          style={{ background: 'linear-gradient(135deg, #f59e0b 0%, #f97316 60%, #a855f7 100%)', height: 60 }}
+          className="w-full rounded-2xl px-5 pt-4 pb-3 mb-5 text-left"
+          style={{ background: '#0A0F1E', minHeight: 106 }}
         >
-          <span className="text-white font-bold text-base flex items-center gap-2"><Sparkles size={16} strokeWidth={1.5} /> Prayer Room</span>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="9 18 15 12 9 6"/>
-          </svg>
+          {/* Top row */}
+          <div className="flex items-center justify-between">
+            <span className="text-white font-bold text-base">Prayer Room</span>
+            <div className="flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#C9932F] animate-pulse" />
+              <span className="text-[11px] font-semibold" style={{ color: '#C9932F' }}>
+                {liveCount != null ? `${liveCount} praying now` : 'Open'}
+              </span>
+            </div>
+          </div>
+
+          {/* Middle — icon previews */}
+          <div className="flex items-center gap-5 mt-3">
+            {[
+              { Icon: Flame,    label: 'Streaks' },
+              { Icon: BookOpen, label: 'Verses' },
+              { Icon: Radio,    label: 'Live Cells' },
+            ].map(({ Icon, label }) => (
+              <div key={label} className="flex flex-col items-center gap-1">
+                <Icon size={14} strokeWidth={1.6} color="rgba(255,255,255,0.5)" />
+                <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.4)' }}>{label}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Bottom-right chevron */}
+          <div className="flex justify-end mt-2">
+            <ChevronRight size={16} color="rgba(255,255,255,0.4)" />
+          </div>
         </motion.button>
 
         {/* Community label */}

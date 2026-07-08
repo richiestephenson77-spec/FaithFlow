@@ -11,7 +11,7 @@ import CreatePostModal from './CreatePostModal';
 const navItems = [
   { to: '/', label: 'Home', Icon: Home, end: true },
   { to: '/explore', label: 'Explore', Icon: Compass },
-  { to: '/search', label: 'Search', Icon: Search },
+  { to: '/prayer', label: 'Prayer', Icon: HandHeart },
   { to: '/messages', label: 'Chats', Icon: MessageCircle },
   { to: '/profile', label: 'Profile', Icon: User },
 ];
@@ -38,31 +38,33 @@ export default function Layout() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col max-w-md mx-auto relative shadow-xl">
-      {!hideHeader && <header className="bg-white border-b border-gray-100 px-4 py-2.5 flex items-center justify-between sticky top-0 z-30">
-        <button onClick={() => setShowCreatePost(true)} className="flex-shrink-0">
-          {user?.profilePhoto ? (
-            <img src={user.profilePhoto} alt={user.name} className="w-9 h-9 rounded-full object-cover" />
-          ) : (
-            <div className="w-9 h-9 rounded-full flex items-center justify-center" style={{ background: '#C9932F' }}>
-              <span className="text-white font-bold text-base">{user?.name?.charAt(0).toUpperCase() || '?'}</span>
-            </div>
-          )}
-        </button>
-        <Logo size="sm" light={false} />
-        <div className="flex items-center gap-3 justify-end w-16">
-          <button onClick={() => navigate('/prayer')} className="w-9 h-9 flex items-center justify-center">
-            <HandHeart size={22} strokeWidth={1.5} color="#262626" />
-          </button>
-          <button onClick={() => navigate('/notifications')} className="relative w-9 h-9 flex items-center justify-center">
-            <Bell size={22} strokeWidth={1.5} color="#262626" />
-            {unreadCount > 0 && (
-              <span className="absolute top-0 right-0 bg-red-500 text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center leading-none font-bold">
-                {unreadCount > 9 ? '9+' : unreadCount}
-              </span>
+      {!hideHeader && (
+        <header className="bg-white border-b border-gray-100 px-4 py-2.5 flex items-center justify-between sticky top-0 z-30">
+          <button onClick={() => setShowCreatePost(true)} className="flex-shrink-0">
+            {user?.profilePhoto ? (
+              <img src={user.profilePhoto} alt={user.name} className="w-9 h-9 rounded-full object-cover" />
+            ) : (
+              <div className="w-9 h-9 rounded-full flex items-center justify-center" style={{ background: '#C9932F' }}>
+                <span className="text-white font-bold text-base">{user?.name?.charAt(0).toUpperCase() || '?'}</span>
+              </div>
             )}
           </button>
-        </div>
-      </header>}
+          <Logo size="sm" light={false} />
+          <div className="flex items-center gap-3 justify-end w-16">
+            <button onClick={() => navigate('/search')} className="w-9 h-9 flex items-center justify-center">
+              <Search size={22} strokeWidth={1.5} color="#262626" />
+            </button>
+            <button onClick={() => navigate('/notifications')} className="relative w-9 h-9 flex items-center justify-center">
+              <Bell size={22} strokeWidth={1.5} color="#262626" />
+              {unreadCount > 0 && (
+                <span className="absolute top-0 right-0 bg-red-500 text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center leading-none font-bold">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
+            </button>
+          </div>
+        </header>
+      )}
 
       {latestToast && <Toast key={latestToast.id} message={latestToast.message} />}
 
@@ -92,16 +94,14 @@ export default function Layout() {
             }
           >
             {({ isActive }) => (
-              <>
-                <motion.div className="relative" whileTap={{ scale: 0.82 }} transition={{ type: 'spring', stiffness: 500, damping: 25 }}>
-                  <Icon size={22} strokeWidth={isActive ? 2.5 : 1.5} />
-                  {label === 'Chats' && unreadMessages > 0 && (
-                    <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[9px] rounded-full w-4 h-4 flex items-center justify-center leading-none font-bold">
-                      {unreadMessages > 9 ? '9+' : unreadMessages}
-                    </span>
-                  )}
-                </motion.div>
-              </>
+              <motion.div className="relative" whileTap={{ scale: 0.82 }} transition={{ type: 'spring', stiffness: 500, damping: 25 }}>
+                <Icon size={22} strokeWidth={isActive ? 2.5 : 1.5} />
+                {label === 'Chats' && unreadMessages > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[9px] rounded-full w-4 h-4 flex items-center justify-center leading-none font-bold">
+                    {unreadMessages > 9 ? '9+' : unreadMessages}
+                  </span>
+                )}
+              </motion.div>
             )}
           </NavLink>
         ))}

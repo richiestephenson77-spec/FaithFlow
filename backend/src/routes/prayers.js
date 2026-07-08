@@ -35,6 +35,14 @@ router.delete('/draft', authenticate, async (req, res) => {
   } catch { res.status(500).json({ error: 'Failed to delete draft' }); }
 });
 
+router.get('/live-count', authenticate, async (req, res) => {
+  try {
+    const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const count = await prisma.prayerSession.count({ where: { startedAt: { gte: since } } });
+    res.json({ count });
+  } catch { res.status(500).json({ count: 0 }); }
+});
+
 router.get('/feed', authenticate, getFeed);
 router.get('/answered', authenticate, getAnsweredFeed);
 router.get('/mine', authenticate, getMyRequests);
