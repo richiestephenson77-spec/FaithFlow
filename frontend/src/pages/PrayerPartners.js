@@ -1,13 +1,15 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Users, ChevronLeft, X } from 'lucide-react';
+import { Users, ChevronLeft, Zap, Clock, Award, HandHeart } from 'lucide-react';
 import api from '../utils/api';
 import { useAuth } from '../contexts/AuthContext';
 import Avatar from '../components/Avatar';
 
-const BG = '#0A0F1E';
-const CARD_BG = '#1A1F35';
+const BG = '#FAFAFA';
+const CARD_BG = '#FFFFFF';
+const GOLD = '#C9932F';
+const GOLD_BG = 'rgba(201,147,47,0.12)';
 
 const TIPS = [
   'While you wait, why not pray for someone in the Prayer Room?',
@@ -27,44 +29,46 @@ function getTimeAgo(d) {
 
 // ── STATE: NONE ─────────────────────────────────────────────────────────────
 function NoneState({ onJoin, joining, userHasGender }) {
+  const STEPS = [
+    { num: '1', Icon: HandHeart, text: 'Join the queue' },
+    { num: '2', Icon: Zap,       text: 'Get matched instantly' },
+    { num: '3', Icon: Clock,     text: 'Pray for each other for 7 days' },
+  ];
+
   return (
     <div className="px-4 pt-4 pb-32">
-      <div className="rounded-2xl p-5 text-center" style={{ background: CARD_BG }}>
+      <div className="rounded-2xl p-5 text-center border" style={{ background: CARD_BG, borderColor: '#EFEFEF' }}>
         <div
           className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
-          style={{ background: 'rgba(245,158,11,0.15)' }}
+          style={{ background: GOLD_BG }}
         >
-          <Users size={32} color="#f59e0b" strokeWidth={1.5} />
+          <Users size={32} color={GOLD} strokeWidth={1.5} />
         </div>
-        <h2 className="text-xl font-bold text-white">Prayer Partners</h2>
-        <p className="text-sm mt-2 leading-relaxed" style={{ color: 'rgba(255,255,255,0.55)' }}>
+        <h2 className="text-xl font-bold" style={{ color: '#262626' }}>Prayer Partners</h2>
+        <p className="text-sm mt-2 leading-relaxed" style={{ color: '#8E8E8E' }}>
           Get matched with a believer of the opposite gender to pray for each other for 7 days
         </p>
       </div>
 
       {/* How it works */}
       <div className="mt-5 space-y-3">
-        {[
-          { num: '1', icon: '🙏', text: 'Join the queue' },
-          { num: '2', icon: '⚡', text: 'Get matched instantly' },
-          { num: '3', icon: '📿', text: 'Pray for each other for 7 days' },
-        ].map(step => (
-          <div key={step.num} className="flex items-center gap-4 rounded-2xl p-4" style={{ background: CARD_BG }}>
+        {STEPS.map(step => (
+          <div key={step.num} className="flex items-center gap-4 rounded-2xl p-4 border" style={{ background: CARD_BG, borderColor: '#EFEFEF' }}>
             <div
-              className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold"
-              style={{ background: '#f59e0b', color: '#1a1a2e' }}
+              className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold text-white"
+              style={{ background: GOLD }}
             >
               {step.num}
             </div>
-            <span className="text-lg">{step.icon}</span>
-            <p className="text-sm font-medium text-white">{step.text}</p>
+            <step.Icon size={18} color={GOLD} strokeWidth={1.8} className="flex-shrink-0" />
+            <p className="text-sm font-medium" style={{ color: '#262626' }}>{step.text}</p>
           </div>
         ))}
       </div>
 
       {!userHasGender && (
-        <div className="mt-4 rounded-2xl p-4" style={{ background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.2)' }}>
-          <p className="text-amber-400 text-sm font-medium text-center">
+        <div className="mt-4 rounded-2xl p-4" style={{ background: 'rgba(201,147,47,0.08)', border: '1px solid rgba(201,147,47,0.2)' }}>
+          <p className="text-sm font-medium text-center" style={{ color: GOLD }}>
             Please set your gender in Profile → Edit Profile first
           </p>
         </div>
@@ -76,8 +80,8 @@ function NoneState({ onJoin, joining, userHasGender }) {
         disabled={!userHasGender || joining}
         className="w-full mt-5 py-4 rounded-2xl font-bold text-base transition-all"
         style={{
-          background: userHasGender ? '#f59e0b' : 'rgba(255,255,255,0.1)',
-          color: userHasGender ? '#1a1a2e' : 'rgba(255,255,255,0.3)',
+          background: userHasGender ? GOLD : '#F0F0F0',
+          color: userHasGender ? 'white' : '#C7C7C7',
         }}
       >
         {joining ? 'Finding match...' : 'Find My Prayer Partner'}
@@ -98,17 +102,17 @@ function WaitingState({ onCancel }) {
   return (
     <div className="flex-1 flex flex-col items-center justify-center px-6 pb-32">
       <div className="relative flex items-center justify-center mb-6">
-        <div className="absolute rounded-full animate-ping" style={{ width: 128, height: 128, background: 'rgba(245,158,11,0.08)' }} />
+        <div className="absolute rounded-full animate-ping" style={{ width: 128, height: 128, background: 'rgba(201,147,47,0.08)' }} />
         <div
           className="relative w-32 h-32 rounded-full flex items-center justify-center"
-          style={{ background: 'rgba(245,158,11,0.1)', border: '2px solid rgba(245,158,11,0.3)' }}
+          style={{ background: GOLD_BG, border: `2px solid rgba(201,147,47,0.3)` }}
         >
-          <Users size={40} color="#f59e0b" strokeWidth={1.5} />
+          <Users size={40} color={GOLD} strokeWidth={1.5} />
         </div>
       </div>
 
-      <h2 className="text-xl font-semibold text-white text-center">Finding your prayer partner...</h2>
-      <p className="text-sm text-center mt-2" style={{ color: 'rgba(255,255,255,0.5)' }}>
+      <h2 className="text-xl font-semibold text-center" style={{ color: '#262626' }}>Finding your prayer partner...</h2>
+      <p className="text-sm text-center mt-2" style={{ color: '#8E8E8E' }}>
         We're matching you with a believer of the opposite gender
       </p>
 
@@ -119,17 +123,17 @@ function WaitingState({ onCancel }) {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
           transition={{ duration: 0.3 }}
-          className="mt-8 rounded-2xl p-4 w-full text-center"
-          style={{ background: CARD_BG }}
+          className="mt-8 rounded-2xl p-4 w-full text-center border"
+          style={{ background: CARD_BG, borderColor: '#EFEFEF' }}
         >
-          <p className="text-sm" style={{ color: 'rgba(255,255,255,0.6)' }}>{TIPS[tipIndex]}</p>
+          <p className="text-sm" style={{ color: '#8E8E8E' }}>{TIPS[tipIndex]}</p>
         </motion.div>
       </AnimatePresence>
 
       <button
         onClick={onCancel}
         className="mt-8 px-8 py-3 rounded-full text-sm font-medium border"
-        style={{ borderColor: 'rgba(255,255,255,0.2)', color: 'rgba(255,255,255,0.5)' }}
+        style={{ borderColor: '#DBDBDB', color: '#8E8E8E' }}
       >
         Cancel
       </button>
@@ -161,22 +165,22 @@ function MatchedState({ partner, partnership, onLeave }) {
 
   function PrayerCard({ prayer, isPartner }) {
     return (
-      <div className="rounded-2xl p-4" style={{ background: CARD_BG }}>
+      <div className="rounded-2xl p-4 border" style={{ background: CARD_BG, borderColor: '#EFEFEF' }}>
         {prayer.isUrgent && (
-          <span className="text-[10px] font-bold text-red-400 bg-red-500/15 px-2 py-0.5 rounded-full uppercase tracking-wide mb-2 inline-block">Urgent</span>
+          <span className="text-[10px] font-bold text-red-500 bg-red-50 px-2 py-0.5 rounded-full uppercase tracking-wide mb-2 inline-block border border-red-100">Urgent</span>
         )}
-        <p className="text-white font-semibold text-sm">{prayer.title}</p>
-        <p className="text-sm mt-1 leading-snug line-clamp-2" style={{ color: 'rgba(255,255,255,0.55)' }}>{prayer.body}</p>
+        <p className="font-semibold text-sm" style={{ color: '#262626' }}>{prayer.title}</p>
+        <p className="text-sm mt-1 leading-snug line-clamp-2" style={{ color: '#8E8E8E' }}>{prayer.body}</p>
         <div className="flex items-center justify-between mt-3">
-          <span className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>{getTimeAgo(prayer.createdAt)}</span>
+          <span className="text-xs" style={{ color: '#C7C7C7' }}>{getTimeAgo(prayer.createdAt)}</span>
           {isPartner && (
             <motion.button
               whileTap={{ scale: 0.95 }}
               onClick={() => navigate('/prayer')}
               className="text-xs font-semibold px-3 py-1.5 rounded-full"
-              style={{ background: 'rgba(245,158,11,0.2)', color: '#f59e0b' }}
+              style={{ background: 'rgba(201,147,47,0.15)', color: GOLD }}
             >
-              🙏 Pray Now
+              Pray Now
             </motion.button>
           )}
         </div>
@@ -188,62 +192,67 @@ function MatchedState({ partner, partnership, onLeave }) {
     <div className="pb-32">
       {/* Partner card */}
       <div
-        className="mx-4 mt-4 rounded-2xl p-5 text-center"
-        style={{ background: 'linear-gradient(135deg, rgba(245,158,11,0.15), rgba(168,85,247,0.15))', border: '1px solid rgba(245,158,11,0.25)' }}
+        className="mx-4 mt-4 rounded-2xl p-5 text-center border"
+        style={{ background: 'rgba(201,147,47,0.08)', borderColor: 'rgba(201,147,47,0.2)' }}
       >
-        <p className="text-[11px] font-bold uppercase tracking-widest mb-3" style={{ color: '#f59e0b' }}>
+        <p className="text-[11px] font-bold uppercase tracking-widest mb-3" style={{ color: GOLD }}>
           Your Prayer Partner
         </p>
         <div
           className="mx-auto rounded-full p-[3px] inline-block mb-3"
-          style={{ background: 'linear-gradient(135deg, #f59e0b, #a855f7)' }}
+          style={{ background: GOLD }}
         >
-          <div className="rounded-full overflow-hidden" style={{ width: 72, height: 72 }}>
-            <Avatar user={partner} size="xl" />
+          <div className="rounded-full overflow-hidden bg-white p-[2px]">
+            <div className="rounded-full overflow-hidden" style={{ width: 68, height: 68 }}>
+              <Avatar user={partner} size="xl" />
+            </div>
           </div>
         </div>
-        <p className="text-xl font-bold text-white">{partner?.name}</p>
+        <p className="text-xl font-bold" style={{ color: '#262626' }}>{partner?.name}</p>
         {partner?.churchName && (
-          <p className="text-sm mt-0.5" style={{ color: '#f59e0b' }}>{partner.churchName}</p>
+          <p className="text-sm mt-0.5" style={{ color: GOLD }}>{partner.churchName}</p>
         )}
         {partner?.location && (
-          <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.4)' }}>{partner.location}</p>
+          <p className="text-xs mt-0.5" style={{ color: '#8E8E8E' }}>{partner.location}</p>
         )}
         {partner?.prayerWarriorBadge && (
-          <span className="mt-2 inline-block text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: 'rgba(245,158,11,0.15)', color: '#f59e0b' }}>🏆 Prayer Warrior</span>
+          <span className="mt-2 inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: GOLD_BG, color: GOLD }}>
+            <Award size={11} strokeWidth={2} />
+            Prayer Warrior
+          </span>
         )}
 
         {/* Countdown */}
         <div className="mt-4">
-          <p className="text-xs mb-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>
-            ⏰ {partnership?.daysLeft ?? 0} day{(partnership?.daysLeft ?? 0) !== 1 ? 's' : ''} remaining
+          <p className="text-xs mb-1.5" style={{ color: '#8E8E8E' }}>
+            {partnership?.daysLeft ?? 0} day{(partnership?.daysLeft ?? 0) !== 1 ? 's' : ''} remaining
           </p>
-          <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.1)' }}>
+          <div className="h-1.5 rounded-full overflow-hidden" style={{ background: '#EFEFEF' }}>
             <div
               className="h-full rounded-full transition-all"
-              style={{ width: `${progress}%`, background: '#f59e0b' }}
+              style={{ width: `${progress}%`, background: GOLD }}
             />
           </div>
           <div className="flex justify-between mt-1">
-            <span className="text-[10px]" style={{ color: 'rgba(255,255,255,0.25)' }}>Day 1</span>
-            <span className="text-[10px]" style={{ color: 'rgba(255,255,255,0.25)' }}>Day 7</span>
+            <span className="text-[10px]" style={{ color: '#C7C7C7' }}>Day 1</span>
+            <span className="text-[10px]" style={{ color: '#C7C7C7' }}>Day 7</span>
           </div>
         </div>
       </div>
 
       {/* Partner's prayers */}
       <div className="px-4 mt-6">
-        <p className="text-white font-bold text-base mb-3">Pray For {partner?.name?.split(' ')[0]}</p>
+        <p className="font-bold text-base mb-3" style={{ color: '#262626' }}>Pray For {partner?.name?.split(' ')[0]}</p>
         {loadingPrayers ? (
           <div className="space-y-3">
-            {[1, 2].map(i => <div key={i} className="h-20 rounded-2xl animate-pulse" style={{ background: CARD_BG }} />)}
+            {[1, 2].map(i => <div key={i} className="h-20 rounded-2xl animate-pulse" style={{ background: '#F0F0F0' }} />)}
           </div>
         ) : partnerPrayers.length === 0 ? (
-          <div className="rounded-2xl p-5 text-center" style={{ background: CARD_BG }}>
-            <p className="text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
+          <div className="rounded-2xl p-5 text-center border" style={{ background: CARD_BG, borderColor: '#EFEFEF' }}>
+            <p className="text-sm" style={{ color: '#8E8E8E' }}>
               {partner?.name?.split(' ')[0]} hasn't shared any prayer requests yet
             </p>
-            <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.25)' }}>
+            <p className="text-xs mt-1" style={{ color: '#C7C7C7' }}>
               Share this page with them to get started
             </p>
           </div>
@@ -256,15 +265,15 @@ function MatchedState({ partner, partnership, onLeave }) {
 
       {/* My prayers */}
       <div className="px-4 mt-6">
-        <p className="text-white font-bold text-base mb-1">Your Requests</p>
-        <p className="text-xs mb-3" style={{ color: 'rgba(255,255,255,0.4)' }}>
+        <p className="font-bold text-base mb-1" style={{ color: '#262626' }}>Your Requests</p>
+        <p className="text-xs mb-3" style={{ color: '#8E8E8E' }}>
           {partner?.name?.split(' ')[0]} is praying for these
         </p>
         {loadingPrayers ? (
-          <div className="h-20 rounded-2xl animate-pulse" style={{ background: CARD_BG }} />
+          <div className="h-20 rounded-2xl animate-pulse" style={{ background: '#F0F0F0' }} />
         ) : myPrayers.length === 0 ? (
-          <div className="rounded-2xl p-4 text-center" style={{ background: CARD_BG }}>
-            <p className="text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>No active prayer requests</p>
+          <div className="rounded-2xl p-4 text-center border" style={{ background: CARD_BG, borderColor: '#EFEFEF' }}>
+            <p className="text-sm" style={{ color: '#8E8E8E' }}>No active prayer requests</p>
           </div>
         ) : (
           <div className="space-y-3">
@@ -278,10 +287,10 @@ function MatchedState({ partner, partnership, onLeave }) {
         <motion.button
           whileTap={{ scale: 0.97 }}
           onClick={() => navigate('/prayer')}
-          className="w-full py-4 rounded-2xl font-bold text-base"
-          style={{ background: '#f59e0b', color: '#1a1a2e' }}
+          className="w-full py-4 rounded-2xl font-bold text-base text-white"
+          style={{ background: GOLD }}
         >
-          🙏 Pray for {partner?.name?.split(' ')[0]}
+          Pray for {partner?.name?.split(' ')[0]}
         </motion.button>
         <button
           onClick={() => setShowLeaveConfirm(true)}
@@ -299,7 +308,7 @@ function MatchedState({ partner, partnership, onLeave }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/70 z-50 flex flex-col justify-end"
+            className="fixed inset-0 bg-black/50 z-50 flex flex-col justify-end"
             onClick={() => setShowLeaveConfirm(false)}
           >
             <motion.div
@@ -307,26 +316,25 @@ function MatchedState({ partner, partnership, onLeave }) {
               animate={{ y: 0 }}
               exit={{ y: 60 }}
               transition={{ type: 'spring', stiffness: 400, damping: 35 }}
-              className="rounded-t-3xl p-6 pb-10"
-              style={{ background: '#1a1f35' }}
+              className="rounded-t-3xl p-6 pb-10 bg-white"
               onClick={e => e.stopPropagation()}
             >
-              <div className="w-10 h-1 bg-white/20 rounded-full mx-auto mb-5" />
-              <p className="text-white font-bold text-lg text-center mb-2">Leave Partnership?</p>
-              <p className="text-sm text-center mb-6" style={{ color: 'rgba(255,255,255,0.5)' }}>
+              <div className="w-10 h-1 rounded-full mx-auto mb-5" style={{ background: '#E0E0E0' }} />
+              <p className="font-bold text-lg text-center mb-2" style={{ color: '#262626' }}>Leave Partnership?</p>
+              <p className="text-sm text-center mb-6" style={{ color: '#8E8E8E' }}>
                 Are you sure? This will end your 7-day partnership with {partner?.name?.split(' ')[0]}.
               </p>
               <button
                 onClick={onLeave}
-                className="w-full py-4 rounded-2xl font-bold text-sm mb-3"
-                style={{ background: '#ef4444', color: 'white' }}
+                className="w-full py-4 rounded-2xl font-bold text-sm mb-3 text-white"
+                style={{ background: '#ef4444' }}
               >
                 Yes, Leave
               </button>
               <button
                 onClick={() => setShowLeaveConfirm(false)}
                 className="w-full py-3 text-sm font-medium"
-                style={{ color: 'rgba(255,255,255,0.4)' }}
+                style={{ color: '#8E8E8E' }}
               >
                 Cancel
               </button>
@@ -353,24 +361,25 @@ function MatchCelebration({ partnerName, onDismiss }) {
         animate={{ scale: 1, opacity: 1 }}
         transition={{ type: 'spring', stiffness: 260, damping: 18, delay: 0.1 }}
         className="w-24 h-24 rounded-full flex items-center justify-center mb-6"
-        style={{ background: 'rgba(245,158,11,0.15)', border: '2px solid rgba(245,158,11,0.3)' }}
+        style={{ background: GOLD_BG, border: `2px solid rgba(201,147,47,0.3)` }}
       >
-        <Users size={44} color="#f59e0b" strokeWidth={1.5} />
+        <Users size={44} color={GOLD} strokeWidth={1.5} />
       </motion.div>
       <motion.h2
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.3 }}
-        className="text-3xl font-bold text-white text-center"
+        className="text-3xl font-bold text-center"
+        style={{ color: '#262626' }}
       >
-        You're Matched! 🎉
+        You're Matched!
       </motion.h2>
       <motion.p
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.45 }}
         className="text-center mt-3 leading-relaxed"
-        style={{ color: 'rgba(255,255,255,0.6)', maxWidth: 260 }}
+        style={{ color: '#8E8E8E', maxWidth: 260 }}
       >
         {partnerName} is your prayer partner for the next 7 days
       </motion.p>
@@ -380,8 +389,8 @@ function MatchCelebration({ partnerName, onDismiss }) {
         transition={{ delay: 0.6 }}
         whileTap={{ scale: 0.96 }}
         onClick={onDismiss}
-        className="mt-8 px-10 py-4 rounded-full font-bold text-base"
-        style={{ background: '#f59e0b', color: '#1a1a2e' }}
+        className="mt-8 px-10 py-4 rounded-full font-bold text-base text-white"
+        style={{ background: GOLD }}
       >
         Start Praying Together
       </motion.button>
@@ -455,9 +464,7 @@ export default function PrayerPartners() {
       } else {
         setStatus('WAITING');
       }
-    } catch (err) {
-      // Gender not set — the UI already handles this case
-    }
+    } catch {}
     setJoining(false);
   }
 
@@ -480,17 +487,17 @@ export default function PrayerPartners() {
   return (
     <div className="min-h-screen flex flex-col" style={{ background: BG }}>
       {/* Header */}
-      <div className="flex items-center gap-3 px-4 pt-5 pb-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+      <div className="flex items-center gap-3 px-4 pt-5 pb-3 bg-white" style={{ borderBottom: '1px solid #EFEFEF' }}>
         <button onClick={() => navigate(-1)} className="p-1 -ml-1">
-          <ChevronLeft size={22} color="white" strokeWidth={2} />
+          <ChevronLeft size={22} color="#262626" strokeWidth={2} />
         </button>
-        <h2 className="text-base font-semibold text-white">Prayer Partners</h2>
+        <h2 className="text-base font-semibold" style={{ color: '#262626' }}>Prayer Partners</h2>
       </div>
 
       {/* Content — state machine */}
       {status === null ? (
         <div className="flex-1 flex items-center justify-center">
-          <div className="w-10 h-10 rounded-full border-2 border-amber-400 border-t-transparent animate-spin" />
+          <div className="w-10 h-10 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: `${GOLD} transparent ${GOLD} ${GOLD}` }} />
         </div>
       ) : status === 'NONE' ? (
         <NoneState onJoin={handleJoin} joining={joining} userHasGender={userHasGender} />

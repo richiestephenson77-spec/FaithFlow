@@ -1,14 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { BookOpen, Church, Shield, Users, Heart, Handshake, Search, ArrowRight, Radio, BookMarked, Map } from 'lucide-react';
-
-const ACCENT = '#C9932F';
-const ACCENT_BG = 'rgba(201,147,47,0.12)';
-
-const cardVariants = {
-  hidden: { opacity: 0, y: 16, scale: 0.98 },
-  show: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.3, ease: 'easeOut' } },
-};
+import { BookOpen, Church, Shield, Users, Heart, Handshake, Search, ChevronRight, Radio, BookMarked, Map } from 'lucide-react';
 
 const features = [
   {
@@ -18,6 +10,7 @@ const features = [
     route: '/bible',
     Icon: BookOpen,
     active: true,
+    section: 'explore',
   },
   {
     id: 'churches',
@@ -26,6 +19,7 @@ const features = [
     route: '/churches-hub',
     Icon: Church,
     active: true,
+    section: 'explore',
   },
   {
     id: 'confessions',
@@ -34,6 +28,7 @@ const features = [
     route: '/confessions',
     Icon: Shield,
     active: true,
+    section: 'hero',
   },
   {
     id: 'cells',
@@ -42,6 +37,7 @@ const features = [
     route: '/prayer-cells',
     Icon: Radio,
     active: true,
+    section: 'connect',
   },
   {
     id: 'pastors',
@@ -50,6 +46,7 @@ const features = [
     route: '/pastors',
     Icon: Users,
     active: true,
+    section: 'connect',
   },
   {
     id: 'bibleDictionary',
@@ -58,6 +55,7 @@ const features = [
     route: '/bible-dictionary',
     Icon: BookMarked,
     active: true,
+    section: 'connect',
   },
   {
     id: 'bibleMaps',
@@ -67,12 +65,7 @@ const features = [
     Icon: Map,
     active: true,
     isNew: true,
-  },
-  {
-    id: 'answered',
-    label: 'Answered Prayers',
-    Icon: Heart,
-    active: false,
+    section: 'connect',
   },
   {
     id: 'partners',
@@ -81,67 +74,79 @@ const features = [
     route: '/prayer-partners',
     Icon: Handshake,
     active: true,
+    section: 'connect',
+  },
+  {
+    id: 'answered',
+    label: 'Answered Prayers',
+    Icon: Heart,
+    active: false,
+    section: 'soon',
   },
   {
     id: 'believers',
     label: 'Find Believers',
     Icon: Search,
     active: false,
+    section: 'soon',
   },
 ];
 
-function SectionLabel({ children, muted }) {
+function SectionLabel({ children }) {
   return (
-    <p className={`text-[10px] uppercase tracking-widest mx-4 mb-2 ${muted ? 'text-gray-300' : 'text-gray-400'}`}>
+    <p className="text-[11px] font-semibold text-[#8E8E8E] tracking-wide uppercase px-4 mt-6 mb-1">
       {children}
     </p>
   );
 }
 
-function FeaturedCard({ feature, onTap }) {
+function ListRow({ feature, onTap, isLast }) {
   return (
-    <motion.div variants={cardVariants} initial="hidden" whileInView="show" viewport={{ once: true, margin: '-40px' }}>
-      <motion.button
-        whileTap={{ scale: 0.97 }}
-        transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-        onClick={() => onTap(feature)}
-        className="relative flex flex-col p-5 rounded-2xl text-left w-full bg-white shadow-sm"
-        style={{ height: 140, borderTop: `3px solid ${ACCENT}` }}
-      >
-        <div
-          className="flex items-center justify-center rounded-xl flex-shrink-0"
-          style={{ width: 36, height: 36, background: ACCENT_BG }}
-        >
-          <feature.Icon size={18} color={ACCENT} strokeWidth={1.8} />
+    <motion.button
+      whileTap={{ scale: 0.98 }}
+      transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+      onClick={() => onTap(feature)}
+      className={`w-full flex items-center gap-3 px-4 py-3.5 bg-white text-left${isLast ? '' : ' border-b border-[#EFEFEF]'}`}
+    >
+      <feature.Icon size={22} color="#262626" strokeWidth={1.6} className="flex-shrink-0" />
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-1.5">
+          <span className="text-[#262626] font-semibold text-[15px] leading-tight">{feature.label}</span>
+          {feature.isNew && (
+            <span className="text-[10px] font-bold text-[#C9932F]">New</span>
+          )}
         </div>
-        <p className="font-bold text-base mt-3 leading-tight text-gray-900">{feature.label}</p>
-        <p className="text-gray-400 text-xs mt-1 leading-relaxed flex-1">{feature.subtitle}</p>
-        <div className="flex justify-end">
-          <ArrowRight size={14} color="#D1D5DB" />
-        </div>
-      </motion.button>
-    </motion.div>
+        {feature.subtitle && (
+          <p className="text-[#8E8E8E] text-[13px] mt-0.5 leading-snug">{feature.subtitle}</p>
+        )}
+      </div>
+      <ChevronRight size={18} color="#C7C7C7" className="flex-shrink-0" />
+    </motion.button>
   );
 }
 
-function GridCard({ feature, onTap }) {
+function HeroCard({ feature, onTap }) {
   return (
-    <motion.div variants={cardVariants} initial="hidden" whileInView="show" viewport={{ once: true, margin: '-40px' }}>
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3, ease: 'easeOut' }}
+    >
       <motion.button
-        whileTap={{ scale: 0.97 }}
+        whileTap={{ scale: 0.98 }}
         transition={{ type: 'spring', stiffness: 400, damping: 20 }}
         onClick={() => onTap(feature)}
-        className="relative flex flex-col p-4 rounded-2xl text-left w-full bg-white shadow-sm"
-        style={{ height: 110, borderLeft: `4px solid ${ACCENT}` }}
+        className="relative w-full flex flex-col p-5 rounded-2xl text-left overflow-hidden mx-4"
+        style={{ width: 'calc(100% - 2rem)', height: 110, background: 'linear-gradient(135deg, #4C1D95, #6D28D9)' }}
       >
-        {feature.isNew && (
-          <span className="absolute top-2 right-2 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-600">
-            NEW
-          </span>
-        )}
-        <feature.Icon size={24} color={ACCENT} strokeWidth={1.8} />
-        <p className="font-semibold text-sm mt-2 leading-tight text-gray-900">{feature.label}</p>
-        <p className="text-gray-400 text-xs mt-0.5 leading-snug">{feature.subtitle}</p>
+        <span className="absolute top-3 right-3 text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-white/60">
+          ANONYMOUS SPACE
+        </span>
+        <p className="text-white font-bold text-base mt-1">{feature.label}</p>
+        <p className="text-white/60 text-xs mt-1 flex-1">{feature.subtitle}</p>
+        <div className="flex justify-end">
+          <span className="text-white/80 text-sm">Enter →</span>
+        </div>
       </motion.button>
     </motion.div>
   );
@@ -158,29 +163,6 @@ function ComingSoonPill({ feature }) {
   );
 }
 
-function HeroCard({ feature, onTap }) {
-  return (
-    <motion.div variants={cardVariants} initial="hidden" whileInView="show" viewport={{ once: true, margin: '-40px' }}>
-      <motion.button
-        whileTap={{ scale: 0.98 }}
-        transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-        onClick={() => onTap(feature)}
-        className="relative w-full flex flex-col p-5 rounded-2xl text-left overflow-hidden"
-        style={{ height: 110, background: 'linear-gradient(135deg, #4C1D95, #6D28D9)' }}
-      >
-        <span className="absolute top-3 right-3 text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-white/60">
-          ANONYMOUS SPACE
-        </span>
-        <p className="text-white font-bold text-base mt-1">{feature.label}</p>
-        <p className="text-white/60 text-xs mt-1 flex-1">{feature.subtitle}</p>
-        <div className="flex justify-end">
-          <span className="text-white/80 text-sm">Enter →</span>
-        </div>
-      </motion.button>
-    </motion.div>
-  );
-}
-
 export default function Explore() {
   const navigate = useNavigate();
 
@@ -188,7 +170,10 @@ export default function Explore() {
     if (feature.active) navigate(feature.route);
   }
 
-  const [bible, churches, confessions, cells, pastors, bibleDictionary, bibleMaps, answered, partners, believers] = features;
+  const exploreItems = features.filter(f => f.section === 'explore');
+  const confessions = features.find(f => f.id === 'confessions');
+  const connectItems = features.filter(f => f.section === 'connect');
+  const soonItems = features.filter(f => f.section === 'soon');
 
   return (
     <div className="min-h-full" style={{ background: '#F5F5F7' }}>
@@ -197,45 +182,38 @@ export default function Explore() {
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, ease: 'easeOut' }}
-        className="px-4 pt-6 pb-1"
+        className="px-4 pt-6 pb-3"
       >
         <h2 className="text-3xl font-bold text-gray-900">Explore</h2>
         <p className="text-sm text-gray-400 mt-1">Deepen your faith journey</p>
       </motion.div>
 
       <div className="pb-32">
-        {/* Row 1 — Featured */}
+        {/* Explore section */}
         <SectionLabel>Explore</SectionLabel>
-        <motion.div
-          className="grid grid-cols-2 gap-3 mx-4"
-          variants={{ hidden: {}, show: { transition: { staggerChildren: 0.06 } } }}
-          initial="hidden"
-          animate="show"
-        >
-          <FeaturedCard feature={bible} onTap={handleTap} />
-          <FeaturedCard feature={churches} onTap={handleTap} />
-        </motion.div>
+        <div className="bg-white rounded-2xl mx-4 overflow-hidden">
+          {exploreItems.map((f, i) => (
+            <ListRow key={f.id} feature={f} onTap={handleTap} isLast={i === exploreItems.length - 1} />
+          ))}
+        </div>
 
-        {/* Row 2 — Confession Wall */}
-        <div className="mx-4 mt-3">
+        {/* Confession Wall hero */}
+        <div className="mt-4">
           <HeroCard feature={confessions} onTap={handleTap} />
         </div>
 
-        {/* Row 3 — Connect 3x2 */}
+        {/* Connect section */}
         <SectionLabel>Connect</SectionLabel>
-        <div className="grid grid-cols-2 gap-3 mx-4">
-          <GridCard feature={cells} onTap={handleTap} />
-          <GridCard feature={pastors} onTap={handleTap} />
-          <GridCard feature={bibleDictionary} onTap={handleTap} />
-          <GridCard feature={bibleMaps} onTap={handleTap} />
-          <GridCard feature={partners} onTap={handleTap} />
+        <div className="bg-white rounded-2xl mx-4 overflow-hidden">
+          {connectItems.map((f, i) => (
+            <ListRow key={f.id} feature={f} onTap={handleTap} isLast={i === connectItems.length - 1} />
+          ))}
         </div>
 
-        {/* Row 4 — Coming Soon */}
-        <SectionLabel muted>Coming Soon</SectionLabel>
+        {/* Coming Soon */}
+        <SectionLabel>Coming Soon</SectionLabel>
         <div className="flex gap-2 overflow-x-auto px-4 pb-2 no-scrollbar">
-          <ComingSoonPill feature={answered} />
-          <ComingSoonPill feature={believers} />
+          {soonItems.map(f => <ComingSoonPill key={f.id} feature={f} />)}
         </div>
       </div>
     </div>

@@ -2,12 +2,11 @@ import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useSocket } from '../contexts/SocketContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Home, Compass, Search, MessageCircle, User, Bell } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Home, Compass, Search, MessageCircle, User, Bell, HandHeart } from 'lucide-react';
 import Toast from './Toast';
 import Logo from './Logo';
 import CreatePostModal from './CreatePostModal';
-import { springTap } from '../utils/animations';
 
 const navItems = [
   { to: '/', label: 'Home', Icon: Home, end: true },
@@ -17,14 +16,12 @@ const navItems = [
   { to: '/profile', label: 'Profile', Icon: User },
 ];
 
-const HIDE_FAB_ON = ['/prayer', '/bible', '/messages'];
 const HIDE_HEADER_ON = ['/profile'];
 
 export default function Layout() {
   const { notifications, unreadCount, unreadMessages } = useSocket();
   const { logout, user } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
   const [latestToast, setLatestToast] = useState(null);
   const [prevCount, setPrevCount] = useState(0);
   const [showCreatePost, setShowCreatePost] = useState(false);
@@ -36,7 +33,7 @@ export default function Layout() {
     setPrevCount(notifications.length);
   }, [notifications]);
 
-  const hideFAB = HIDE_FAB_ON.some(p => location.pathname.startsWith(p));
+  const location = useLocation();
   const hideHeader = HIDE_HEADER_ON.some(p => location.pathname.startsWith(p));
 
   return (
@@ -52,11 +49,14 @@ export default function Layout() {
           )}
         </button>
         <Logo size="sm" light={false} />
-        <div className="flex items-center justify-end w-10">
-          <button onClick={() => navigate('/notifications')} className="relative">
-            <Bell size={22} strokeWidth={1.5} color="#1e3a8a" />
+        <div className="flex items-center gap-3 justify-end w-16">
+          <button onClick={() => navigate('/prayer')} className="w-9 h-9 flex items-center justify-center">
+            <HandHeart size={22} strokeWidth={1.5} color="#262626" />
+          </button>
+          <button onClick={() => navigate('/notifications')} className="relative w-9 h-9 flex items-center justify-center">
+            <Bell size={22} strokeWidth={1.5} color="#262626" />
             {unreadCount > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center leading-none font-bold">
+              <span className="absolute top-0 right-0 bg-red-500 text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center leading-none font-bold">
                 {unreadCount > 9 ? '9+' : unreadCount}
               </span>
             )}
@@ -69,24 +69,6 @@ export default function Layout() {
       <main className="flex-1 overflow-y-auto pb-20">
         <Outlet />
       </main>
-
-      {/* FAB Pray button */}
-      <AnimatePresence>
-        {!hideFAB && (
-          <motion.button
-            initial={{ opacity: 0, scale: 0, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0, y: 20 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 20, delay: 0.35 }}
-            whileTap={{ scale: 0.93 }}
-            onClick={() => navigate('/prayer')}
-            className="fixed bottom-[72px] left-1/2 -translate-x-1/2 z-40 px-7 py-3 rounded-full font-bold text-sm shadow-xl"
-            style={{ background: '#C9932F', color: '#0A0F1E', boxShadow: '0 4px 20px rgba(201,147,47,0.35)', border: '3px solid white' }}
-          >
-            Pray
-          </motion.button>
-        )}
-      </AnimatePresence>
 
       {showCreatePost && (
         <CreatePostModal
