@@ -99,12 +99,12 @@ export default function Search() {
             value={query}
             onChange={handleChange}
             placeholder="Search believers, churches, locations..."
-            className="w-full bg-white rounded-2xl pl-11 pr-4 py-3.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-400/30 transition-all"
+            className="w-full bg-white rounded-2xl pl-11 pr-4 py-3.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#C9932F]/30 transition-all"
             style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}
           />
           {searching && (
             <div className="absolute right-4 top-1/2 -translate-y-1/2">
-              <div className="w-4 h-4 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
+              <div className="w-4 h-4 border-2 border-t-transparent rounded-full animate-spin" style={{ borderColor: '#C9932F transparent #C9932F #C9932F' }} />
             </div>
           )}
         </div>

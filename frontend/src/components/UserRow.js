@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { MapPin, ShieldCheck } from 'lucide-react';
+import { MapPin, ShieldCheck, Award } from 'lucide-react';
 import Avatar from './Avatar';
 import api from '../utils/api';
 
@@ -43,11 +43,11 @@ export default function UserRow({ user: initialUser, onNavigate }) {
         <div className="flex items-center gap-1.5">
           <p className="text-sm font-semibold text-gray-900 truncate">{user.name}</p>
           {user.isVerifiedPastor && (
-            <ShieldCheck size={13} color="#10B981" strokeWidth={2} className="flex-shrink-0" />
+            <ShieldCheck size={13} color="#C9932F" strokeWidth={2} className="flex-shrink-0" />
           )}
         </div>
         {user.churchName && (
-          <p className="text-xs text-amber-600 font-medium truncate mt-0.5">{user.churchName}</p>
+          <p className="text-xs font-medium truncate mt-0.5" style={{ color: '#C9932F' }}>{user.churchName}</p>
         )}
         <div className="flex items-center gap-2 mt-0.5 flex-wrap">
           {user.location && (
@@ -59,8 +59,9 @@ export default function UserRow({ user: initialUser, onNavigate }) {
             <span className="text-xs text-gray-400">{user.followerCount} {user.followerCount === 1 ? 'believer' : 'believers'}</span>
           )}
           {user.prayerWarriorBadge && (
-            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-600">
-              🏆 Prayer Warrior
+            <span className="flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full"
+              style={{ background: 'rgba(201,147,47,0.1)', color: '#C9932F' }}>
+              <Award size={10} strokeWidth={2} />Prayer Warrior
             </span>
           )}
         </div>
@@ -74,7 +75,7 @@ export default function UserRow({ user: initialUser, onNavigate }) {
         className={`flex-shrink-0 text-xs font-medium px-3 py-1.5 rounded-full transition-colors ${
           user.isFollowedByMe
             ? 'bg-gray-100 text-gray-400'
-            : 'border border-gray-200 text-gray-700 hover:border-amber-300 hover:text-amber-600'
+            : 'border border-gray-200 text-gray-700 hover:border-[#C9932F]/40 hover:text-[#C9932F]'
         }`}
       >
         {user.isFollowedByMe ? 'Following' : 'Follow'}
