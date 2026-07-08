@@ -10,7 +10,7 @@ const features = [
     route: '/bible',
     Icon: BookOpen,
     active: true,
-    section: 'explore',
+    section: 'featured',
   },
   {
     id: 'churches',
@@ -37,7 +37,7 @@ const features = [
     route: '/prayer-cells',
     Icon: Radio,
     active: true,
-    section: 'connect',
+    section: 'featured',
   },
   {
     id: 'pastors',
@@ -97,6 +97,31 @@ function SectionLabel({ children }) {
     <p className="text-[11px] font-semibold text-[#8E8E8E] tracking-wide uppercase px-4 mt-6 mb-1">
       {children}
     </p>
+  );
+}
+
+function FeaturedRow({ feature, onTap, isLast }) {
+  return (
+    <motion.button
+      whileTap={{ scale: 0.98 }}
+      transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+      onClick={() => onTap(feature)}
+      className={`w-full flex items-center gap-3 px-4 py-4 bg-white text-left${isLast ? '' : ' border-b border-[#EFEFEF]'}`}
+    >
+      <div
+        className="flex items-center justify-center rounded-xl flex-shrink-0"
+        style={{ width: 44, height: 44, background: '#F6F1E4' }}
+      >
+        <feature.Icon size={28} color="#262626" strokeWidth={1.5} />
+      </div>
+      <div className="flex-1 min-w-0">
+        <span className="text-[#262626] font-semibold text-[17px] leading-tight">{feature.label}</span>
+        {feature.subtitle && (
+          <p className="text-[#8E8E8E] text-[13px] mt-0.5 leading-snug">{feature.subtitle}</p>
+        )}
+      </div>
+      <ChevronRight size={18} color="#C7C7C7" className="flex-shrink-0" />
+    </motion.button>
   );
 }
 
@@ -170,6 +195,7 @@ export default function Explore() {
     if (feature.active) navigate(feature.route);
   }
 
+  const featuredItems = features.filter(f => f.section === 'featured');
   const exploreItems = features.filter(f => f.section === 'explore');
   const confessions = features.find(f => f.id === 'confessions');
   const connectItems = features.filter(f => f.section === 'connect');
@@ -189,6 +215,14 @@ export default function Explore() {
       </motion.div>
 
       <div className="pb-32">
+        {/* Featured — Bible + Prayer Cells */}
+        <SectionLabel>Get Started</SectionLabel>
+        <div className="bg-white rounded-2xl mx-4 overflow-hidden">
+          {featuredItems.map((f, i) => (
+            <FeaturedRow key={f.id} feature={f} onTap={handleTap} isLast={i === featuredItems.length - 1} />
+          ))}
+        </div>
+
         {/* Explore section */}
         <SectionLabel>Explore</SectionLabel>
         <div className="bg-white rounded-2xl mx-4 overflow-hidden">
