@@ -151,6 +151,7 @@ export default function PrayerPage() {
   const [todayGratitude, setTodayGratitude] = useState(undefined); // undefined=loading, null=none, obj=done
   const [gratitudeStreak, setGratitudeStreak] = useState(0);
   const [showGratitudeSheet, setShowGratitudeSheet] = useState(false);
+  const [liveCells, setLiveCells] = useState([]);
   const [gratitudeText, setGratitudeText] = useState('');
   const [gratitudeMood, setGratitudeMood] = useState(null);
   const [gratitudePublic, setGratitudePublic] = useState(false);
@@ -200,6 +201,7 @@ export default function PrayerPage() {
     api.get('/quota/today').then(res => { setQuota(res.data); setTarget(String(res.data.target)); }).catch(() => {});
     api.get('/users/me/dashboard').then(res => { setStreak(res.data.streak || 0); setGratitudeStreak(res.data.gratitudeStreak || 0); }).catch(() => {});
     api.get('/gratitude/today').then(res => setTodayGratitude(res.data)).catch(() => setTodayGratitude(null));
+    api.get('/prayer-cells').then(res => setLiveCells(res.data || [])).catch(() => {});
   }, []);
 
   // Handle navigate-with-state from Feelings page
@@ -301,28 +303,29 @@ export default function PrayerPage() {
   return (
     <div className="bg-gray-50 min-h-full">
       {/* Hero — deep navy premium */}
-      <div className="px-5 pt-5 pb-12" style={{ background: '#0A0F1E' }}>
-        <button onClick={() => navigate(-1)} className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center mb-6">
+      <div className="px-5 pt-5 pb-6" style={{ background: '#0A0F1E' }}>
+        <button onClick={() => navigate(-1)} className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center mb-4">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
 
-        <motion.h2
+        <motion.div
           initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, ease: 'easeOut' }}
-          className="text-3xl font-bold text-white leading-tight mb-3"
+          className="flex items-center gap-3 mb-3"
         >
-          Who will you pray<br />for today?
-        </motion.h2>
-
-        {streak !== null && streak > 0 && (
-          <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.15, duration: 0.3 }}
-            className="flex items-center gap-1.5 mb-5"
-          >
-            <Flame size={14} strokeWidth={2} color="#C9932F" />
-            <p className="text-white/60 text-xs font-medium">{streak} day streak</p>
-          </motion.div>
-        )}
-        {streak === null || streak === 0 ? <div className="mb-5" /> : null}
+          <h2 className="text-2xl font-bold text-white leading-tight">
+            Who will you pray<br />for today?
+          </h2>
+          {streak !== null && streak > 0 && (
+            <motion.span
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.15, duration: 0.3 }}
+              className="flex items-center gap-1 px-2 py-1 rounded-full flex-shrink-0 self-start mt-1"
+              style={{ background: 'rgba(201,147,47,0.18)' }}
+            >
+              <Flame size={11} strokeWidth={2} color="#C9932F" />
+              <span className="text-[11px] font-semibold" style={{ color: '#C9932F' }}>{streak}</span>
+            </motion.span>
+          )}
+        </motion.div>
 
         {/* Daily Goal — frosted glass card */}
         <motion.div
@@ -513,27 +516,50 @@ export default function PrayerPage() {
           </AnimatePresence>
         </motion.div>
 
-        {/* Live Prayer Cells banner */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-          whileTap={{ scale: 0.97 }}
-          onClick={() => navigate('/prayer-cells')}
-          className="mx-0 mb-4 rounded-2xl p-4 flex items-center justify-between cursor-pointer"
-          style={{ background: '#C9932F' }}
-        >
-          <div>
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-white animate-pulse" />
-              <span className="text-white font-semibold text-sm">Live Prayer Cells</span>
+        {/* Live Now — Stories-style row */}
+        {liveCells.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.25 }}
+            className="mb-4"
+          >
+            <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2">Live Now</p>
+            <div className="flex gap-4 overflow-x-auto pb-1 scrollbar-hide">
+              {/* Host button */}
+              <button
+                onClick={() => navigate('/prayer-cells')}
+                className="flex flex-col items-center flex-shrink-0"
+              >
+                <div
+                  className="w-14 h-14 rounded-full flex items-center justify-center"
+                  style={{ border: '2px dashed #C9932F' }}
+                >
+                  <Plus size={20} strokeWidth={2} color="#C9932F" />
+                </div>
+                <span className="text-[10px] text-gray-400 mt-1 w-16 text-center truncate">Host</span>
+              </button>
+
+              {/* Live cell avatars */}
+              {liveCells.map(cell => (
+                <button
+                  key={cell.id}
+                  onClick={() => navigate(`/prayer-cells/${cell.id}/guest`)}
+                  className="flex flex-col items-center flex-shrink-0"
+                >
+                  <div className="rounded-full p-[2.5px]" style={{ background: '#ED4956' }}>
+                    <div className="rounded-full p-[2px] bg-white">
+                      <div className="w-12 h-12 rounded-full overflow-hidden">
+                        <Avatar user={cell.host} size="md" />
+                      </div>
+                    </div>
+                  </div>
+                  <span className="text-[10px] text-gray-600 mt-1 w-16 text-center truncate">{cell.host?.name?.split(' ')[0]}</span>
+                </button>
+              ))}
             </div>
-            <p className="text-white/70 text-xs mt-0.5">Join or host a live prayer session</p>
-          </div>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="9 18 15 12 9 6"/>
-          </svg>
-        </motion.div>
+          </motion.div>
+        )}
 
         {/* Category filter tabs */}
         <motion.div {...slideInRight} transition={{ delay: 0.15, duration: 0.3 }} className="flex gap-2 overflow-x-auto pb-2 mb-4 scrollbar-hide -mx-4 px-4">
