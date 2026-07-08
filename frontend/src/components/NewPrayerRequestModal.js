@@ -114,9 +114,9 @@ function PastorPicker({ selectedPastors, onToggle }) {
   );
 }
 
-export default function NewPrayerRequestModal({ onClose, onCreate }) {
+export default function NewPrayerRequestModal({ onClose, onCreate, initialBody = '' }) {
   const [title, setTitle] = useState('');
-  const [body, setBody] = useState('');
+  const [body, setBody] = useState(initialBody);
   const [category, setCategory] = useState('GENERAL');
   const [visibility, setVisibility] = useState('PUBLIC');
   const [isUrgent, setIsUrgent] = useState(false);

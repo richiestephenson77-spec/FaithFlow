@@ -38,6 +38,7 @@ import ConfessionDetail from './pages/ConfessionDetail';
 import Onboarding from './pages/Onboarding';
 import PrayerPartners from './pages/PrayerPartners';
 import PrayerQueue from './pages/PrayerQueue';
+import Feelings from './pages/Feelings';
 import Pastors from './pages/Pastors';
 import MyPastorRequests from './pages/MyPastorRequests';
 import PastorDashboard from './pages/PastorDashboard';
@@ -117,6 +118,7 @@ function AppRoutes() {
         <Route path="bible-maps" element={<BibleMaps />} />
         <Route path="prayer-partners" element={<PrayerPartners />} />
         <Route path="prayer-queue" element={<PrayerQueue />} />
+        <Route path="feelings" element={<Feelings />} />
         <Route path="pastors" element={<Pastors />} />
         <Route path="my-pastor-requests" element={<MyPastorRequests />} />
         <Route path="pastor-dashboard" element={<PastorDashboard />} />

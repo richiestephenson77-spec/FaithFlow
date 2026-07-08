@@ -24,6 +24,9 @@ model User {
   longestPrayerStreak Int       @default(0)
   lastPrayerDate      DateTime?
 
+  gratitudeStreak     Int       @default(0)
+  lastGratitudeDate   DateTime?
+
   prayerRequests  PrayerRequest[]
   prayerSessions  PrayerSession[]
   posts           Post[]
@@ -76,6 +79,7 @@ model User {
   partnerships1   PrayerPartnership[] @relation("User1Partnerships")
   partnerships2   PrayerPartnership[] @relation("User2Partnerships")
   partnerRequests PrayerPartnerRequest[]
+  gratitudeEntries GratitudeEntry[]
 
   @@map("users")
 }
@@ -478,4 +482,17 @@ model DailyQuotaLog {
 
   @@unique([userId, date])
   @@map("daily_quota_logs")
+}
+
+model GratitudeEntry {
+  id        String   @id @default(cuid())
+  userId    String
+  content   String
+  mood      String?
+  isPublic  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("gratitude_entries")
 }

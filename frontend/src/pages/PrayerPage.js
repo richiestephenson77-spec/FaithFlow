@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Globe, MapPin, RefreshCw, Flame, BookOpen, Users, Plus, Bookmark, Play, Target, Settings, TrendingUp, Pencil, Lock, Cross } from 'lucide-react';
+import { Globe, MapPin, RefreshCw, Flame, BookOpen, Users, Plus, Bookmark, Play, Target, Settings, TrendingUp, Pencil, Lock, Cross, Sparkles, HeartHandshake, Sun, Cloud, CloudRain, Heart, Zap, ChevronRight, X } from 'lucide-react';
 import api from '../utils/api';
 import { fadeUp, fadeIn, scaleIn, slideInRight, slideUp, staggerContainer, staggerContainerFast, staggerItem } from '../utils/animations';
 import { useAuth } from '../contexts/AuthContext';
@@ -126,6 +126,7 @@ export default function PrayerPage() {
   const { user } = useAuth();
   const { socket } = useSocket();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [quota, setQuota] = useState(null);
   const [streak, setStreak] = useState(null);
@@ -144,6 +145,16 @@ export default function PrayerPage() {
   const [hasDraft, setHasDraft] = useState(false);
   const [testimonyRequest, setTestimonyRequest] = useState(null);
   const [showMyRequests, setShowMyRequests] = useState(false);
+  const [newRequestPrefill, setNewRequestPrefill] = useState('');
+
+  // Gratitude journal state
+  const [todayGratitude, setTodayGratitude] = useState(undefined); // undefined=loading, null=none, obj=done
+  const [gratitudeStreak, setGratitudeStreak] = useState(0);
+  const [showGratitudeSheet, setShowGratitudeSheet] = useState(false);
+  const [gratitudeText, setGratitudeText] = useState('');
+  const [gratitudeMood, setGratitudeMood] = useState(null);
+  const [gratitudePublic, setGratitudePublic] = useState(false);
+  const [savingGratitude, setSavingGratitude] = useState(false);
 
   const [nearMe, setNearMe] = useState(false);
   const [radius, setRadius] = useState(25);
@@ -187,7 +198,17 @@ export default function PrayerPage() {
 
   useEffect(() => {
     api.get('/quota/today').then(res => { setQuota(res.data); setTarget(String(res.data.target)); }).catch(() => {});
-    api.get('/users/me/dashboard').then(res => setStreak(res.data.streak || 0)).catch(() => {});
+    api.get('/users/me/dashboard').then(res => { setStreak(res.data.streak || 0); setGratitudeStreak(res.data.gratitudeStreak || 0); }).catch(() => {});
+    api.get('/gratitude/today').then(res => setTodayGratitude(res.data)).catch(() => setTodayGratitude(null));
+  }, []);
+
+  // Handle navigate-with-state from Feelings page
+  useEffect(() => {
+    if (location.state?.openNewRequest) {
+      setNewRequestPrefill(location.state.prefillBody || '');
+      setShowNewRequest(true);
+      window.history.replaceState({}, '');
+    }
   }, []);
 
   // Live prayer count updates
@@ -247,6 +268,21 @@ export default function PrayerPage() {
         onComplete={() => api.get('/quota/today').then(res => setQuota(res.data)).catch(() => {})}
       />
     );
+  }
+
+  async function handleSaveGratitude() {
+    if (!gratitudeText.trim()) return;
+    setSavingGratitude(true);
+    try {
+      const res = await api.post('/gratitude', { content: gratitudeText, mood: gratitudeMood, isPublic: gratitudePublic });
+      setTodayGratitude(res.data.entry);
+      setGratitudeStreak(res.data.streak || gratitudeStreak);
+      setShowGratitudeSheet(false);
+      setGratitudeText('');
+      setGratitudeMood(null);
+      setGratitudePublic(false);
+    } catch {}
+    setSavingGratitude(false);
   }
 
   const pct = quota ? Math.min((quota.completed / quota.target) * 100, 100) : 0;
@@ -316,6 +352,49 @@ export default function PrayerPage() {
           </div>
           {quota?.isComplete && <p className="text-[#C9932F] text-xs font-medium mt-2">Goal complete for today</p>}
         </motion.div>
+
+        {/* Today's Grace — gratitude card */}
+        <motion.button
+          initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 0.35, ease: 'easeOut' }}
+          onClick={() => !todayGratitude && setShowGratitudeSheet(true)}
+          className="w-full text-left mt-3 rounded-2xl px-4 py-3.5"
+          style={{ background: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.12)' }}
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Sparkles size={16} strokeWidth={1.5} color="#C9932F" />
+              <span className="text-white font-semibold text-sm">Today's Grace</span>
+              {gratitudeStreak > 0 && (
+                <span className="flex items-center gap-0.5 text-[11px]" style={{ color: '#C9932F' }}>
+                  <Flame size={10} strokeWidth={2} color="#C9932F" />{gratitudeStreak}d
+                </span>
+              )}
+            </div>
+            {!todayGratitude && <ChevronRight size={14} color="rgba(255,255,255,0.4)" />}
+          </div>
+          {todayGratitude ? (
+            <p className="text-white/70 text-xs mt-2 leading-relaxed line-clamp-2">{todayGratitude.content}</p>
+          ) : (
+            <p className="text-white/50 text-xs mt-1">What did God do today?</p>
+          )}
+        </motion.button>
+
+        {/* Need a verse — feelings entry */}
+        <motion.button
+          initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.38, duration: 0.35, ease: 'easeOut' }}
+          onClick={() => navigate('/feelings')}
+          className="w-full text-left mt-3 rounded-2xl px-4 py-3.5 flex items-center justify-between"
+          style={{ background: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.12)' }}
+        >
+          <div className="flex items-center gap-2">
+            <HeartHandshake size={16} strokeWidth={1.5} color="#C9932F" />
+            <div>
+              <span className="text-white font-semibold text-sm">Need a verse right now?</span>
+              <p className="text-white/50 text-xs mt-0.5">Find scripture for how you're feeling</p>
+            </div>
+          </div>
+          <ChevronRight size={14} color="rgba(255,255,255,0.4)" />
+        </motion.button>
       </div>
 
       {/* Feed */}
@@ -533,9 +612,102 @@ export default function PrayerPage() {
       </div>
 
       {/* Modals */}
-      {showNewRequest && <NewPrayerRequestModal onClose={() => setShowNewRequest(false)} onCreate={onNewRequest} />}
+      {showNewRequest && (
+        <NewPrayerRequestModal
+          onClose={() => { setShowNewRequest(false); setNewRequestPrefill(''); }}
+          onCreate={onNewRequest}
+          initialBody={newRequestPrefill}
+        />
+      )}
       {testimonyRequest && <TestimonyModal request={testimonyRequest} onSave={handleTestimonySaved} onClose={() => setTestimonyRequest(null)} />}
       {showMyRequests && <MyPrayerRequestsDrawer onClose={() => setShowMyRequests(false)} />}
+
+      {/* Gratitude bottom sheet */}
+      <AnimatePresence>
+        {showGratitudeSheet && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 0.5 }} exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black z-40"
+              onClick={() => setShowGratitudeSheet(false)}
+            />
+            <motion.div
+              initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
+              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+              className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white rounded-t-3xl z-50 px-5 pt-4 pb-10"
+            >
+              <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-5" />
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Sparkles size={16} strokeWidth={1.5} color="#C9932F" />
+                  <span className="font-bold text-[17px] text-gray-900">Today's Grace</span>
+                </div>
+                <button onClick={() => setShowGratitudeSheet(false)}>
+                  <X size={20} strokeWidth={1.8} color="#8E8E8E" />
+                </button>
+              </div>
+
+              <textarea
+                value={gratitudeText}
+                onChange={e => setGratitudeText(e.target.value.slice(0, 300))}
+                placeholder="Something small God did today..."
+                rows={4}
+                className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm text-gray-800 placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-[#C9932F]/30"
+              />
+              <p className="text-[11px] text-gray-400 text-right mt-1">{gratitudeText.length}/300</p>
+
+              {/* Mood row */}
+              <div className="flex items-center gap-3 mt-3">
+                {[
+                  { id: 'grateful', Icon: Sun },
+                  { id: 'peaceful', Icon: Cloud },
+                  { id: 'sad',      Icon: CloudRain },
+                  { id: 'loved',    Icon: Heart },
+                  { id: 'energised',Icon: Zap },
+                ].map(({ id, Icon }) => (
+                  <button
+                    key={id}
+                    onClick={() => setGratitudeMood(gratitudeMood === id ? null : id)}
+                    className="w-10 h-10 rounded-full flex items-center justify-center border transition-colors"
+                    style={{
+                      borderColor: gratitudeMood === id ? '#C9932F' : '#EFEFEF',
+                      background: gratitudeMood === id ? 'rgba(201,147,47,0.1)' : 'transparent',
+                    }}
+                  >
+                    <Icon size={18} strokeWidth={1.5} color={gratitudeMood === id ? '#C9932F' : '#8E8E8E'} />
+                  </button>
+                ))}
+              </div>
+
+              {/* Share toggle */}
+              <button
+                onClick={() => setGratitudePublic(p => !p)}
+                className="flex items-center gap-2 mt-4"
+              >
+                <div
+                  className="w-10 h-5 rounded-full transition-colors flex items-center px-0.5"
+                  style={{ background: gratitudePublic ? '#C9932F' : '#DBDBDB' }}
+                >
+                  <div
+                    className="w-4 h-4 bg-white rounded-full shadow transition-transform"
+                    style={{ transform: gratitudePublic ? 'translateX(20px)' : 'translateX(0)' }}
+                  />
+                </div>
+                <span className="text-[13px] text-gray-600">Share as testimony</span>
+              </button>
+
+              <button
+                onClick={handleSaveGratitude}
+                disabled={!gratitudeText.trim() || savingGratitude}
+                className="w-full mt-5 py-3.5 rounded-2xl font-bold text-[15px] text-white transition-opacity"
+                style={{ background: '#C9932F', opacity: !gratitudeText.trim() || savingGratitude ? 0.5 : 1 }}
+              >
+                {savingGratitude ? 'Saving…' : 'Save'}
+              </button>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
       {showSettings && <QuotaSettingsSheet current={parseInt(target)} onSave={saveTarget} onClose={() => setShowSettings(false)} saving={savingTarget} />}
     </div>
   );
