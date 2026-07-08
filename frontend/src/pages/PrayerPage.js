@@ -265,7 +265,7 @@ export default function PrayerPage() {
   return (
     <div className="bg-gray-50 min-h-full">
       {/* Hero — deep navy premium */}
-      <div className="px-5 pt-5 pb-12" style={{ background: 'linear-gradient(160deg, #1a1a2e 0%, #16213e 55%, #0f3460 100%)' }}>
+      <div className="px-5 pt-5 pb-12" style={{ background: '#0A0F1E' }}>
         <button onClick={() => navigate(-1)} className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center mb-6">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
@@ -355,15 +355,17 @@ export default function PrayerPage() {
           {hasDraft && !showNewRequest && (
             <motion.div
               {...fadeUp}
-              className="mb-3 bg-amber-50 border border-amber-100 rounded-2xl px-4 py-3 flex items-start gap-3"
+              className="mb-3 rounded-2xl px-4 py-3 flex items-start gap-3"
+            style={{ background: 'rgba(201,147,47,0.10)', border: '1px solid rgba(201,147,47,0.2)' }}
             >
-              <Pencil size={16} color="#F59E0B" className="flex-shrink-0 mt-0.5" />
+              <Pencil size={16} color="#C9932F" className="flex-shrink-0 mt-0.5" />
               <div className="flex-1 min-w-0">
-                <p className="text-sm text-amber-800 font-medium">You have an unfinished prayer draft</p>
+                <p className="text-sm font-medium" style={{ color: '#7A6020' }}>You have an unfinished prayer draft</p>
                 <div className="flex gap-3 mt-2">
                   <button
                     onClick={() => setShowNewRequest(true)}
-                    className="text-xs font-semibold text-amber-700 bg-amber-100 px-3 py-1 rounded-full"
+                    className="text-xs font-semibold px-3 py-1 rounded-full"
+                    style={{ background: 'rgba(201,147,47,0.15)', color: '#C9932F' }}
                   >
                     Continue Draft
                   </button>
@@ -372,7 +374,8 @@ export default function PrayerPage() {
                       await api.delete('/prayers/draft').catch(() => {});
                       setHasDraft(false);
                     }}
-                    className="text-xs text-amber-500"
+                    className="text-xs"
+                    style={{ color: '#C9932F', opacity: 0.7 }}
                   >
                     Discard
                   </button>
