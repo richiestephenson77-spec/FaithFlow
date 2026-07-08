@@ -19,7 +19,7 @@ const features = [
     route: '/churches-hub',
     Icon: Church,
     active: true,
-    section: 'explore',
+    section: 'getstarted',
   },
   {
     id: 'confessions',
@@ -196,7 +196,7 @@ export default function Explore() {
   }
 
   const featuredItems = features.filter(f => f.section === 'featured');
-  const exploreItems = features.filter(f => f.section === 'explore');
+  const getStartedExtra = features.filter(f => f.section === 'getstarted');
   const confessions = features.find(f => f.id === 'confessions');
   const connectItems = features.filter(f => f.section === 'connect');
   const soonItems = features.filter(f => f.section === 'soon');
@@ -215,19 +215,14 @@ export default function Explore() {
       </motion.div>
 
       <div className="pb-32">
-        {/* Featured — Bible + Prayer Cells */}
+        {/* Get Started — Bible, Prayer Cells (featured), + Churches (normal) */}
         <SectionLabel>Get Started</SectionLabel>
         <div className="bg-white rounded-2xl mx-4 overflow-hidden">
-          {featuredItems.map((f, i) => (
-            <FeaturedRow key={f.id} feature={f} onTap={handleTap} isLast={i === featuredItems.length - 1} />
+          {featuredItems.map(f => (
+            <FeaturedRow key={f.id} feature={f} onTap={handleTap} isLast={false} />
           ))}
-        </div>
-
-        {/* Explore section */}
-        <SectionLabel>Explore</SectionLabel>
-        <div className="bg-white rounded-2xl mx-4 overflow-hidden">
-          {exploreItems.map((f, i) => (
-            <ListRow key={f.id} feature={f} onTap={handleTap} isLast={i === exploreItems.length - 1} />
+          {getStartedExtra.map((f, i) => (
+            <ListRow key={f.id} feature={f} onTap={handleTap} isLast={i === getStartedExtra.length - 1} />
           ))}
         </div>
 
