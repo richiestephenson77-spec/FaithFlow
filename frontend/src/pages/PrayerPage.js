@@ -321,8 +321,8 @@ export default function PrayerPage() {
               className="flex items-center gap-1 px-2 py-1 rounded-full flex-shrink-0 self-start mt-1"
               style={{ background: 'rgba(201,147,47,0.18)' }}
             >
-              <Flame size={11} strokeWidth={2} color="#C9932F" />
-              <span className="text-[11px] font-semibold" style={{ color: '#C9932F' }}>{streak}</span>
+              <Flame size={11} strokeWidth={2} color="rgba(255,255,255,0.7)" />
+              <span className="text-[11px] font-semibold" style={{ color: 'rgba(255,255,255,0.7)' }}>{streak}</span>
             </motion.span>
           )}
         </motion.div>
@@ -339,7 +339,7 @@ export default function PrayerPage() {
               <p className="text-white/70 text-xs font-medium">Daily Goal</p>
             </div>
             <div className="flex items-center gap-3">
-              <span className="text-[#C9932F] font-bold text-sm">{quota?.completed ?? 0} / {quota?.target ?? '–'}</span>
+              <span className="text-white font-bold text-sm">{quota?.completed ?? 0} / {quota?.target ?? '–'}</span>
               <button onClick={() => setShowSettings(true)} className="text-white/40 hover:text-white/70 transition-colors">
                 <Settings size={14} strokeWidth={1.5} />
               </button>
@@ -350,10 +350,10 @@ export default function PrayerPage() {
               initial={{ width: 0 }}
               animate={{ width: `${pct}%` }}
               transition={{ duration: 0.8, ease: 'easeOut', delay: 0.3 }}
-              className="h-full rounded-full bg-[#C9932F]"
+              className="h-full rounded-full bg-white"
             />
           </div>
-          {quota?.isComplete && <p className="text-[#C9932F] text-xs font-medium mt-2">Goal complete for today</p>}
+          {quota?.isComplete && <p className="text-xs font-medium mt-2" style={{ color: 'rgba(255,255,255,0.7)' }}>Goal complete for today</p>}
         </motion.div>
 
         {/* Today's Grace — gratitude card */}
@@ -365,11 +365,11 @@ export default function PrayerPage() {
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Sparkles size={16} strokeWidth={1.5} color="#C9932F" />
+              <Sparkles size={16} strokeWidth={1.5} color="#262626" />
               <span className="text-white font-semibold text-sm">Today's Grace</span>
               {gratitudeStreak > 0 && (
-                <span className="flex items-center gap-0.5 text-[11px]" style={{ color: '#C9932F' }}>
-                  <Flame size={10} strokeWidth={2} color="#C9932F" />{gratitudeStreak}d
+                <span className="flex items-center gap-0.5 text-[11px]" style={{ color: '#8E8E8E' }}>
+                  <Flame size={10} strokeWidth={2} color="#8E8E8E" />{gratitudeStreak}d
                 </span>
               )}
             </div>
@@ -390,7 +390,7 @@ export default function PrayerPage() {
           style={{ background: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.12)' }}
         >
           <div className="flex items-center gap-2">
-            <HeartHandshake size={16} strokeWidth={1.5} color="#C9932F" />
+            <HeartHandshake size={16} strokeWidth={1.5} color="#262626" />
             <div>
               <span className="text-white font-semibold text-sm">Need a verse right now?</span>
               <p className="text-white/50 text-xs mt-0.5">Find scripture for how you're feeling</p>
@@ -438,16 +438,16 @@ export default function PrayerPage() {
             <motion.div
               {...fadeUp}
               className="mb-3 rounded-2xl px-4 py-3 flex items-start gap-3"
-            style={{ background: 'rgba(201,147,47,0.10)', border: '1px solid rgba(201,147,47,0.2)' }}
+            style={{ background: '#FAFAFA', border: '1px solid #EFEFEF' }}
             >
-              <Pencil size={16} color="#C9932F" className="flex-shrink-0 mt-0.5" />
+              <Pencil size={16} color="#262626" className="flex-shrink-0 mt-0.5" />
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium" style={{ color: '#7A6020' }}>You have an unfinished prayer draft</p>
+                <p className="text-sm font-medium text-gray-800">You have an unfinished prayer draft</p>
                 <div className="flex gap-3 mt-2">
                   <button
                     onClick={() => setShowNewRequest(true)}
                     className="text-xs font-semibold px-3 py-1 rounded-full"
-                    style={{ background: 'rgba(201,147,47,0.15)', color: '#C9932F' }}
+                    style={{ border: '1px solid #DBDBDB', color: '#262626' }}
                   >
                     Continue Draft
                   </button>
@@ -457,7 +457,7 @@ export default function PrayerPage() {
                       setHasDraft(false);
                     }}
                     className="text-xs"
-                    style={{ color: '#C9932F', opacity: 0.7 }}
+                    style={{ color: '#8E8E8E' }}
                   >
                     Discard
                   </button>
@@ -533,9 +533,9 @@ export default function PrayerPage() {
               >
                 <div
                   className="w-14 h-14 rounded-full flex items-center justify-center"
-                  style={{ border: '2px dashed #C9932F' }}
+                  style={{ border: '2px dashed #262626' }}
                 >
-                  <Plus size={20} strokeWidth={2} color="#C9932F" />
+                  <Plus size={20} strokeWidth={2} color="#262626" />
                 </div>
                 <span className="text-[10px] text-gray-400 mt-1 w-16 text-center truncate">Host</span>
               </button>
@@ -665,7 +665,7 @@ export default function PrayerPage() {
               <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-5" />
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <Sparkles size={16} strokeWidth={1.5} color="#C9932F" />
+                  <Sparkles size={16} strokeWidth={1.5} color="#262626" />
                   <span className="font-bold text-[17px] text-gray-900">Today's Grace</span>
                 </div>
                 <button onClick={() => setShowGratitudeSheet(false)}>
@@ -678,7 +678,7 @@ export default function PrayerPage() {
                 onChange={e => setGratitudeText(e.target.value.slice(0, 300))}
                 placeholder="Something small God did today..."
                 rows={4}
-                className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm text-gray-800 placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-[#C9932F]/30"
+                className="w-full rounded-2xl border border-gray-200 px-4 py-3 text-sm text-gray-800 placeholder-gray-400 resize-none focus:outline-none focus:ring-2 focus:ring-black/10"
               />
               <p className="text-[11px] text-gray-400 text-right mt-1">{gratitudeText.length}/300</p>
 
@@ -696,11 +696,11 @@ export default function PrayerPage() {
                     onClick={() => setGratitudeMood(gratitudeMood === id ? null : id)}
                     className="w-10 h-10 rounded-full flex items-center justify-center border transition-colors"
                     style={{
-                      borderColor: gratitudeMood === id ? '#C9932F' : '#EFEFEF',
-                      background: gratitudeMood === id ? 'rgba(201,147,47,0.1)' : 'transparent',
+                      borderColor: gratitudeMood === id ? '#262626' : '#EFEFEF',
+                      background: gratitudeMood === id ? 'rgba(0,0,0,0.06)' : 'transparent',
                     }}
                   >
-                    <Icon size={18} strokeWidth={1.5} color={gratitudeMood === id ? '#C9932F' : '#8E8E8E'} />
+                    <Icon size={18} strokeWidth={1.5} color={gratitudeMood === id ? '#262626' : '#8E8E8E'} />
                   </button>
                 ))}
               </div>
@@ -712,7 +712,7 @@ export default function PrayerPage() {
               >
                 <div
                   className="w-10 h-5 rounded-full transition-colors flex items-center px-0.5"
-                  style={{ background: gratitudePublic ? '#C9932F' : '#DBDBDB' }}
+                  style={{ background: gratitudePublic ? '#262626' : '#DBDBDB' }}
                 >
                   <div
                     className="w-4 h-4 bg-white rounded-full shadow transition-transform"
@@ -726,7 +726,7 @@ export default function PrayerPage() {
                 onClick={handleSaveGratitude}
                 disabled={!gratitudeText.trim() || savingGratitude}
                 className="w-full mt-5 py-3.5 rounded-2xl font-bold text-[15px] text-white transition-opacity"
-                style={{ background: '#C9932F', opacity: !gratitudeText.trim() || savingGratitude ? 0.5 : 1 }}
+                style={{ background: '#262626', opacity: !gratitudeText.trim() || savingGratitude ? 0.4 : 1 }}
               >
                 {savingGratitude ? 'Saving…' : 'Save'}
               </button>
