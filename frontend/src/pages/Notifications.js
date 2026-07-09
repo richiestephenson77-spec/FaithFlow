@@ -61,7 +61,7 @@ function NotificationCard({ n, onFollowBack }) {
       style={{ background: !n.isRead ? 'rgba(251,191,36,0.06)' : 'transparent' }}
     >
       {!n.isRead && (
-        <div className="absolute left-0 top-4 bottom-4 w-[3px] rounded-r-full bg-amber-400" />
+        <div className="absolute left-0 top-4 bottom-4 w-[3px] rounded-r-full" style={{ background: '#C9932F' }} />
       )}
 
       <div className="flex-shrink-0 relative">
@@ -183,7 +183,8 @@ export default function Notifications() {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.85 }}
               onClick={handleMarkAllRead}
-              className="text-xs font-semibold px-3 py-1.5 rounded-full bg-amber-50 text-amber-600 border border-amber-200"
+              className="text-xs font-semibold px-3 py-1.5 rounded-full"
+              style={{ background: 'rgba(22,52,73,0.08)', color: '#163449', border: '1px solid rgba(22,52,73,0.15)' }}
             >
               Mark all read
             </motion.button>

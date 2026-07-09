@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import api from '../utils/api';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { WaterCard, WaterButton, WaterInput } from '../components/water';
 
 export default function Churches({ embedded = false }) {
   const [search, setSearch] = useState('');
@@ -42,11 +43,11 @@ export default function Churches({ embedded = false }) {
   return (
     <div className={embedded ? '' : 'bg-gray-50 min-h-full'}>
       {!embedded && (
-        <div className="prayer-gradient px-5 pt-5 pb-8">
+        <WaterCard tone="blue" style={{ borderRadius: '0 0 24px 24px', padding: '20px 20px 32px' }}>
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-2xl font-bold text-white">Churches</h2>
-              <p className="text-white/70 text-sm mt-0.5">Find your faith community</p>
+              <h2 className="text-2xl font-bold" style={{ color: '#163449' }}>Churches</h2>
+              <p className="text-sm mt-0.5" style={{ color: '#4A6674' }}>Find your faith community</p>
             </div>
             {!myChurch ? (
               <button onClick={() => setShowCreate(true)}
@@ -60,17 +61,16 @@ export default function Churches({ embedded = false }) {
               </button>
             )}
           </div>
-        </div>
+        </WaterCard>
       )}
 
       <div className={embedded ? 'px-4 pt-4 pb-4' : '-mt-3 rounded-t-3xl bg-gray-50 px-4 pt-5 pb-4'}>
         {embedded && (
           <div className="flex items-center justify-end mb-3">
             {!myChurch ? (
-              <button onClick={() => setShowCreate(true)}
-                className="prayer-gradient text-white text-xs font-bold px-4 py-2 rounded-full shadow-sm">
+              <WaterButton variant="primary" onClick={() => setShowCreate(true)} className="text-xs font-bold px-4 py-2">
                 + Register Church
-              </button>
+              </WaterButton>
             ) : (
               <button onClick={() => navigate(`/churches/${myChurch.id}`)}
                 className="bg-faith-100 text-faith-700 text-xs font-semibold px-4 py-2 rounded-full">
@@ -80,8 +80,8 @@ export default function Churches({ embedded = false }) {
           </div>
         )}
         {/* Search */}
-        <div className="relative mb-5">
-          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+        <WaterInput className="relative mb-5" style={{ borderRadius: 16 }}>
+          <div className="absolute left-4 top-1/2 -translate-y-1/2" style={{ color: '#4A6674', zIndex: 2 }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
             </svg>
@@ -90,9 +90,9 @@ export default function Churches({ embedded = false }) {
             value={search}
             onChange={e => handleSearch(e.target.value)}
             placeholder="Search churches..."
-            className="w-full bg-white border border-gray-200 rounded-2xl pl-11 pr-4 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-faith-400 shadow-sm"
+            className="w-full bg-transparent pl-11 pr-4 py-3.5 text-sm focus:outline-none text-gray-800 placeholder-gray-400"
           />
-        </div>
+        </WaterInput>
 
         {loading ? (
           <div className="space-y-3">
@@ -102,9 +102,9 @@ export default function Churches({ embedded = false }) {
           </div>
         ) : churches.length === 0 ? (
           <div className="text-center py-16">
-            <div className="w-16 h-16 prayer-gradient rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-              <span className="text-3xl">⛪</span>
-            </div>
+            <WaterCard tone="blue" style={{ width: 64, height: 64, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', fontSize: '1.875rem' }}>
+              ⛪
+            </WaterCard>
             <p className="font-semibold text-gray-700">{search ? 'No churches found' : 'No churches yet'}</p>
             <p className="text-sm text-gray-400 mt-1">Be the first to register yours!</p>
           </div>
@@ -128,14 +128,14 @@ function ChurchCard({ church, onClick }) {
       <div className="relative h-20">
         {church.coverPhoto
           ? <img src={church.coverPhoto} alt="" className="w-full h-full object-cover" />
-          : <div className="w-full h-full prayer-gradient" />
+          : <div className="w-full h-full water-tile-blue" />
         }
       </div>
       <div className="px-4 pb-4 pt-2 flex items-end gap-3 -mt-6 relative">
         <div className="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 bg-white border-2 border-white shadow-md">
           {church.logo
             ? <img src={church.logo} alt="" className="w-full h-full object-cover" />
-            : <div className="w-full h-full prayer-gradient flex items-center justify-center text-white text-lg">⛪</div>
+            : <div className="w-full h-full water-tile-blue flex items-center justify-center text-lg" style={{ color: '#163449' }}>⛪</div>
           }
         </div>
         <div className="flex-1 min-w-0 pt-5">
@@ -181,10 +181,9 @@ function CreateChurchModal({ onClose, onCreate }) {
           <div className="flex items-center justify-between">
             <button onClick={onClose} className="text-sm text-gray-400 font-medium">Cancel</button>
             <h3 className="text-base font-bold text-gray-900">Register Church</h3>
-            <button onClick={handleSubmit} disabled={saving}
-              className="prayer-gradient text-white text-sm font-bold px-4 py-1.5 rounded-full disabled:opacity-40">
+            <WaterButton variant="primary" onClick={handleSubmit} disabled={saving} className="text-sm font-bold px-4 py-1.5">
               {saving ? 'Saving...' : 'Create'}
-            </button>
+            </WaterButton>
           </div>
         </div>
 
