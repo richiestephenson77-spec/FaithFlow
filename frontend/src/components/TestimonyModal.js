@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import api from '../utils/api';
+import { WaterButton } from './water';
 
 export default function TestimonyModal({ request, onSave, onClose }) {
   const [what, setWhat] = useState('');
@@ -68,13 +69,9 @@ export default function TestimonyModal({ request, onSave, onClose }) {
             />
           </div>
 
-          <button
-            onClick={handleSave}
-            disabled={saving || (!what.trim() && !how.trim())}
-            className="w-full py-4 rounded-2xl font-bold text-white prayer-gradient shadow-sm disabled:opacity-40 text-sm"
-          >
+          <WaterButton variant="primary" onClick={handleSave} disabled={saving || (!what.trim() && !how.trim())} className="w-full py-4 font-bold text-sm">
             {saving ? 'Saving...' : '🙌 Save Testimony'}
-          </button>
+          </WaterButton>
         </div>
       </div>
     </div>

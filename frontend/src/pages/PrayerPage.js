@@ -110,10 +110,11 @@ function PrayerCard({ request, currentUserId, onPray, onUserClick, onMarkAnswere
                 <button onClick={onMarkAnswered} className="text-xs font-semibold text-emerald-600 border border-emerald-200 bg-emerald-50 rounded-xl px-3 py-1.5">✓ Answered</button>
               )}
               {!request.isAnswered && (
-                <button onClick={!isOwner ? onPray : undefined} disabled={isOwner}
-                  className={`text-xs font-bold rounded-xl px-4 py-2 shadow-sm ${isOwner ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'prayer-gradient text-white'}`}>
-                  Pray Now
-                </button>
+                isOwner ? (
+                  <button disabled className="text-xs font-bold rounded-xl px-4 py-2 shadow-sm bg-gray-100 text-gray-400 cursor-not-allowed">Pray Now</button>
+                ) : (
+                  <WaterButton variant="primary" onClick={onPray} className="text-xs font-bold px-4 py-2">Pray Now</WaterButton>
+                )
               )}
             </div>
           </div>
@@ -753,10 +754,9 @@ function QuotaSettingsSheet({ current, onSave, onClose, saving }) {
             <input type="number" value={custom} onChange={e => setCustom(e.target.value)}
               placeholder="Custom number..." min="1" max="100"
               className="flex-1 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-faith-400" />
-            <button onClick={() => custom && onSave(custom)} disabled={saving || !custom}
-              className="prayer-gradient text-white font-bold rounded-xl px-4 py-2.5 text-sm disabled:opacity-40">
+            <WaterButton variant="primary" onClick={() => custom && onSave(custom)} disabled={saving || !custom} className="font-bold px-4 py-2.5 text-sm">
               {saving ? '...' : 'Set'}
-            </button>
+            </WaterButton>
           </div>
           <p className="text-xs text-gray-400 text-center">Current goal: {current} prayers/day</p>
         </div>

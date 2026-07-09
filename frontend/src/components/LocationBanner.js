@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import api from '../utils/api';
+import { WaterButton } from './water';
 
 export default function LocationBanner({ onLocationGranted }) {
   const [loading, setLoading] = useState(false);
@@ -41,10 +42,9 @@ export default function LocationBanner({ onLocationGranted }) {
       <p className="text-xs text-amber-800 leading-snug flex-1">
         See prayers from people near you — <span className="font-semibold">Enable Location</span>
       </p>
-      <button onClick={handleEnable} disabled={loading}
-        className="flex-shrink-0 prayer-gradient text-white text-xs font-bold px-3 py-1.5 rounded-xl disabled:opacity-60">
+      <WaterButton variant="primary" onClick={handleEnable} disabled={loading} className="flex-shrink-0 text-xs font-bold px-3 py-1.5" style={{ borderRadius: 12 }}>
         {loading ? '...' : 'Enable'}
-      </button>
+      </WaterButton>
       <button onClick={handleDismiss} className="flex-shrink-0 text-amber-400 hover:text-amber-600">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>

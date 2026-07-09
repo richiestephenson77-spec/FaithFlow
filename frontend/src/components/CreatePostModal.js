@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import api from '../utils/api';
 import { useAuth } from '../contexts/AuthContext';
 import Avatar from './Avatar';
+import { WaterButton } from './water';
 
 const POST_TYPES = [
   { id: 'UPDATE',    emoji: '📢', label: 'Update',    desc: 'Share something from your life' },
@@ -126,12 +127,9 @@ export default function CreatePostModal({ onClose, onCreate }) {
           </div>
 
           <div className="px-4 py-4 flex flex-col items-center gap-3 border-t border-gray-100">
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              className="w-full prayer-gradient text-white font-bold rounded-2xl py-3 text-sm"
-            >
+            <WaterButton variant="primary" onClick={() => fileInputRef.current?.click()} className="w-full font-bold py-3 text-sm">
               {mediaPreview ? 'Change Photo / Video' : 'Choose from Gallery'}
-            </button>
+            </WaterButton>
             <button onClick={skipMedia} className="text-sm text-gray-400 underline">
               Skip — text only post
             </button>

@@ -3,6 +3,7 @@ import { Globe, Lock, Shield } from 'lucide-react';
 import api from '../utils/api';
 import Avatar from './Avatar';
 import TestimonyModal from './TestimonyModal';
+import { WaterButton } from './water';
 
 const VISIBILITY_OPTIONS = [
   { id: 'PUBLIC',      label: 'Public',      Icon: Globe,  bg: 'bg-gray-100', text: 'text-gray-600' },
@@ -126,7 +127,7 @@ export default function MyPrayerRequestsDrawer({ onClose }) {
             </div>
           ) : requests.length === 0 ? (
             <div className="text-center py-16">
-              <div className="w-14 h-14 prayer-gradient rounded-full flex items-center justify-center mx-auto mb-3">
+              <div className="w-14 h-14 water-tile-blue rounded-full flex items-center justify-center mx-auto mb-3">
                 <span className="text-2xl">🙏</span>
               </div>
               <p className="font-semibold text-gray-700">No prayer requests yet</p>
@@ -223,10 +224,9 @@ export default function MyPrayerRequestsDrawer({ onClose }) {
                 className="w-full border border-gray-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-faith-400 resize-none"
                 placeholder="Description"
               />
-              <button onClick={saveEdit} disabled={saving}
-                className="w-full prayer-gradient text-white rounded-2xl py-3.5 font-bold text-sm disabled:opacity-40">
+              <WaterButton variant="primary" onClick={saveEdit} disabled={saving} className="w-full py-3.5 font-bold text-sm">
                 {saving ? 'Saving...' : 'Save Changes'}
-              </button>
+              </WaterButton>
             </div>
           </div>
         </>
@@ -255,10 +255,9 @@ export default function MyPrayerRequestsDrawer({ onClose }) {
                 className="w-full border border-gray-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-faith-400 resize-none"
                 placeholder="Still believing, but God is moving..."
               />
-              <button onClick={saveUpdate} disabled={saving || !updateText.trim()}
-                className="w-full prayer-gradient text-white rounded-2xl py-3.5 font-bold text-sm disabled:opacity-40">
+              <WaterButton variant="primary" onClick={saveUpdate} disabled={saving || !updateText.trim()} className="w-full py-3.5 font-bold text-sm">
                 {saving ? 'Posting...' : '💬 Post Update'}
-              </button>
+              </WaterButton>
             </div>
           </div>
         </>
@@ -282,7 +281,7 @@ export default function MyPrayerRequestsDrawer({ onClose }) {
                     key={opt.id}
                     onClick={() => changePrivacy(changingPrivacy, opt.id)}
                     className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl text-sm font-semibold transition-colors text-left ${
-                      active ? 'bg-gray-900 text-white' : 'text-gray-800 hover:bg-gray-50'
+                      active ? 'bg-faith-50 text-faith-800' : 'text-gray-800 hover:bg-gray-50'
                     }`}
                   >
                     <opt.Icon size={18} strokeWidth={1.8} />

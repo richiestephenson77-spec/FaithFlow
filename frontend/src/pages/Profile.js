@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { HandHeart, Clock, Users, Globe, Lock, Shield, MoreHorizontal, Trophy, Flame, Award } from 'lucide-react';
 import api from '../utils/api';
+import { WaterButton } from '../components/water';
 import { track } from '../utils/analytics';
 import { useAuth } from '../contexts/AuthContext';
 import PostGrid from '../components/PostGrid';
@@ -632,10 +633,9 @@ export default function Profile() {
                   className="flex-1 border border-gray-200 text-gray-600 rounded-xl py-3 text-sm font-medium">
                   Cancel
                 </button>
-                <button onClick={handleSave} disabled={saving}
-                  className="flex-1 prayer-gradient text-white rounded-xl py-3 text-sm font-bold disabled:opacity-60">
+                <WaterButton variant="primary" onClick={handleSave} disabled={saving} className="flex-1 py-3 text-sm font-bold">
                   {saving ? 'Saving...' : 'Save Changes'}
-                </button>
+                </WaterButton>
               </div>
             </div>
           </div>
