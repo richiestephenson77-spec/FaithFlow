@@ -7,7 +7,8 @@ import { useSocket } from '../contexts/SocketContext';
 import { usePrayerCellAudio } from '../hooks/usePrayerCellAudio';
 import Avatar from '../components/Avatar';
 
-const BG = '#0A0F1E';
+const BG = '#EEF3F5';
+const ACCENT = '#C0603F';
 const PRAYER_DURATION = 60;
 
 export default function PrayerCellHostRoom() {
@@ -19,6 +20,7 @@ export default function PrayerCellHostRoom() {
   const [phase, setPhase] = useState('waiting'); // waiting | praying | complete
   const [guest, setGuest] = useState(null);
   const [sessionCount, setSessionCount] = useState(0);
+  const [sessionGuests, setSessionGuests] = useState([]);
   const [isMuted, setIsMuted] = useState(false);
   const [timeLeft, setTimeLeft] = useState(PRAYER_DURATION);
 
@@ -32,6 +34,7 @@ export default function PrayerCellHostRoom() {
     async function onGuestJoined({ guestSocketId }) {
       // Start praying UI
       setGuest({ name: 'Someone', profilePhoto: null });
+      setSessionGuests(prev => [...prev, { name: 'Someone', joinedAt: Date.now() }]);
       setPhase('praying');
       setTimeLeft(PRAYER_DURATION);
       clearInterval(timerRef.current);
@@ -100,7 +103,7 @@ export default function PrayerCellHostRoom() {
     try { await api.post(`/prayer-cells/${cellId}/end`); } catch {}
     if (socket) socket.emit('cell:ended', { cellId });
     endCall();
-    navigate('/prayer-cells');
+    navigate('/prayer-cells', { replace: true });
   }
 
   function handleMute() { setIsMuted(toggleMute()); }
@@ -111,7 +114,6 @@ export default function PrayerCellHostRoom() {
     setTimeLeft(PRAYER_DURATION);
   }
 
-  const circumference = 2 * Math.PI * 44;
   const progress = timeLeft / PRAYER_DURATION;
 
   return (
@@ -119,111 +121,148 @@ export default function PrayerCellHostRoom() {
       {/* Top bar */}
       <div className="flex items-center justify-between px-5 pt-5 pb-4">
         <div />
-        <p className="text-white font-semibold text-base">Your Prayer Cell</p>
+        <p className="font-semibold text-base" style={{ color: '#163449' }}>Your Prayer Cell</p>
         <button onClick={handleEnd}>
-          <span className="text-red-400 text-sm font-medium">End Session</span>
+          <span className="text-red-500 text-sm font-medium">End Session</span>
         </button>
       </div>
 
-      <p className="text-amber-400 text-sm text-center font-medium">
+      <p className="text-sm text-center font-medium" style={{ color: ACCENT }}>
         {sessionCount} {sessionCount === 1 ? 'person' : 'people'} prayed this session
       </p>
 
-      {/* Main area */}
-      <div className="flex-1 flex flex-col items-center justify-center px-8">
-        <AnimatePresence mode="wait">
-          {phase === 'waiting' && (
-            <motion.div
-              key="waiting"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              className="flex flex-col items-center"
-            >
+      {/* TOP HALF — current activity */}
+      <div className="flex-1 basis-0 min-h-0 flex flex-col px-4 pt-4">
+        <div className="water-tile-static water-tile-blue flex-1 flex flex-col items-center justify-center px-6 py-4">
+          <AnimatePresence mode="wait">
+            {phase === 'waiting' && (
               <motion.div
-                animate={{ scale: [1, 1.08, 1], opacity: [0.6, 1, 0.6] }}
-                transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
-                className="w-32 h-32 rounded-full flex items-center justify-center"
-                style={{ background: 'rgba(245,158,11,0.1)', border: '2px solid rgba(245,158,11,0.3)' }}
+                key="waiting"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                className="flex flex-col items-center"
+                style={{ position: 'relative', zIndex: 1 }}
               >
-                <Mic size={40} color="#f59e0b" strokeWidth={1.5} />
+                <motion.div
+                  animate={{ scale: [1, 1.08, 1], opacity: [0.6, 1, 0.6] }}
+                  transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
+                  className="w-24 h-24 rounded-full flex items-center justify-center"
+                  style={{ background: 'rgba(192,96,63,0.1)', border: `2px solid rgba(192,96,63,0.3)` }}
+                >
+                  <Mic size={32} color={ACCENT} strokeWidth={1.5} />
+                </motion.div>
+                <p className="text-base font-semibold mt-4 text-center" style={{ color: '#163449' }}>
+                  Waiting for someone to join...
+                </p>
+                <p className="text-sm text-center mt-1.5" style={{ color: '#6B7680' }}>Your room is live 🔴</p>
               </motion.div>
-              <p className="text-white text-lg font-semibold mt-6 text-center">
-                Waiting for someone to join...
-              </p>
-              <p className="text-gray-400 text-sm text-center mt-2">Your room is live 🔴</p>
-            </motion.div>
-          )}
+            )}
 
-          {phase === 'praying' && guest && (
-            <motion.div
-              key="praying"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              className="flex flex-col items-center"
-            >
-              <div className="relative mb-6">
-                <SoundWave />
-                <div className="w-[72px] h-[72px] rounded-full overflow-hidden relative z-10">
-                  <Avatar user={guest} size="lg" />
-                </div>
-              </div>
-              <p className="text-white text-base font-semibold">{guest.name} has joined for prayer</p>
-
-              <div className="relative mt-8 flex items-center justify-center">
-                <svg width="100" height="100" className="-rotate-90">
-                  <circle cx="50" cy="50" r="44" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="4" />
-                  <circle
-                    cx="50" cy="50" r="44" fill="none"
-                    stroke="#f59e0b" strokeWidth="4"
-                    strokeDasharray={circumference}
-                    strokeDashoffset={circumference * (1 - progress)}
-                    strokeLinecap="round"
-                    style={{ transition: 'stroke-dashoffset 1s linear' }}
-                  />
-                </svg>
-                <span className="absolute text-white text-2xl font-bold">{timeLeft}</span>
-              </div>
-              <p className="text-gray-400 text-sm mt-3">Praying for {guest.name}</p>
-            </motion.div>
-          )}
-
-          {phase === 'complete' && (
-            <motion.div
-              key="complete"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="flex flex-col items-center"
-            >
-              <p className="text-white text-2xl font-bold text-center">Prayer Complete 🙏</p>
-              <p className="text-gray-400 text-sm text-center mt-2">
-                {sessionCount} {sessionCount === 1 ? 'person' : 'people'} prayed with you
-              </p>
-              <motion.button
-                whileTap={{ scale: 0.97 }}
-                onClick={handlePrayNext}
-                className="mt-8 px-8 py-3.5 rounded-full text-white font-semibold text-sm"
-                style={{ background: '#f59e0b' }}
+            {phase === 'praying' && guest && (
+              <motion.div
+                key="praying"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                className="flex flex-col items-center"
+                style={{ position: 'relative', zIndex: 1 }}
               >
-                Pray for Next Person
-              </motion.button>
-            </motion.div>
+                <div className="relative mb-4">
+                  <SoundWave />
+                  <div className="w-[64px] h-[64px] rounded-full overflow-hidden relative z-10">
+                    <Avatar user={guest} size="lg" />
+                  </div>
+                </div>
+                <p className="text-sm font-semibold" style={{ color: '#163449' }}>{guest.name} has joined for prayer</p>
+
+                <div className="relative mt-4 flex items-center justify-center">
+                  <svg width="88" height="88" className="-rotate-90">
+                    <circle cx="44" cy="44" r="38" fill="none" stroke="rgba(22,52,73,0.08)" strokeWidth="4" />
+                    <circle
+                      cx="44" cy="44" r="38" fill="none"
+                      stroke={ACCENT} strokeWidth="4"
+                      strokeDasharray={2 * Math.PI * 38}
+                      strokeDashoffset={2 * Math.PI * 38 * (1 - progress)}
+                      strokeLinecap="round"
+                      style={{ transition: 'stroke-dashoffset 1s linear' }}
+                    />
+                  </svg>
+                  <span className="absolute text-xl font-bold" style={{ color: '#163449' }}>{timeLeft}</span>
+                </div>
+                <p className="text-sm mt-2" style={{ color: '#6B7680' }}>Praying for {guest.name}</p>
+              </motion.div>
+            )}
+
+            {phase === 'complete' && (
+              <motion.div
+                key="complete"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="flex flex-col items-center"
+                style={{ position: 'relative', zIndex: 1 }}
+              >
+                <p className="text-xl font-bold text-center" style={{ color: '#163449' }}>Prayer Complete 🙏</p>
+                <p className="text-sm text-center mt-1.5" style={{ color: '#6B7680' }}>
+                  {sessionCount} {sessionCount === 1 ? 'person' : 'people'} prayed with you
+                </p>
+                <motion.button
+                  whileTap={{ scale: 0.97 }}
+                  onClick={handlePrayNext}
+                  className="mt-5 px-7 py-3 rounded-full text-white font-semibold text-sm"
+                  style={{ background: ACCENT }}
+                >
+                  Pray for Next Person
+                </motion.button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+
+      {/* BOTTOM HALF — joined this session */}
+      <div className="flex-1 basis-0 min-h-0 flex flex-col px-4 pt-4 pb-2">
+        <p className="text-xs font-semibold uppercase tracking-widest mb-2 flex-shrink-0" style={{ color: '#6B7680' }}>
+          Joined this session
+        </p>
+        <div className="flex-1 min-h-0 overflow-y-auto no-scrollbar">
+          {sessionGuests.length === 0 ? (
+            <p className="text-sm mt-4 text-center" style={{ color: '#9AA6AD' }}>No one has joined yet</p>
+          ) : (
+            <div className="space-y-2">
+              {[...sessionGuests].reverse().map((g, i) => (
+                <div key={g.joinedAt + '-' + i} className="water-tile-static water-tile-blue flex items-center gap-3 px-3 py-2.5">
+                  <div style={{ position: 'relative', zIndex: 1 }}>
+                    <Avatar user={g} size="sm" />
+                  </div>
+                  <div className="flex-1 min-w-0" style={{ position: 'relative', zIndex: 1 }}>
+                    <p className="text-sm font-semibold truncate" style={{ color: '#163449' }}>{g.name}</p>
+                  </div>
+                  <span className="text-[11px] flex-shrink-0" style={{ color: '#6B7680', position: 'relative', zIndex: 1 }}>
+                    {new Date(g.joinedAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+                  </span>
+                </div>
+              ))}
+            </div>
           )}
-        </AnimatePresence>
+        </div>
       </div>
 
       {/* Mute */}
-      <div className="flex justify-center pb-12">
+      <div className="flex justify-center pb-8 pt-2">
         <motion.button
           whileTap={{ scale: 0.9 }}
           onClick={handleMute}
-          className="w-16 h-16 rounded-full flex items-center justify-center"
-          style={{ background: isMuted ? 'rgba(239,68,68,0.2)' : 'rgba(255,255,255,0.1)' }}
+          className="w-14 h-14 rounded-full flex items-center justify-center"
+          style={{
+            background: isMuted ? 'rgba(239,68,68,0.12)' : '#FFFFFF',
+            border: isMuted ? '1px solid rgba(239,68,68,0.3)' : '1px solid rgba(22,52,73,0.12)',
+            boxShadow: '0 4px 12px rgba(20,40,60,0.1)',
+          }}
         >
           {isMuted
-            ? <MicOff size={24} color="#ef4444" strokeWidth={1.8} />
-            : <Mic size={24} color="white" strokeWidth={1.8} />
+            ? <MicOff size={22} color="#ef4444" strokeWidth={1.8} />
+            : <Mic size={22} color="#163449" strokeWidth={1.8} />
           }
         </motion.button>
       </div>
@@ -241,8 +280,8 @@ function SoundWave() {
             key={i}
             animate={{ height: [4, h, 4] }}
             transition={{ duration: 0.8 + i * 0.15, repeat: Infinity, ease: 'easeInOut', delay: i * 0.1 }}
-            className="w-1 rounded-full bg-amber-400 opacity-60"
-            style={{ height: 4 }}
+            className="w-1 rounded-full opacity-60"
+            style={{ height: 4, background: ACCENT }}
           />
         ))}
       </div>
