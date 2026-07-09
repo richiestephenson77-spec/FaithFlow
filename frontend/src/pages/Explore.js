@@ -1,189 +1,13 @@
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { BookOpen, Church, Shield, Users, Heart, Handshake, Search, ChevronRight, Radio, BookMarked, Map } from 'lucide-react';
+import { BookOpen, Radio, Map, Shield, Church, Users, BookMarked, Handshake, Heart, Search } from 'lucide-react';
 
-const features = [
-  {
-    id: 'bible',
-    label: 'Bible',
-    subtitle: 'Read & search scripture',
-    route: '/bible',
-    Icon: BookOpen,
-    active: true,
-    section: 'featured',
-  },
-  {
-    id: 'churches',
-    label: 'Churches',
-    subtitle: 'Find local · Join community',
-    route: '/churches-hub',
-    Icon: Church,
-    active: true,
-    section: 'getstarted',
-  },
-  {
-    id: 'confessions',
-    label: 'Confession Wall',
-    subtitle: 'Share your heart without fear. Completely anonymous.',
-    route: '/confessions',
-    Icon: Shield,
-    active: true,
-    section: 'hero',
-  },
-  {
-    id: 'cells',
-    label: 'Prayer Cells',
-    subtitle: 'Join a live audio prayer session',
-    route: '/prayer-cells',
-    Icon: Radio,
-    active: true,
-    section: 'featured',
-  },
-  {
-    id: 'pastors',
-    label: 'Pray w/ Pastor',
-    subtitle: 'Connect with verified pastors',
-    route: '/pastors',
-    Icon: Users,
-    active: true,
-    section: 'connect',
-  },
-  {
-    id: 'bibleDictionary',
-    label: 'Bible Dictionary',
-    subtitle: 'Search any word, name or topic',
-    route: '/bible-dictionary',
-    Icon: BookMarked,
-    active: true,
-    section: 'connect',
-  },
-  {
-    id: 'bibleMaps',
-    label: 'Bible Maps',
-    subtitle: 'Explore the Biblical world through time',
-    route: '/bible-maps',
-    Icon: Map,
-    active: true,
-    isNew: true,
-    section: 'connect',
-  },
-  {
-    id: 'partners',
-    label: 'Prayer Partners',
-    subtitle: 'Pray for each other for 7 days',
-    route: '/prayer-partners',
-    Icon: Handshake,
-    active: true,
-    section: 'connect',
-  },
-  {
-    id: 'answered',
-    label: 'Answered Prayers',
-    Icon: Heart,
-    active: false,
-    section: 'soon',
-  },
-  {
-    id: 'believers',
-    label: 'Find Believers',
-    Icon: Search,
-    active: false,
-    section: 'soon',
-  },
-];
-
-function SectionLabel({ children }) {
-  return (
-    <p className="text-[11px] font-semibold text-[#8E8E8E] tracking-wide uppercase px-4 mt-6 mb-1">
-      {children}
-    </p>
-  );
-}
-
-function FeaturedRow({ feature, onTap, isLast }) {
-  return (
-    <motion.button
-      whileTap={{ scale: 0.98 }}
-      transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-      onClick={() => onTap(feature)}
-      className={`w-full flex items-center gap-3 px-4 py-4 bg-white text-left${isLast ? '' : ' border-b border-[#EFEFEF]'}`}
-    >
-      <div
-        className="flex items-center justify-center rounded-xl flex-shrink-0"
-        style={{ width: 44, height: 44, background: '#F6F1E4' }}
-      >
-        <feature.Icon size={28} color="#262626" strokeWidth={1.5} />
-      </div>
-      <div className="flex-1 min-w-0">
-        <span className="text-[#262626] font-semibold text-[17px] leading-tight">{feature.label}</span>
-        {feature.subtitle && (
-          <p className="text-[#8E8E8E] text-[13px] mt-0.5 leading-snug">{feature.subtitle}</p>
-        )}
-      </div>
-      <ChevronRight size={18} color="#C7C7C7" className="flex-shrink-0" />
-    </motion.button>
-  );
-}
-
-function ListRow({ feature, onTap, isLast }) {
-  return (
-    <motion.button
-      whileTap={{ scale: 0.98 }}
-      transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-      onClick={() => onTap(feature)}
-      className={`w-full flex items-center gap-3 px-4 py-3.5 bg-white text-left${isLast ? '' : ' border-b border-[#EFEFEF]'}`}
-    >
-      <feature.Icon size={22} color="#262626" strokeWidth={1.6} className="flex-shrink-0" />
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-1.5">
-          <span className="text-[#262626] font-semibold text-[15px] leading-tight">{feature.label}</span>
-          {feature.isNew && (
-            <span className="text-[10px] font-bold text-[#C9932F]">New</span>
-          )}
-        </div>
-        {feature.subtitle && (
-          <p className="text-[#8E8E8E] text-[13px] mt-0.5 leading-snug">{feature.subtitle}</p>
-        )}
-      </div>
-      <ChevronRight size={18} color="#C7C7C7" className="flex-shrink-0" />
-    </motion.button>
-  );
-}
-
-function HeroCard({ feature, onTap }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, ease: 'easeOut' }}
-    >
-      <motion.button
-        whileTap={{ scale: 0.98 }}
-        transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-        onClick={() => onTap(feature)}
-        className="relative w-full flex flex-col p-5 rounded-2xl text-left overflow-hidden mx-4"
-        style={{ width: 'calc(100% - 2rem)', height: 110, background: 'linear-gradient(135deg, #4C1D95, #6D28D9)' }}
-      >
-        <span className="absolute top-3 right-3 text-[10px] px-2 py-0.5 rounded-full bg-white/10 text-white/60">
-          ANONYMOUS SPACE
-        </span>
-        <p className="text-white font-bold text-base mt-1">{feature.label}</p>
-        <p className="text-white/60 text-xs mt-1 flex-1">{feature.subtitle}</p>
-        <div className="flex justify-end">
-          <span className="text-white/80 text-sm">Enter →</span>
-        </div>
-      </motion.button>
-    </motion.div>
-  );
-}
-
-function ComingSoonPill({ feature }) {
+function IconOrb({ size = 48, Icon, iconSize = 22 }) {
   return (
     <div
-      className="flex-shrink-0 flex items-center rounded-full px-4 bg-gray-100"
-      style={{ height: 36, opacity: 0.6 }}
+      className="icon-orb flex items-center justify-center flex-shrink-0"
+      style={{ width: size, height: size }}
     >
-      <span className="text-gray-400 text-xs whitespace-nowrap">{feature.label}</span>
+      <Icon size={iconSize} color="#A8823C" strokeWidth={1.6} style={{ position: 'relative', zIndex: 1 }} />
     </div>
   );
 }
@@ -191,59 +15,128 @@ function ComingSoonPill({ feature }) {
 export default function Explore() {
   const navigate = useNavigate();
 
-  function handleTap(feature) {
-    if (feature.active) navigate(feature.route);
-  }
-
-  const featuredItems = features.filter(f => f.section === 'featured');
-  const getStartedExtra = features.filter(f => f.section === 'getstarted');
-  const confessions = features.find(f => f.id === 'confessions');
-  const connectItems = features.filter(f => f.section === 'connect');
-  const soonItems = features.filter(f => f.section === 'soon');
-
   return (
-    <div className="min-h-full" style={{ background: '#F5F5F7' }}>
+    <div className="min-h-full pb-32" style={{ background: '#EEF3F5' }}>
       {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, ease: 'easeOut' }}
-        className="px-4 pt-6 pb-3"
-      >
-        <h2 className="text-3xl font-bold text-gray-900">Explore</h2>
-        <p className="text-sm text-gray-400 mt-1">Deepen your faith journey</p>
-      </motion.div>
+      <div className="px-4 pt-6 pb-5">
+        <h2 className="text-2xl font-semibold" style={{ color: '#1A1A1A' }}>Explore</h2>
+        <p className="text-sm mt-1" style={{ color: '#6B7680' }}>Deepen your faith journey</p>
+      </div>
 
-      <div className="pb-32">
-        {/* Get Started — Bible, Prayer Cells (featured), + Churches (normal) */}
-        <SectionLabel>Get Started</SectionLabel>
-        <div className="bg-white rounded-2xl mx-4 overflow-hidden">
-          {featuredItems.map(f => (
-            <FeaturedRow key={f.id} feature={f} onTap={handleTap} isLast={false} />
+      <div className="px-4 space-y-3">
+
+        {/* 1. Bible — full-width hero tile */}
+        <button
+          className="water-tile water-tile-blue w-full text-left"
+          style={{ animation: 'float1 4s ease-in-out infinite', padding: 22 }}
+          onClick={() => navigate('/bible')}
+        >
+          <div style={{ position: 'relative', zIndex: 1 }} className="flex items-center gap-4">
+            <IconOrb size={48} Icon={BookOpen} iconSize={22} />
+            <div>
+              <p className="font-semibold text-lg leading-tight" style={{ color: '#163449' }}>Bible</p>
+              <p className="text-xs mt-0.5" style={{ color: '#4A6674' }}>Read and search scripture</p>
+            </div>
+          </div>
+        </button>
+
+        {/* 2. Prayer Cells + Bible Maps — 2-col medium tiles */}
+        <div className="grid grid-cols-2 gap-3">
+          <button
+            className="water-tile water-tile-blue text-left"
+            style={{ animation: 'float2 4.5s ease-in-out infinite', minHeight: 116, padding: 18 }}
+            onClick={() => navigate('/prayer-cells')}
+          >
+            <div style={{ position: 'relative', zIndex: 1 }} className="flex flex-col gap-3 h-full">
+              <IconOrb size={38} Icon={Radio} iconSize={18} />
+              <p className="font-semibold text-[15px] leading-snug" style={{ color: '#163449' }}>Prayer Cells</p>
+              <p className="text-[12px] leading-snug" style={{ color: '#4A6674' }}>Live audio prayer</p>
+            </div>
+          </button>
+
+          <button
+            className="water-tile water-tile-blue text-left relative"
+            style={{ animation: 'float3 5s ease-in-out infinite', minHeight: 116, padding: 18 }}
+            onClick={() => navigate('/bible-maps')}
+          >
+            <span
+              className="absolute top-3 right-3 text-[10px] font-semibold px-2 py-0.5 rounded-full"
+              style={{ background: 'rgba(255,255,255,0.7)', color: '#163449', zIndex: 2 }}
+            >
+              New
+            </span>
+            <div style={{ position: 'relative', zIndex: 1 }} className="flex flex-col gap-3 h-full">
+              <IconOrb size={38} Icon={Map} iconSize={18} />
+              <p className="font-semibold text-[15px] leading-snug" style={{ color: '#163449' }}>Bible Maps</p>
+              <p className="text-[12px] leading-snug" style={{ color: '#4A6674' }}>Explore the Biblical world</p>
+            </div>
+          </button>
+        </div>
+
+        {/* 3. Confession Wall — full-width violet tile */}
+        <button
+          className="water-tile water-tile-violet w-full text-left"
+          style={{ animation: 'float2 4.8s ease-in-out infinite', padding: '20px 22px 18px' }}
+          onClick={() => navigate('/confessions')}
+        >
+          <span
+            className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
+            style={{ background: 'rgba(255,255,255,0.25)', color: 'rgba(80,30,120,0.85)', position: 'relative', zIndex: 1 }}
+          >
+            ANONYMOUS SPACE
+          </span>
+          <div style={{ position: 'relative', zIndex: 1 }} className="mt-3">
+            <p className="font-bold text-base leading-tight" style={{ color: '#2D1050' }}>Confession Wall</p>
+            <p className="text-xs mt-1 leading-relaxed" style={{ color: 'rgba(60,20,100,0.65)' }}>
+              Share your heart without fear. Completely anonymous.
+            </p>
+            <div className="flex justify-end mt-3">
+              <span className="text-sm font-medium" style={{ color: 'rgba(60,20,100,0.7)' }}>Enter →</span>
+            </div>
+          </div>
+        </button>
+
+        {/* 4. Small 2×2 grid: Churches, Pray w/ Pastor, Bible Dictionary, Prayer Partners */}
+        <div className="grid grid-cols-2 gap-3">
+          {[
+            { label: 'Churches',         Icon: Church,    route: '/churches-hub', anim: 'float1 4.2s ease-in-out infinite' },
+            { label: 'Pray w/ Pastor',   Icon: Users,     route: '/pastors',      anim: 'float3 4.7s ease-in-out infinite' },
+            { label: 'Bible Dictionary', Icon: BookMarked,route: '/bible-dictionary', anim: 'float2 4.4s ease-in-out infinite' },
+            { label: 'Prayer Partners',  Icon: Handshake, route: '/prayer-partners',  anim: 'float1 5.1s ease-in-out infinite' },
+          ].map(({ label, Icon, route, anim }) => (
+            <button
+              key={label}
+              className="water-tile water-tile-blue text-left"
+              style={{ animation: anim, minHeight: 96, padding: 16 }}
+              onClick={() => navigate(route)}
+            >
+              <div style={{ position: 'relative', zIndex: 1 }} className="flex flex-col justify-between h-full" >
+                <Icon size={18} strokeWidth={1.6} style={{ color: '#163449' }} />
+                <p className="font-semibold text-[13px] leading-snug mt-3" style={{ color: '#163449' }}>{label}</p>
+              </div>
+            </button>
           ))}
-          {getStartedExtra.map((f, i) => (
-            <ListRow key={f.id} feature={f} onTap={handleTap} isLast={i === getStartedExtra.length - 1} />
-          ))}
         </div>
 
-        {/* Confession Wall hero */}
-        <div className="mt-4">
-          <HeroCard feature={confessions} onTap={handleTap} />
+        {/* Coming Soon pills */}
+        <div className="pt-2">
+          <p className="text-[11px] font-semibold uppercase tracking-wide mb-2" style={{ color: '#8E8E8E' }}>Coming Soon</p>
+          <div className="flex gap-2">
+            {[
+              { label: 'Answered Prayers', Icon: Heart },
+              { label: 'Find Believers',   Icon: Search },
+            ].map(({ label }) => (
+              <div
+                key={label}
+                className="flex items-center rounded-full px-4 bg-white/60"
+                style={{ height: 36, opacity: 0.6, border: '1px solid rgba(255,255,255,0.8)' }}
+              >
+                <span className="text-xs whitespace-nowrap" style={{ color: '#6B7680' }}>{label}</span>
+              </div>
+            ))}
+          </div>
         </div>
 
-        {/* Connect section */}
-        <SectionLabel>Connect</SectionLabel>
-        <div className="bg-white rounded-2xl mx-4 overflow-hidden">
-          {connectItems.map((f, i) => (
-            <ListRow key={f.id} feature={f} onTap={handleTap} isLast={i === connectItems.length - 1} />
-          ))}
-        </div>
-
-        {/* Coming Soon */}
-        <SectionLabel>Coming Soon</SectionLabel>
-        <div className="flex gap-2 overflow-x-auto px-4 pb-2 no-scrollbar">
-          {soonItems.map(f => <ComingSoonPill key={f.id} feature={f} />)}
-        </div>
       </div>
     </div>
   );
