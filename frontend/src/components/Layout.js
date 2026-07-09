@@ -37,7 +37,7 @@ export default function Layout() {
   const hideHeader = HIDE_HEADER_ON.some(p => location.pathname.startsWith(p));
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col max-w-md mx-auto relative shadow-xl">
+    <div className="min-h-screen bg-gray-50 flex flex-col max-w-md mx-auto relative shadow-xl" style={{ transform: 'translateZ(0)' }}>
       {!hideHeader && (
         <header className="water-header water-tile-blue px-4 py-2.5 flex items-center justify-between sticky top-0 z-30">
           <button onClick={() => setShowCreatePost(true)} className="flex-shrink-0" style={{ position: 'relative', zIndex: 1 }}>
@@ -82,7 +82,7 @@ export default function Layout() {
         />
       )}
 
-      <nav className="water-tile-neutral fixed bottom-4 left-1/2 -translate-x-1/2 w-[calc(100%-32px)] max-w-[calc(448px-32px)] flex z-30 rounded-[28px]">
+      <nav className="water-tile-neutral fixed bottom-4 left-1/2 -translate-x-1/2 flex z-30 rounded-[28px]" style={{ width: 'calc(100% - 32px)', maxWidth: '416px' }}>
         {navItems.map(({ to, label, Icon, end }) => (
           <NavLink
             key={to}
