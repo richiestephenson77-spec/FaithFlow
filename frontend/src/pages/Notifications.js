@@ -61,7 +61,7 @@ function NotificationCard({ n, onFollowBack }) {
       style={{ background: !n.isRead ? 'rgba(251,191,36,0.06)' : 'transparent' }}
     >
       {!n.isRead && (
-        <div className="absolute left-0 top-4 bottom-4 w-[3px] rounded-r-full" style={{ background: '#C9932F' }} />
+        <div className="absolute left-0 top-4 bottom-4 w-[3px] rounded-r-full" style={{ background: '#C0603F' }} />
       )}
 
       <div className="flex-shrink-0 relative">

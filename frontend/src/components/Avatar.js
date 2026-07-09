@@ -13,7 +13,7 @@ export default function Avatar({ user, size = 'md' }) {
   }
 
   return (
-    <div className={`${sizes[size]} rounded-full prayer-gradient flex items-center justify-center text-white font-bold flex-shrink-0`}>
+    <div className={`${sizes[size]} rounded-full flex items-center justify-center text-white font-bold flex-shrink-0`} style={{ background: '#5C6672' }}>
       {initials}
     </div>
   );

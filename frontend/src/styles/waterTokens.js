@@ -22,13 +22,14 @@ export const WATER_VIOLET = {
   border: '0.5px solid rgba(255,255,255,0.7)',
 };
 
+// Terracotta accent (was gold) — tuned around #C0603F
 export const WATER_GOLD = {
-  background: 'radial-gradient(circle at 32% 22%, rgba(255,248,230,0.98) 0%, rgba(255,235,180,0.82) 32%, rgba(240,210,130,0.65) 65%, rgba(220,185,100,0.55) 100%)',
+  background: 'radial-gradient(circle at 32% 22%, rgba(252,240,234,0.98) 0%, rgba(244,208,190,0.82) 32%, rgba(220,150,120,0.65) 65%, rgba(192,96,63,0.55) 100%)',
   boxShadow: [
-    '0 2px 4px rgba(80,50,10,0.06)',
-    '0 22px 42px -8px rgba(80,50,10,0.2)',
-    '0 8px 18px -4px rgba(80,50,10,0.1)',
-    'inset 0 -10px 18px rgba(200,150,50,0.2)',
+    '0 2px 4px rgba(90,40,25,0.06)',
+    '0 22px 42px -8px rgba(90,40,25,0.2)',
+    '0 8px 18px -4px rgba(90,40,25,0.1)',
+    'inset 0 -10px 18px rgba(170,80,50,0.2)',
     'inset 0 3px 3px rgba(255,255,255,0.95)',
   ].join(', '),
   border: '0.5px solid rgba(255,255,255,0.7)',

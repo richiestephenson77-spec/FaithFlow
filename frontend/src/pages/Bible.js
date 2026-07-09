@@ -284,7 +284,7 @@ export default function Bible() {
             className="w-full flex items-center justify-between px-5 py-2.5 bg-white border-b border-[#EFEFEF]"
           >
             <span className="flex items-center gap-2 text-[13px] text-[#8E8E8E]">
-              <Compass size={14} strokeWidth={1.6} color="#C9932F" />
+              <Compass size={14} strokeWidth={1.6} color="#C0603F" />
               Find a verse for how you feel
             </span>
             <X size={12} strokeWidth={1.6} color="#C7C7C7" style={{ transform: 'rotate(45deg)' }} />

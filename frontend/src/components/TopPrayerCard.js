@@ -82,7 +82,7 @@ export default function TopPrayerCard({ request, currentUserId, onPray, onUserCl
           {/* Live count — re-animates when count changes */}
           <motion.p
             key={request.prayerCount}
-            initial={{ scale: 1.15, color: '#C9932F' }}
+            initial={{ scale: 1.15, color: '#C0603F' }}
             animate={{ scale: 1, color: '#B8822A' }}
             transition={{ duration: 0.3 }}
             className="text-xs font-semibold mt-2 flex items-center gap-1"

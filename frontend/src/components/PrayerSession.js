@@ -57,7 +57,7 @@ export default function PrayerSession({ session, request, onEnd }) {
       <div className="fixed top-0 left-0 right-0 h-[3px]" style={{ background: 'rgba(255,255,255,0.15)' }}>
         <motion.div
           className="h-full"
-          style={{ background: '#C9932F', width: `${progressPct}%` }}
+          style={{ background: '#C0603F', width: `${progressPct}%` }}
           transition={{ duration: 1, ease: 'linear' }}
         />
       </div>
@@ -85,7 +85,7 @@ export default function PrayerSession({ session, request, onEnd }) {
       <div className="flex flex-col items-center w-full gap-6">
         <div className="bg-white/10 backdrop-blur rounded-3xl p-5 w-full text-white text-center">
           <p className="text-xs font-bold uppercase tracking-widest mb-2 flex items-center justify-center gap-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>
-            <HandHeart size={12} color="#C9932F" strokeWidth={2} />
+            <HandHeart size={12} color="#C0603F" strokeWidth={2} />
             Prayer in Progress
           </p>
           <h3 className="font-bold text-base mb-2">{request.title}</h3>
@@ -102,7 +102,7 @@ export default function PrayerSession({ session, request, onEnd }) {
               <div className="w-48 h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.15)' }}>
                 <div
                   className="h-full rounded-full transition-all duration-1000"
-                  style={{ width: `${progressPct}%`, background: '#C9932F' }}
+                  style={{ width: `${progressPct}%`, background: '#C0603F' }}
                 />
               </div>
               <p className="text-xs mt-1" style={{ color: 'rgba(255,255,255,0.5)' }}>Finish available in {countdown}s</p>
@@ -121,7 +121,7 @@ export default function PrayerSession({ session, request, onEnd }) {
           className="w-full py-4 rounded-2xl font-bold text-base transition-all"
           style={
             ready && !ending
-              ? { background: '#C9932F', color: '#0A0F1E' }
+              ? { background: '#C0603F', color: '#0A0F1E' }
               : { background: 'rgba(255,255,255,0.1)', color: 'rgba(255,255,255,0.3)', cursor: 'not-allowed' }
           }
         >

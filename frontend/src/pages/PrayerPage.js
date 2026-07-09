@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Globe, MapPin, RefreshCw, Flame, BookOpen, Users, Plus, Bookmark, Play, Target, Settings, TrendingUp, Pencil, Lock, Cross, Sparkles, HeartHandshake, Sun, Cloud, CloudRain, Heart, Zap, ChevronRight, X } from 'lucide-react';
+import { Globe, MapPin, RefreshCw, Flame, BookOpen, Users, Plus, Bookmark, Play, Target, Settings, TrendingUp, Pencil, Lock, Cross, Sparkles, HeartHandshake, Sun, Cloud, CloudRain, Heart, Zap, X } from 'lucide-react';
 import { WaterCard, WaterButton, WaterPill } from '../components/water';
 import api from '../utils/api';
 import { fadeUp, fadeIn, scaleIn, slideInRight, slideUp, staggerContainer, staggerContainerFast, staggerItem } from '../utils/animations';
@@ -305,26 +305,26 @@ export default function PrayerPage() {
   return (
     <div className="bg-gray-50 min-h-full">
       {/* Hero */}
-      <WaterCard tone="blue" radius="sm" style={{ borderRadius: '0 0 24px 24px', padding: '20px 20px 24px' }}>
-        <button onClick={() => navigate(-1)} className="w-8 h-8 rounded-full flex items-center justify-center mb-4" style={{ background: 'rgba(22,52,73,0.1)' }}>
+      <WaterCard tone="blue" radius="sm" style={{ borderRadius: '0 0 24px 24px', padding: '14px 16px 16px' }}>
+        <button onClick={() => navigate(-1)} className="w-8 h-8 rounded-full flex items-center justify-center mb-2.5" style={{ background: 'rgba(22,52,73,0.1)' }}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#163449" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
 
         <motion.div
           initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, ease: 'easeOut' }}
-          className="flex items-center gap-3 mb-3"
+          className="flex items-center gap-3 mb-2.5"
         >
-          <h2 className="text-2xl font-bold leading-tight" style={{ color: '#163449' }}>
-            Who will you pray<br />for today?
+          <h2 className="text-xl font-bold leading-tight" style={{ color: '#163449' }}>
+            Who will you pray for today?
           </h2>
           {streak !== null && streak > 0 && (
             <motion.span
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.15, duration: 0.3 }}
-              className="flex items-center gap-1 px-2 py-1 rounded-full flex-shrink-0 self-start mt-1"
-              style={{ background: 'rgba(201,147,47,0.18)' }}
+              className="flex items-center gap-1 px-2 py-1 rounded-full flex-shrink-0 self-start mt-0.5"
+              style={{ background: 'rgba(192,96,63,0.15)' }}
             >
-              <Flame size={11} strokeWidth={2} color="#A8823C" />
-              <span className="text-[11px] font-semibold" style={{ color: '#A8823C' }}>{streak}</span>
+              <Flame size={11} strokeWidth={2} color="#C0603F" />
+              <span className="text-[11px] font-semibold" style={{ color: '#C0603F' }}>{streak}</span>
             </motion.span>
           )}
         </motion.div>
@@ -332,9 +332,9 @@ export default function PrayerPage() {
         {/* Daily Goal — water glass card */}
         <motion.div
           initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.35, ease: 'easeOut' }}
-          className="water-tile-static water-tile-blue px-4 py-3.5"
+          className="water-tile-static water-tile-blue px-4 py-3"
         >
-          <div className="flex items-center justify-between mb-3" style={{ position: 'relative', zIndex: 1 }}>
+          <div className="flex items-center justify-between mb-2.5" style={{ position: 'relative', zIndex: 1 }}>
             <div className="flex items-center gap-2">
               <Target size={15} strokeWidth={1.5} color="#163449" />
               <p className="text-xs font-medium" style={{ color: '#163449' }}>Daily Goal</p>
@@ -358,61 +358,47 @@ export default function PrayerPage() {
           {quota?.isComplete && <p className="text-xs font-medium mt-2" style={{ color: '#4A6674', position: 'relative', zIndex: 1 }}>Goal complete for today</p>}
         </motion.div>
 
-        {/* Today's Grace — gratitude card */}
-        <motion.button
+        {/* Today's Grace + Need a verse — compact side-by-side rows */}
+        <motion.div
           initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 0.35, ease: 'easeOut' }}
-          onClick={() => !todayGratitude && setShowGratitudeSheet(true)}
-          className="water-tile-static water-tile-blue w-full text-left mt-3 px-4 py-3.5"
+          className="flex gap-2.5 mt-2.5"
         >
-          <div className="flex items-center justify-between" style={{ position: 'relative', zIndex: 1 }}>
-            <div className="flex items-center gap-2.5">
-              <div className="icon-orb flex items-center justify-center flex-shrink-0" style={{ width: 36, height: 36 }}>
-                <Sparkles size={15} strokeWidth={1.5} color="#A8823C" style={{ position: 'relative', zIndex: 1 }} />
-              </div>
-              <span className="font-semibold text-sm" style={{ color: '#163449' }}>Today's Grace</span>
-              {gratitudeStreak > 0 && (
-                <span className="flex items-center gap-0.5 text-[11px]" style={{ color: '#4A6674' }}>
-                  <Flame size={10} strokeWidth={2} color="#4A6674" />{gratitudeStreak}d
-                </span>
-              )}
+          <button
+            onClick={() => !todayGratitude && setShowGratitudeSheet(true)}
+            className="water-tile-static water-tile-blue flex-1 text-left px-3 py-2.5 flex items-center gap-2"
+          >
+            <div className="icon-orb flex items-center justify-center flex-shrink-0" style={{ width: 28, height: 28, position: 'relative', zIndex: 1 }}>
+              <Sparkles size={13} strokeWidth={1.5} color="#C0603F" style={{ position: 'relative', zIndex: 1 }} />
             </div>
-            {!todayGratitude && <ChevronRight size={14} color="#4A6674" />}
-          </div>
-          {todayGratitude ? (
-            <p className="text-xs mt-2 leading-relaxed line-clamp-2" style={{ color: '#4A6674', position: 'relative', zIndex: 1 }}>{todayGratitude.content}</p>
-          ) : (
-            <p className="text-xs mt-1" style={{ color: '#7A9BAD', position: 'relative', zIndex: 1 }}>What did God do today?</p>
-          )}
-        </motion.button>
+            <span className="font-semibold text-xs" style={{ color: '#163449', position: 'relative', zIndex: 1 }}>Today's Grace</span>
+            {gratitudeStreak > 0 && (
+              <span className="flex items-center gap-0.5 text-[10px] ml-auto" style={{ color: '#4A6674', position: 'relative', zIndex: 1 }}>
+                <Flame size={9} strokeWidth={2} color="#4A6674" />{gratitudeStreak}d
+              </span>
+            )}
+          </button>
 
-        {/* Need a verse — feelings entry */}
-        <motion.button
-          initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.38, duration: 0.35, ease: 'easeOut' }}
-          onClick={() => navigate('/feelings')}
-          className="water-tile-static water-tile-blue w-full text-left mt-3 px-4 py-3.5 flex items-center justify-between"
-        >
-          <div className="flex items-center gap-2.5" style={{ position: 'relative', zIndex: 1 }}>
-            <div className="icon-orb flex items-center justify-center flex-shrink-0" style={{ width: 36, height: 36 }}>
-              <HeartHandshake size={15} strokeWidth={1.5} color="#A8823C" style={{ position: 'relative', zIndex: 1 }} />
+          <button
+            onClick={() => navigate('/feelings')}
+            className="water-tile-static water-tile-blue flex-1 text-left px-3 py-2.5 flex items-center gap-2"
+          >
+            <div className="icon-orb flex items-center justify-center flex-shrink-0" style={{ width: 28, height: 28, position: 'relative', zIndex: 1 }}>
+              <HeartHandshake size={13} strokeWidth={1.5} color="#C0603F" style={{ position: 'relative', zIndex: 1 }} />
             </div>
-            <div>
-              <span className="font-semibold text-sm" style={{ color: '#163449' }}>Need a verse right now?</span>
-              <p className="text-xs mt-0.5" style={{ color: '#4A6674' }}>Find scripture for how you're feeling</p>
-            </div>
-          </div>
-          <ChevronRight size={14} color="#4A6674" style={{ position: 'relative', zIndex: 1 }} />
-        </motion.button>
+            <span className="font-semibold text-xs" style={{ color: '#163449', position: 'relative', zIndex: 1 }}>Need a verse</span>
+          </button>
+        </motion.div>
       </WaterCard>
 
       {/* Feed */}
       <div className="-mt-5 rounded-t-3xl bg-gray-50 px-4 pt-5">
         {/* Action buttons */}
-        <motion.div {...fadeUp} transition={{ delay: 0.05, duration: 0.3 }} className="flex gap-2 mb-5">
+        <motion.div {...fadeUp} transition={{ delay: 0.05, duration: 0.3 }} className="flex gap-2 mb-3">
           <WaterButton
             variant="primary"
             onClick={() => setShowQueue(true)}
             className="flex-1 flex items-center justify-center gap-2 text-sm"
-            style={{ height: 44 }}
+            style={{ height: 40 }}
           >
             <Play size={14} strokeWidth={2} />
             Start Prayers
@@ -421,7 +407,7 @@ export default function PrayerPage() {
             variant="secondary"
             onClick={() => setShowNewRequest(true)}
             className="flex-1 flex items-center justify-center gap-2 text-sm"
-            style={{ height: 44 }}
+            style={{ height: 40 }}
           >
             <Plus size={14} strokeWidth={2} />
             Share Request
@@ -430,7 +416,7 @@ export default function PrayerPage() {
             variant="secondary"
             onClick={() => setShowMyRequests(true)}
             className="flex items-center justify-center flex-shrink-0"
-            style={{ height: 44, width: 44 }}
+            style={{ height: 40, width: 40 }}
           >
             <Bookmark size={17} strokeWidth={1.5} color="#4A6674" />
           </WaterButton>
@@ -480,12 +466,12 @@ export default function PrayerPage() {
         )}
 
         {/* Worldwide / Near Me toggle */}
-        <motion.div {...scaleIn} transition={{ delay: 0.1, duration: 0.25 }} className="mb-3">
+        <motion.div {...scaleIn} transition={{ delay: 0.1, duration: 0.25 }} className="mb-2">
           <div className="flex gap-2 mb-2">
             <WaterPill
               active={!nearMe}
               onClick={() => { setNearMe(false); loadFeed(false, { nearMe: false }); }}
-              style={{ flex: 1, justifyContent: 'center', display: 'flex', alignItems: 'center', gap: 6, height: 38 }}
+              style={{ flex: 1, justifyContent: 'center', display: 'flex', alignItems: 'center', gap: 6, height: 34 }}
             >
               <Globe size={13} strokeWidth={1.8} /> Worldwide
             </WaterPill>
@@ -495,7 +481,7 @@ export default function PrayerPage() {
                 if (!userCoords) { setShowLocationBanner(true); return; }
                 setNearMe(true); loadFeed(false, { nearMe: true, radius, coords: userCoords });
               }}
-              style={{ flex: 1, justifyContent: 'center', display: 'flex', alignItems: 'center', gap: 6, height: 38 }}
+              style={{ flex: 1, justifyContent: 'center', display: 'flex', alignItems: 'center', gap: 6, height: 34 }}
             >
               <MapPin size={13} strokeWidth={1.8} /> Near Me
             </WaterPill>
@@ -561,7 +547,7 @@ export default function PrayerPage() {
         )}
 
         {/* Category filter chips */}
-        <motion.div {...slideInRight} transition={{ delay: 0.15, duration: 0.3 }} className="flex gap-2 overflow-x-auto pb-2 mb-4 scrollbar-hide -mx-4 px-4">
+        <motion.div {...slideInRight} transition={{ delay: 0.15, duration: 0.3 }} className="flex gap-2 overflow-x-auto pb-1.5 mb-3 scrollbar-hide -mx-4 px-4">
           {FILTER_TABS.map(tab => (
             <WaterPill key={tab.id} active={activeCategory === tab.id} onClick={() => setActiveCategory(tab.id)}>
               {tab.label}
@@ -571,7 +557,7 @@ export default function PrayerPage() {
 
         {/* Refresh */}
         <button onClick={() => loadFeed(true)}
-          className="w-full text-center text-xs text-gray-400 mb-4 py-1 active:text-gray-600 transition-colors">
+          className="w-full text-center text-xs text-gray-400 mb-2 py-1 active:text-gray-600 transition-colors">
           <span className="flex items-center justify-center gap-1.5">
             <RefreshCw size={11} strokeWidth={2} className={refreshing ? 'animate-spin' : ''} />
             {refreshing ? 'Refreshing...' : 'Refresh rankings'}

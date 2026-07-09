@@ -56,7 +56,7 @@ export default function Layout() {
             {user?.profilePhoto ? (
               <img src={user.profilePhoto} alt={user.name} className="w-9 h-9 rounded-full object-cover" />
             ) : (
-              <div className="w-9 h-9 rounded-full flex items-center justify-center" style={{ background: '#C9932F' }}>
+              <div className="w-9 h-9 rounded-full flex items-center justify-center" style={{ background: '#C0603F' }}>
                 <span className="text-white font-bold text-base">{user?.name?.charAt(0).toUpperCase() || '?'}</span>
               </div>
             )}
