@@ -38,6 +38,18 @@ export default function Layout() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col max-w-md mx-auto relative shadow-xl" style={{ transform: 'translateZ(0)' }}>
+      <svg width="0" height="0" style={{ position: 'absolute' }}>
+        <defs>
+          <filter id="droplet-warp-1" x="-30%" y="-30%" width="160%" height="160%">
+            <feTurbulence type="fractalNoise" baseFrequency="0.025 0.04" numOctaves="1" seed="3" result="noise" />
+            <feDisplacementMap in="SourceGraphic" in2="noise" scale="7" xChannelSelector="R" yChannelSelector="G" />
+          </filter>
+          <filter id="droplet-warp-2" x="-30%" y="-30%" width="160%" height="160%">
+            <feTurbulence type="fractalNoise" baseFrequency="0.03 0.02" numOctaves="1" seed="7" result="noise" />
+            <feDisplacementMap in="SourceGraphic" in2="noise" scale="6" xChannelSelector="R" yChannelSelector="G" />
+          </filter>
+        </defs>
+      </svg>
       {!hideHeader && (
         <header className="water-header water-tile-blue px-4 py-2.5 flex items-center justify-between sticky top-0 z-30">
           <button onClick={() => setShowCreatePost(true)} className="flex-shrink-0" style={{ position: 'relative', zIndex: 1 }}>
@@ -82,23 +94,28 @@ export default function Layout() {
         />
       )}
 
-      <nav className="water-tile-neutral fixed bottom-4 left-1/2 -translate-x-1/2 flex z-30 rounded-[28px]" style={{ width: 'calc(100% - 32px)', maxWidth: '416px' }}>
-        {navItems.map(({ to, label, Icon, end }) => (
-          <NavLink
-            key={to}
-            to={to}
-            end={end}
-            className={({ isActive }) =>
-              `flex-1 flex items-center justify-center py-3.5 transition-colors relative
-               ${isActive ? 'text-faith-600' : 'text-gray-900'}`
-            }
-            style={{ position: 'relative', zIndex: 1 }}
-          >
+      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 flex gap-3 z-30">
+        {navItems.map(({ to, label, Icon, end }, i) => (
+          <NavLink key={to} to={to} end={end} style={{ position: 'relative', zIndex: 1 }}>
             {({ isActive }) => (
-              <motion.div className="relative" whileTap={{ scale: 0.82 }} transition={{ type: 'spring', stiffness: 500, damping: 25 }}>
-                <Icon size={22} strokeWidth={isActive ? 2.5 : 1.5} />
+              <motion.div
+                whileTap={{ scale: 0.88 }}
+                transition={{ type: 'spring', stiffness: 500, damping: 25 }}
+                className={`droplet-nav droplet-shape-${(i % 5) + 1}`}
+                style={{ width: 58, height: 58, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}
+              >
+                <Icon
+                  size={22}
+                  strokeWidth={isActive ? 2.5 : 1.5}
+                  color={isActive ? '#163449' : 'rgba(22,52,73,0.55)'}
+                  style={{
+                    filter: `url(#droplet-warp-${(i % 2) + 1})`,
+                    position: 'relative',
+                    zIndex: 1,
+                  }}
+                />
                 {label === 'Chats' && unreadMessages > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[9px] rounded-full w-4 h-4 flex items-center justify-center leading-none font-bold">
+                  <span className="absolute top-1 right-1 bg-red-500 text-white text-[9px] rounded-full w-4 h-4 flex items-center justify-center leading-none font-bold" style={{ zIndex: 3 }}>
                     {unreadMessages > 9 ? '9+' : unreadMessages}
                   </span>
                 )}
@@ -106,7 +123,7 @@ export default function Layout() {
             )}
           </NavLink>
         ))}
-      </nav>
+      </div>
     </div>
   );
 }

@@ -100,6 +100,46 @@ html, body { overflow-x: hidden; }
   pointer-events: none;
 }
 
+.droplet-nav {
+  position: relative;
+  background: rgba(255,255,255,0.16);
+  backdrop-filter: blur(12px) saturate(1.6);
+  -webkit-backdrop-filter: blur(12px) saturate(1.6);
+  box-shadow:
+    0 3px 4px rgba(20,20,30,0.06),
+    0 14px 28px -4px rgba(20,20,30,0.28),
+    0 5px 12px -2px rgba(20,20,30,0.14),
+    inset 0 2px 1.5px rgba(255,255,255,0.95),
+    inset 0 -7px 12px rgba(255,255,255,0.18),
+    inset 0 -3px 5px rgba(0,0,0,0.07);
+  border: 1.5px solid rgba(255,255,255,0.6);
+  overflow: hidden;
+}
+.droplet-nav::before {
+  content: '';
+  position: absolute;
+  top: -12%; left: -6%;
+  width: 55%; height: 55%;
+  background: radial-gradient(circle, rgba(255,255,255,0.98) 0%, rgba(255,255,255,0.3) 45%, transparent 70%);
+  pointer-events: none;
+  z-index: 2;
+}
+.droplet-nav::after {
+  content: '';
+  position: absolute;
+  top: 62%; left: 60%;
+  width: 12%; height: 12%;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.9);
+  pointer-events: none;
+  z-index: 2;
+}
+.droplet-shape-1 { border-radius: 42% 58% 55% 45% / 55% 42% 58% 45%; }
+.droplet-shape-2 { border-radius: 55% 45% 42% 58% / 45% 55% 45% 58%; }
+.droplet-shape-3 { border-radius: 48% 52% 60% 40% / 58% 45% 55% 42%; }
+.droplet-shape-4 { border-radius: 45% 55% 48% 52% / 42% 58% 45% 55%; }
+.droplet-shape-5 { border-radius: 58% 42% 45% 55% / 50% 48% 52% 45%; }
+
 .water-tile-static {
   position: relative;
   border-radius: 24px;
