@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
+import { WaterCard, WaterButton } from '../components/water';
 
 const STATUS_STYLES = {
   PENDING:   'bg-gray-100 text-gray-500',
@@ -31,16 +32,16 @@ export default function MyPastorRequests() {
 
   return (
     <div className="bg-gray-50 min-h-full">
-      <div className="prayer-gradient px-4 pt-4 pb-7">
+      <WaterCard tone="blue" style={{ borderRadius: '0 0 24px 24px', padding: '16px 16px 28px' }}>
         <div className="flex items-center gap-3 mb-1">
-          <button onClick={() => navigate(-1)} className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <button onClick={() => navigate(-1)} className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: 'rgba(22,52,73,0.1)' }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#163449" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="15 18 9 12 15 6"/>
             </svg>
           </button>
-          <h2 className="text-lg font-bold text-white">My Pastor Requests</h2>
+          <h2 className="text-lg font-bold" style={{ color: '#163449' }}>My Pastor Requests</h2>
         </div>
-      </div>
+      </WaterCard>
 
       <div className="-mt-3 rounded-t-3xl bg-gray-50 px-4 pt-5 pb-24">
         {loading ? (
@@ -49,9 +50,9 @@ export default function MyPastorRequests() {
           <div className="text-center py-20">
             <p className="font-semibold text-gray-600">No requests yet</p>
             <p className="text-sm text-gray-400 mt-1">Connect with a pastor for prayer</p>
-            <button onClick={() => navigate('/pastors')} className="mt-4 prayer-gradient text-white rounded-2xl px-6 py-2.5 text-sm font-bold">
+            <WaterButton variant="primary" onClick={() => navigate('/pastors')} className="mt-4 px-6 py-2.5 text-sm font-bold">
               Find a Pastor
-            </button>
+            </WaterButton>
           </div>
         ) : (
           <div className="space-y-3">

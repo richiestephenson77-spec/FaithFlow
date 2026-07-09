@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import { useAuth } from '../contexts/AuthContext';
+import { WaterButton } from '../components/water';
 
 const POST_TYPE_LABELS = { UPDATE: '📢 Update', EVENT: '📅 Event', SERVICE: '🕊️ Service Time' };
 const POST_TYPE_COLORS = {
@@ -75,7 +76,7 @@ export default function ChurchPage() {
           <div className="w-16 h-16 rounded-2xl overflow-hidden border-4 border-white shadow-lg flex-shrink-0">
             {church.logo
               ? <img src={church.logo} alt="" className="w-full h-full object-cover" />
-              : <div className="w-full h-full prayer-gradient flex items-center justify-center text-white text-3xl">⛪</div>
+              : <div className="w-full h-full water-tile-blue flex items-center justify-center text-3xl" style={{ color: '#163449' }}>⛪</div>
             }
           </div>
           <div className="flex-1 pb-1">
@@ -96,18 +97,21 @@ export default function ChurchPage() {
             <strong className="text-gray-900">{church._count?.followers || 0}</strong> members
           </span>
           {!isAdmin && (
-            <button onClick={handleFollow}
-              className={`text-sm px-5 py-2 rounded-full font-bold ${following
-                ? 'bg-gray-100 text-gray-600 border border-gray-200'
-                : 'prayer-gradient text-white shadow'}`}>
-              {following ? 'Following' : 'Follow Church'}
-            </button>
+            following ? (
+              <button onClick={handleFollow}
+                className="text-sm px-5 py-2 rounded-full font-bold bg-gray-100 text-gray-600 border border-gray-200">
+                Following
+              </button>
+            ) : (
+              <WaterButton variant="primary" onClick={handleFollow} className="text-sm px-5 py-2 font-bold" style={{ borderRadius: 999 }}>
+                Follow Church
+              </WaterButton>
+            )
           )}
           {isAdmin && (
-            <button onClick={() => setShowPost(true)}
-              className="text-sm prayer-gradient text-white px-5 py-2 rounded-full font-bold shadow">
+            <WaterButton variant="primary" onClick={() => setShowPost(true)} className="text-sm px-5 py-2 font-bold" style={{ borderRadius: 999 }}>
               + Post Update
-            </button>
+            </WaterButton>
           )}
         </div>
       </div>
@@ -210,10 +214,9 @@ function NewChurchPostModal({ churchId, onClose, onCreate }) {
           <div className="flex gap-3">
             <button type="button" onClick={onClose}
               className="flex-1 border border-gray-200 text-gray-600 rounded-xl py-3 text-sm">Cancel</button>
-            <button type="submit" disabled={saving}
-              className="flex-1 prayer-gradient text-white rounded-xl py-3 text-sm font-bold disabled:opacity-60">
+            <WaterButton variant="primary" type="submit" disabled={saving} className="flex-1 py-3 text-sm font-bold">
               {saving ? 'Posting...' : 'Post'}
-            </button>
+            </WaterButton>
           </div>
         </form>
       </div>
@@ -277,10 +280,9 @@ function EditChurchModal({ church, onClose, onSave }) {
           <div className="flex gap-3">
             <button type="button" onClick={onClose}
               className="flex-1 border border-gray-200 text-gray-600 rounded-xl py-3 text-sm">Cancel</button>
-            <button type="submit" disabled={saving}
-              className="flex-1 prayer-gradient text-white rounded-xl py-3 text-sm font-bold disabled:opacity-60">
+            <WaterButton variant="primary" type="submit" disabled={saving} className="flex-1 py-3 text-sm font-bold">
               {saving ? 'Saving...' : 'Save'}
-            </button>
+            </WaterButton>
           </div>
         </form>
       </div>

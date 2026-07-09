@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
+import { WaterCard, WaterButton, WaterPill } from '../components/water';
 
 const STATUS_STYLES = {
   PENDING:   'bg-amber-50 text-amber-600',
@@ -44,10 +45,9 @@ function PastorRequestCard({ r, onAction, responding, setResponding, response, s
               className="flex-1 border border-gray-200 text-gray-500 rounded-xl py-2 text-xs font-semibold">
               Cancel
             </button>
-            <button onClick={() => onAction(r.id, 'RESPONDED', response)} disabled={saving || !response.trim()}
-              className="flex-1 prayer-gradient text-white rounded-xl py-2 text-xs font-bold disabled:opacity-40">
+            <WaterButton variant="primary" onClick={() => onAction(r.id, 'RESPONDED', response)} disabled={saving || !response.trim()} className="flex-1 py-2 text-xs font-bold">
               {saving ? 'Saving...' : 'Respond'}
-            </button>
+            </WaterButton>
           </div>
         </div>
       ) : (
@@ -58,10 +58,9 @@ function PastorRequestCard({ r, onAction, responding, setResponding, response, s
               Mark as Prayed
             </button>
           )}
-          <button onClick={() => { setResponding(r.id); setResponse(r.response || ''); }}
-            className="flex-1 prayer-gradient text-white rounded-xl py-2 text-xs font-bold">
+          <WaterButton variant="primary" onClick={() => { setResponding(r.id); setResponse(r.response || ''); }} className="flex-1 py-2 text-xs font-bold">
             {r.response ? 'Edit Response' : 'Respond'}
-          </button>
+          </WaterButton>
         </div>
       )}
     </div>
@@ -137,43 +136,29 @@ export default function PastorDashboard() {
 
   return (
     <div className="bg-gray-50 min-h-full">
-      <div className="prayer-gradient px-4 pt-4 pb-7">
+      <WaterCard tone="blue" style={{ borderRadius: '0 0 24px 24px', padding: '16px 16px 28px' }}>
         <div className="flex items-center gap-3 mb-1">
-          <button onClick={() => navigate(-1)} className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <button onClick={() => navigate(-1)} className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: 'rgba(22,52,73,0.1)' }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#163449" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="15 18 9 12 15 6"/>
             </svg>
           </button>
           <div>
-            <h2 className="text-lg font-bold text-white">Pastor Dashboard</h2>
-            <p className="text-white/60 text-xs">Prayer requests from the community</p>
+            <h2 className="text-lg font-bold" style={{ color: '#163449' }}>Pastor Dashboard</h2>
+            <p className="text-xs" style={{ color: '#4A6674' }}>Prayer requests from the community</p>
           </div>
         </div>
-      </div>
+      </WaterCard>
 
       <div className="-mt-3 rounded-t-3xl bg-gray-50 px-4 pt-5 pb-24">
         {/* Tabs */}
         <div className="flex gap-2 mb-5">
-          <button
-            onClick={() => setActiveTab('requests')}
-            className={`flex-1 py-2.5 rounded-2xl text-xs font-bold border transition-all ${
-              activeTab === 'requests'
-                ? 'prayer-gradient text-white border-transparent shadow-sm'
-                : 'bg-white text-gray-500 border-gray-200'
-            }`}
-          >
+          <WaterPill active={activeTab === 'requests'} onClick={() => setActiveTab('requests')} className="flex-1 py-2.5 text-xs font-bold text-center">
             Prayer Requests
-          </button>
-          <button
-            onClick={() => setActiveTab('private')}
-            className={`flex-1 py-2.5 rounded-2xl text-xs font-bold border transition-all ${
-              activeTab === 'private'
-                ? 'prayer-gradient text-white border-transparent shadow-sm'
-                : 'bg-white text-gray-500 border-gray-200'
-            }`}
-          >
+          </WaterPill>
+          <WaterPill active={activeTab === 'private'} onClick={() => setActiveTab('private')} className="flex-1 py-2.5 text-xs font-bold text-center">
             🔒 Private Requests
-          </button>
+          </WaterPill>
         </div>
 
         {activeTab === 'requests' && (

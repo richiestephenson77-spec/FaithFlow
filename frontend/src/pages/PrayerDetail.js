@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import Avatar from '../components/Avatar';
+import { WaterCard } from '../components/water';
 
 function formatDate(dateStr) {
   return new Date(dateStr).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
@@ -82,25 +83,25 @@ export default function PrayerDetail() {
   return (
     <div className="bg-gray-50 min-h-full">
       {/* Header */}
-      <div className={`px-4 pt-4 pb-8 ${request.isAnswered ? 'bg-gradient-to-br from-emerald-700 to-teal-600' : 'prayer-gradient'}`}>
+      <WaterCard tone={request.isAnswered ? 'neutral' : 'blue'} style={{ borderRadius: '0 0 24px 24px', padding: '16px 16px 32px' }}>
         <div className="flex items-center gap-3 mb-5">
-          <button onClick={() => navigate(-1)} className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <button onClick={() => navigate(-1)} className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: 'rgba(22,52,73,0.1)' }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#163449" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="15 18 9 12 15 6"/>
             </svg>
           </button>
           <div>
-            <p className="text-white/50 text-[10px] uppercase tracking-[0.2em]" style={{ fontFamily: 'Georgia, serif' }}>
+            <p className="text-[10px] uppercase tracking-[0.2em]" style={{ color: '#4A6674', fontFamily: 'Georgia, serif' }}>
               {request.isAnswered ? 'Answered Prayer' : 'Prayer Request'}
             </p>
           </div>
         </div>
 
-        {/* Title displayed large in header */}
-        <h1 className="text-white text-2xl leading-snug font-light" style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic' }}>
+        {/* Title */}
+        <h1 className="text-2xl leading-snug font-light" style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', color: '#163449' }}>
           {request.title}
         </h1>
-      </div>
+      </WaterCard>
 
       <div className="-mt-3 rounded-t-3xl bg-gray-50 px-5 pt-6 pb-12 space-y-5">
 

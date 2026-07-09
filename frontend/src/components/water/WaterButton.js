@@ -6,6 +6,7 @@ const SPRING = { type: 'spring', stiffness: 400, damping: 20 };
 export default function WaterButton({
   variant = 'primary',
   onClick,
+  type = 'button',
   disabled = false,
   className = '',
   style = {},
@@ -17,6 +18,7 @@ export default function WaterButton({
     <motion.button
       whileTap={disabled ? {} : { scale: 0.97 }}
       transition={SPRING}
+      type={type}
       onClick={onClick}
       disabled={disabled}
       className={className}
