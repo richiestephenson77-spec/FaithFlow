@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import Avatar from '../components/Avatar';
+import { WaterCard, WaterButton } from '../components/water';
 
 export default function Pastors() {
   const [pastors, setPastors] = useState([]);
@@ -15,22 +16,22 @@ export default function Pastors() {
 
   return (
     <div className="bg-gray-50 min-h-full">
-      <div className="prayer-gradient px-5 pt-5 pb-8">
-        <h2 className="text-2xl font-bold text-white mb-1">Pray With a Pastor</h2>
-        <p className="text-white/70 text-sm">Connect with a verified pastor for prayer and guidance</p>
-      </div>
+      <WaterCard tone="blue" style={{ borderRadius: '0 0 24px 24px', padding: '20px 20px 32px' }}>
+        <h2 className="text-2xl font-bold mb-1" style={{ color: '#163449' }}>Pray With a Pastor</h2>
+        <p className="text-sm" style={{ color: '#4A6674' }}>Connect with a verified pastor for prayer and guidance</p>
+      </WaterCard>
 
       <div className="-mt-3 rounded-t-3xl bg-gray-50 px-4 pt-5 pb-24">
         {loading ? (
           <div className="space-y-3">{[1,2].map(i => <div key={i} className="h-32 bg-gray-100 rounded-2xl animate-pulse" />)}</div>
         ) : pastors.length === 0 ? (
           <div className="text-center py-20">
-            <div className="w-16 h-16 prayer-gradient rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <WaterCard tone="blue" style={{ width: 64, height: 64, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#163449" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
                 <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
               </svg>
-            </div>
+            </WaterCard>
             <p className="font-semibold text-gray-700">Pastors coming soon</p>
             <p className="text-sm text-gray-400 mt-2 leading-relaxed">Want to be listed as a verified pastor?</p>
             <p className="text-sm text-faith-600 font-semibold mt-1">Contact us to apply</p>
@@ -38,7 +39,7 @@ export default function Pastors() {
         ) : (
           <div className="space-y-3">
             {pastors.map(p => (
-              <div key={p.id} className="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm">
+              <WaterCard key={p.id} tone="blue" style={{ padding: 16 }}>
                 <div className="flex items-start gap-3 mb-3">
                   <Avatar user={p} size="lg" />
                   <div className="flex-1 min-w-0">
@@ -53,11 +54,10 @@ export default function Pastors() {
                   </div>
                 </div>
                 {p.pastorBio && <p className="text-xs text-gray-500 leading-relaxed mb-3">{p.pastorBio}</p>}
-                <button onClick={() => setSelected(p)}
-                  className="w-full prayer-gradient text-white rounded-xl py-2.5 text-sm font-bold shadow-sm">
+                <WaterButton variant="primary" onClick={() => setSelected(p)} className="w-full py-2.5 text-sm font-bold">
                   Request Prayer
-                </button>
-              </div>
+                </WaterButton>
+              </WaterCard>
             ))}
           </div>
         )}
@@ -110,7 +110,7 @@ function PastorRequestModal({ pastor, onClose }) {
             <p className="text-sm text-gray-500 leading-relaxed">
               {pastor.name} will pray for you. May God answer your prayer.
             </p>
-            <button onClick={onClose} className="mt-6 prayer-gradient text-white rounded-2xl px-8 py-3 font-bold text-sm">Done</button>
+            <WaterButton variant="primary" onClick={onClose} className="mt-6 px-8 py-3 font-bold text-sm">Done</WaterButton>
           </div>
         ) : (
           <div className="px-4 py-4 space-y-4">
@@ -134,10 +134,9 @@ function PastorRequestModal({ pastor, onClose }) {
                 {isAnon && <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>}
               </div>
             </button>
-            <button onClick={handleSubmit} disabled={saving || !request.trim()}
-              className="w-full prayer-gradient text-white rounded-2xl py-3.5 font-bold text-sm disabled:opacity-40">
+            <WaterButton variant="primary" onClick={handleSubmit} disabled={saving || !request.trim()} className="w-full py-3.5 font-bold text-sm">
               {saving ? 'Sending...' : 'Send Prayer Request'}
-            </button>
+            </WaterButton>
           </div>
         )}
       </div>

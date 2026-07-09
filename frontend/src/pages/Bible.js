@@ -6,6 +6,7 @@ import BookPicker from '../components/BookPicker';
 import ChapterVersePicker from '../components/ChapterVersePicker';
 import WordSpan from '../components/WordSpan';
 import api from '../utils/api';
+import { WaterCard, WaterPill } from '../components/water';
 
 // bible-api.com — free, no API key, public domain KJV
 const BASE = 'https://bible-api.com';
@@ -231,30 +232,27 @@ export default function Bible() {
       className="min-h-full bg-[#FBF8F3]"
     >
       {/* Hero */}
-      <div className="px-4 pt-4 pb-6" style={{ background: 'linear-gradient(135deg, #1a1a2e, #2d1b1b)' }}>
+      <WaterCard tone="blue" style={{ borderRadius: '0 0 24px 24px', padding: '16px 16px 24px' }}>
         <div className="flex items-center gap-3 mb-4">
-          <button onClick={() => navigate(-1)} className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <button onClick={() => navigate(-1)} className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: 'rgba(22,52,73,0.1)' }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#163449" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="15 18 9 12 15 6"/>
             </svg>
           </button>
           <div>
-            <h2 className="text-3xl text-white leading-tight" style={{ fontFamily: "'Dancing Script', cursive" }}>Holy Bible</h2>
-            <p className="text-white/60 text-sm">King James Version</p>
+            <h2 className="text-3xl leading-tight" style={{ fontFamily: "'Dancing Script', cursive", color: '#163449' }}>Holy Bible</h2>
+            <p className="text-sm" style={{ color: '#4A6674' }}>King James Version</p>
           </div>
         </div>
 
-        <div className="inline-flex bg-white/10 rounded-full p-1 gap-1">
+        <div className="inline-flex gap-2">
           {['read', 'search'].map(t => (
-            <button key={t} onClick={() => setTab(t)}
-              className={`px-5 py-1.5 rounded-full text-sm font-semibold transition-all ${
-                tab === t ? 'bg-white text-gray-900' : 'text-white/60'
-              }`}>
+            <WaterPill key={t} active={tab === t} onClick={() => setTab(t)}>
               {t === 'read' ? 'Read' : 'Search'}
-            </button>
+            </WaterPill>
           ))}
         </div>
-      </div>
+      </WaterCard>
 
       {tab === 'read' && (
         <>

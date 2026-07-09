@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import api from '../utils/api';
+import { WaterCard, WaterButton, WaterInput } from '../components/water';
 
 const STARTER_QUESTIONS = [
   "What does the Bible say about anxiety?",
@@ -58,20 +59,20 @@ export default function BibleBot() {
   return (
     <div className="flex flex-col h-[calc(100vh-8rem)]">
       {/* Header */}
-      <div className="prayer-gradient px-4 py-4 text-white">
+      <WaterCard tone="blue" style={{ borderRadius: '0 0 20px 20px', padding: 16 }} className="flex-shrink-0">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-xl">📖</div>
+            <div className="w-10 h-10 rounded-full flex items-center justify-center text-xl" style={{ background: 'rgba(22,52,73,0.1)' }}>📖</div>
             <div>
-              <h2 className="font-bold text-base">Ask the Word</h2>
-              <p className="text-xs text-white/70">Your Bible guide, always here</p>
+              <h2 className="font-bold text-base" style={{ color: '#163449' }}>Ask the Word</h2>
+              <p className="text-xs" style={{ color: '#4A6674' }}>Your Bible guide, always here</p>
             </div>
           </div>
           {messages.length > 0 && (
-            <button onClick={clearChat} className="text-xs text-white/60 hover:text-white">Clear</button>
+            <button onClick={clearChat} className="text-xs" style={{ color: '#4A6674' }}>Clear</button>
           )}
         </div>
-      </div>
+      </WaterCard>
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 bg-gray-50">
@@ -103,9 +104,9 @@ export default function BibleBot() {
 
         {loading && (
           <div className="flex gap-2 items-start">
-            <div className="w-8 h-8 rounded-full prayer-gradient flex items-center justify-center text-white text-sm flex-shrink-0">
+            <WaterCard tone="gold" style={{ width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, flexShrink: 0 }}>
               📖
-            </div>
+            </WaterCard>
             <div className="bg-white border border-gray-100 rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm">
               <div className="flex gap-1">
                 {[0, 1, 2].map(i => (
@@ -121,31 +122,34 @@ export default function BibleBot() {
       </div>
 
       {/* Input */}
-      <div className="bg-white border-t border-gray-200 px-4 py-3">
+      <div className="px-4 py-3 flex-shrink-0" style={{ background: 'rgba(238,243,245,0.95)' }}>
         {!isEmpty && !loading && (
-          <div className="flex gap-2 overflow-x-auto mb-2 pb-1">
+          <div className="flex gap-2 overflow-x-auto mb-2 pb-1 scrollbar-hide">
             {STARTER_QUESTIONS.slice(0, 3).map(q => (
               <button key={q} onClick={() => send(q)}
-                className="text-xs bg-faith-50 text-faith-700 border border-faith-100 rounded-full px-3 py-1 whitespace-nowrap flex-shrink-0">
+                className="text-xs rounded-full px-3 py-1 whitespace-nowrap flex-shrink-0"
+                style={{ background: 'rgba(22,52,73,0.08)', color: '#163449', border: '1px solid rgba(22,52,73,0.12)' }}>
                 {q}
               </button>
             ))}
           </div>
         )}
         <form onSubmit={e => { e.preventDefault(); send(); }} className="flex gap-3 items-end">
-          <textarea
-            ref={inputRef}
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}
-            placeholder="Ask about the Bible, prayer, or faith..."
-            rows={1}
-            className="flex-1 border border-gray-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-faith-500 resize-none max-h-24"
-          />
-          <button type="submit" disabled={loading || !input.trim()}
-            className="prayer-gradient text-white w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 disabled:opacity-40 shadow">
-            <span className="text-lg">↑</span>
-          </button>
+          <WaterInput className="flex-1" style={{ borderRadius: 16 }}>
+            <textarea
+              ref={inputRef}
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}
+              placeholder="Ask about the Bible, prayer, or faith..."
+              rows={1}
+              className="w-full bg-transparent px-4 py-3 text-sm focus:outline-none resize-none max-h-24 text-gray-800 placeholder-gray-400"
+            />
+          </WaterInput>
+          <WaterButton type="submit" variant="primary" disabled={loading || !input.trim()}
+            style={{ width: 44, height: 44, borderRadius: '50%', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 18 }}>
+            ↑
+          </WaterButton>
         </form>
       </div>
     </div>
@@ -157,19 +161,19 @@ function ChatBubble({ message }) {
   return (
     <div className={`flex gap-2 items-start ${isUser ? 'flex-row-reverse' : ''}`}>
       {!isUser && (
-        <div className="w-8 h-8 rounded-full prayer-gradient flex items-center justify-center text-white text-sm flex-shrink-0">
+        <WaterCard tone="gold" style={{ width: 32, height: 32, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14, flexShrink: 0 }}>
           📖
-        </div>
+        </WaterCard>
       )}
-      <div className={`max-w-[80%] rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm fade-in ${
-        isUser
-          ? 'prayer-gradient text-white rounded-tr-sm'
-          : 'bg-white border border-gray-100 text-gray-800 rounded-tl-sm'
-      }`}>
+      <WaterCard
+        tone={isUser ? 'gold' : 'neutral'}
+        style={{ maxWidth: '80%', borderRadius: isUser ? '16px 16px 4px 16px' : '16px 16px 16px 4px', padding: '12px 16px', fontSize: 14, lineHeight: '1.5' }}
+        className="fade-in"
+      >
         {message.content.split('\n').map((line, i) => (
           <p key={i} className={i > 0 ? 'mt-2' : ''}>{line}</p>
         ))}
-      </div>
+      </WaterCard>
     </div>
   );
 }

@@ -4,6 +4,7 @@ import api from '../utils/api';
 import Avatar from '../components/Avatar';
 import { useAuth } from '../contexts/AuthContext';
 import { useSocket } from '../contexts/SocketContext';
+import { WaterCard, WaterButton, WaterInput } from '../components/water';
 
 function getTimeStr(d) {
   return new Date(d).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
@@ -83,17 +84,17 @@ export default function ChatThread() {
   return (
     <div className="flex flex-col h-screen bg-gray-50">
       {/* Header */}
-      <div className="prayer-gradient px-4 pt-4 pb-4 flex items-center gap-3 flex-shrink-0">
-        <button onClick={() => navigate('/messages')} className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <WaterCard tone="blue" style={{ borderRadius: '0 0 20px 20px', padding: '16px' }} className="flex items-center gap-3 flex-shrink-0">
+        <button onClick={() => navigate('/messages')} className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: 'rgba(22,52,73,0.1)' }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#163449" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="15 18 9 12 15 6"/>
           </svg>
         </button>
         {other && <Avatar user={other} size="sm" />}
         <div className="flex-1">
-          <p className="font-bold text-white text-sm leading-tight">{other?.name || '...'}</p>
+          <p className="font-bold text-sm leading-tight" style={{ color: '#163449' }}>{other?.name || '...'}</p>
         </div>
-      </div>
+      </WaterCard>
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-2">
@@ -130,23 +131,26 @@ export default function ChatThread() {
       </div>
 
       {/* Input */}
-      <div className="px-4 py-3 bg-white border-t border-gray-100 flex items-center gap-2 flex-shrink-0 pb-safe">
-        <input
-          value={input}
-          onChange={handleInputChange}
-          onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleSend()}
-          placeholder="Message..."
-          className="flex-1 bg-gray-50 border border-gray-200 rounded-2xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-faith-400"
-        />
-        <button
+      <div className="px-4 py-3 flex items-center gap-2 flex-shrink-0 pb-safe" style={{ background: 'rgba(238,243,245,0.95)' }}>
+        <WaterInput className="flex-1" style={{ borderRadius: 20 }}>
+          <input
+            value={input}
+            onChange={handleInputChange}
+            onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleSend()}
+            placeholder="Message..."
+            className="w-full bg-transparent px-4 py-2.5 text-sm focus:outline-none text-gray-800 placeholder-gray-400"
+          />
+        </WaterInput>
+        <WaterButton
+          variant="primary"
           onClick={handleSend}
           disabled={!input.trim() || sending}
-          className="w-10 h-10 prayer-gradient rounded-xl flex items-center justify-center disabled:opacity-40 flex-shrink-0"
+          style={{ width: 40, height: 40, borderRadius: 12, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7A5200" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
           </svg>
-        </button>
+        </WaterButton>
       </div>
     </div>
   );

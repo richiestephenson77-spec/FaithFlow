@@ -3,6 +3,7 @@ import api from '../utils/api';
 import { useAuth } from '../contexts/AuthContext';
 import Avatar from '../components/Avatar';
 import { useNavigate } from 'react-router-dom';
+import { WaterButton } from '../components/water';
 
 const POST_TYPES = ['UPDATE', 'TESTIMONY', 'VERSE'];
 const TYPE_LABELS = { UPDATE: 'Update', TESTIMONY: 'Testimony', VERSE: 'Scripture' };
@@ -57,9 +58,9 @@ export default function Community() {
           <div className="flex-1 bg-gray-100 rounded-full px-4 py-2.5 text-sm text-gray-400">
             What's on your heart?
           </div>
-          <button className="prayer-gradient text-white w-9 h-9 rounded-full flex items-center justify-center text-lg font-light shadow-md flex-shrink-0">
+          <WaterButton variant="primary" onClick={() => setShowNew(true)} style={{ width: 36, height: 36, borderRadius: '50%', padding: 0, fontSize: 18, fontWeight: 300, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             +
-          </button>
+          </WaterButton>
         </div>
       </div>
 
@@ -132,13 +133,9 @@ function NewPostModal({ onClose, onCreate }) {
           <div className="flex items-center justify-between">
             <button onClick={onClose} className="text-sm text-gray-400 font-medium">Cancel</button>
             <h3 className="text-base font-bold text-gray-900">New Post</h3>
-            <button
-              onClick={submit}
-              disabled={posting || !form.content.trim()}
-              className="prayer-gradient text-white text-sm font-bold px-4 py-1.5 rounded-full disabled:opacity-40 shadow-sm"
-            >
+            <WaterButton variant="primary" onClick={submit} disabled={posting || !form.content.trim()} className="text-sm font-bold px-4 py-1.5">
               {posting ? 'Posting...' : 'Share'}
-            </button>
+            </WaterButton>
           </div>
         </div>
 
