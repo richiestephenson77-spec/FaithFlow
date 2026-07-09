@@ -103,11 +103,11 @@ export default function TopPrayerCard({ request, currentUserId, onPray, onUserCl
                 </button>
               )}
               {!request.isAnswered && (
-                {isOwner ? (
+                isOwner ? (
                   <button disabled className="text-xs font-bold rounded-xl px-4 py-2 shadow-sm bg-gray-100 text-gray-400 cursor-not-allowed">Pray Now</button>
                 ) : (
                   <WaterButton variant="primary" onClick={onPray} className="text-xs font-bold px-4 py-2">Pray Now</WaterButton>
-                )}
+                )
               )}
             </div>
           </div>
