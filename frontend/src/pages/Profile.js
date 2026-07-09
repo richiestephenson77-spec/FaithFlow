@@ -326,18 +326,14 @@ export default function Profile() {
       <div className="px-4 mt-4">
         <button
           onClick={() => setShowBadgeModal(true)}
-          className="w-full flex items-center gap-4 rounded-2xl p-4 text-left"
-          style={{
-            background: profile.prayerWarriorBadge
-              ? 'linear-gradient(135deg, #fffbeb, #fef3c7)'
-              : '#F9FAFB',
-            border: `1px solid ${profile.prayerWarriorBadge ? '#fde68a' : '#e5e7eb'}`,
-          }}
+          className={`w-full flex items-center gap-4 rounded-2xl p-4 text-left${profile.prayerWarriorBadge ? ' water-tile-static water-tile-blue' : ''}`}
+          style={profile.prayerWarriorBadge ? undefined : { background: '#F9FAFB', border: '1px solid #e5e7eb' }}
         >
           {/* Trophy circle */}
           <div
-            className="w-13 h-13 rounded-full flex items-center justify-center flex-shrink-0"
+            className="rounded-full flex items-center justify-center flex-shrink-0"
             style={{
+              position: 'relative', zIndex: 1,
               width: 52, height: 52,
               background: profile.prayerWarriorBadge ? '#fffbeb' : '#f3f4f6',
               border: `2px solid ${profile.prayerWarriorBadge ? '#fcd34d' : '#e5e7eb'}`,
@@ -350,7 +346,7 @@ export default function Profile() {
             />
           </div>
 
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0" style={{ position: 'relative', zIndex: 1 }}>
             <p className={`text-sm font-bold ${profile.prayerWarriorBadge ? 'text-amber-800' : 'text-gray-400'}`}>
               Prayer Warrior
             </p>

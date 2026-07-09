@@ -213,12 +213,12 @@ export default function Home() {
           {...fadeUp}
           {...springTap}
           onClick={() => navigate('/prayer')}
-          className="w-full rounded-2xl px-5 pt-4 pb-3 mb-5 text-left"
-          style={{ background: '#0A0F1E', minHeight: 106 }}
+          className="water-tile-static water-tile-blue w-full px-5 pt-4 pb-3 mb-5 text-left"
+          style={{ minHeight: 106 }}
         >
           {/* Top row */}
-          <div className="flex items-center justify-between">
-            <span className="text-white font-bold text-base">Prayer Room</span>
+          <div className="flex items-center justify-between" style={{ position: 'relative', zIndex: 1 }}>
+            <span className="font-bold text-base" style={{ color: '#163449' }}>Prayer Room</span>
             <div className="flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-[#C9932F] animate-pulse" />
               <span className="text-[11px] font-semibold" style={{ color: '#C9932F' }}>
@@ -228,22 +228,22 @@ export default function Home() {
           </div>
 
           {/* Middle — icon previews */}
-          <div className="flex items-center gap-5 mt-3">
+          <div className="flex items-center gap-5 mt-3" style={{ position: 'relative', zIndex: 1 }}>
             {[
               { Icon: Flame,    label: 'Streaks' },
               { Icon: BookOpen, label: 'Verses' },
               { Icon: Radio,    label: 'Live Cells' },
             ].map(({ Icon, label }) => (
               <div key={label} className="flex flex-col items-center gap-1">
-                <Icon size={14} strokeWidth={1.6} color="rgba(255,255,255,0.5)" />
-                <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.4)' }}>{label}</span>
+                <Icon size={14} strokeWidth={1.6} color="#4A6674" />
+                <span style={{ fontSize: 9, color: '#6B7680' }}>{label}</span>
               </div>
             ))}
           </div>
 
           {/* Bottom-right chevron */}
-          <div className="flex justify-end mt-2">
-            <ChevronRight size={16} color="rgba(255,255,255,0.4)" />
+          <div className="flex justify-end mt-2" style={{ position: 'relative', zIndex: 1 }}>
+            <ChevronRight size={16} color="rgba(22,52,73,0.4)" />
           </div>
         </motion.button>
 

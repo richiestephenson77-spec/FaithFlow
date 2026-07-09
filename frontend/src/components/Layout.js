@@ -39,8 +39,8 @@ export default function Layout() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col max-w-md mx-auto relative shadow-xl">
       {!hideHeader && (
-        <header className="bg-white border-b border-gray-100 px-4 py-2.5 flex items-center justify-between sticky top-0 z-30">
-          <button onClick={() => setShowCreatePost(true)} className="flex-shrink-0">
+        <header className="water-header water-tile-blue px-4 py-2.5 flex items-center justify-between sticky top-0 z-30">
+          <button onClick={() => setShowCreatePost(true)} className="flex-shrink-0" style={{ position: 'relative', zIndex: 1 }}>
             {user?.profilePhoto ? (
               <img src={user.profilePhoto} alt={user.name} className="w-9 h-9 rounded-full object-cover" />
             ) : (
@@ -49,8 +49,8 @@ export default function Layout() {
               </div>
             )}
           </button>
-          <Logo size="sm" light={false} />
-          <div className="flex items-center gap-3 justify-end w-16">
+          <Logo size="sm" light={false} style={{ position: 'relative', zIndex: 1 }} />
+          <div className="flex items-center gap-3 justify-end w-16" style={{ position: 'relative', zIndex: 1 }}>
             <button onClick={() => navigate('/search')} className="w-9 h-9 flex items-center justify-center">
               <Search size={22} strokeWidth={1.5} color="#262626" />
             </button>

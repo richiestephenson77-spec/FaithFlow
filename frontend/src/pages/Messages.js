@@ -60,15 +60,16 @@ export default function Messages() {
     <div className="bg-gray-50 min-h-full">
       <div className="bg-gray-50 px-4 pt-4 pb-3">
         <h2 className="text-2xl font-bold text-gray-900 mb-3">Messages</h2>
-        <div className="relative">
-          <svg className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <div className="water-tile-static water-tile-blue relative">
+          <svg className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: '#4A6674', zIndex: 1, position: 'absolute' }} width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
           </svg>
           <input
             value={search}
             onChange={e => handleSearch(e.target.value)}
             placeholder="Find a believer to message..."
-            className="w-full bg-white text-gray-700 placeholder-gray-400 rounded-2xl pl-9 pr-4 py-2.5 text-sm focus:outline-none border border-gray-200"
+            className="w-full text-gray-700 placeholder-gray-400 pl-9 pr-4 py-2.5 text-sm focus:outline-none bg-transparent"
+            style={{ position: 'relative', zIndex: 1 }}
           />
         </div>
       </div>
@@ -92,7 +93,7 @@ export default function Messages() {
                 {searchResults.map(u => (
                   <button key={u.id} onClick={() => startConvo(u.id)}
                     disabled={!!startingConvo}
-                    className="w-full flex items-center gap-3 bg-white rounded-2xl p-3 border border-gray-100 shadow-sm text-left active:scale-[0.98] transition-transform disabled:opacity-60">
+                    className="w-full flex items-center gap-3 water-tile-static water-tile-blue rounded-2xl p-3 text-left active:scale-[0.98] transition-transform disabled:opacity-60">
                     <Avatar user={u} size="md" />
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-gray-900 text-sm">{u.name}</p>
@@ -129,7 +130,7 @@ export default function Messages() {
               <div className="space-y-2">
                 {convos.map(c => (
                   <button key={c.id} onClick={() => navigate(`/messages/${c.id}`)}
-                    className="w-full flex items-center gap-3 bg-white rounded-2xl p-3.5 border border-gray-100 shadow-sm text-left active:scale-[0.98] transition-transform">
+                    className="w-full flex items-center gap-3 water-tile-static water-tile-blue rounded-2xl p-3.5 text-left active:scale-[0.98] transition-transform">
                     <Avatar user={c.other} size="md" />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">

@@ -62,6 +62,21 @@
   background: rgba(255,255,255,0.7);
 }
 
+.water-header {
+  position: relative;
+  overflow: hidden;
+  border-radius: 0 0 28px 28px;
+  border-bottom: 0.5px solid rgba(255,255,255,0.4);
+}
+.water-header::before {
+  content: '';
+  position: absolute;
+  top: -60%; left: -10%;
+  width: 40%; height: 220%;
+  background: radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.25) 45%, transparent 70%);
+  pointer-events: none;
+}
+
 .water-tile-static {
   position: relative;
   border-radius: 24px;
