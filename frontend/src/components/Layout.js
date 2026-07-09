@@ -68,7 +68,7 @@ export default function Layout() {
 
       {latestToast && <Toast key={latestToast.id} message={latestToast.message} />}
 
-      <main className="flex-1 overflow-y-auto pb-20">
+      <main className="flex-1 overflow-y-auto pb-24">
         <Outlet />
       </main>
 
@@ -82,7 +82,7 @@ export default function Layout() {
         />
       )}
 
-      <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white border-t border-gray-100 flex z-30 shadow-lg">
+      <nav className="water-tile-neutral fixed bottom-4 left-1/2 -translate-x-1/2 w-[calc(100%-32px)] max-w-[calc(448px-32px)] flex z-30 rounded-[28px]">
         {navItems.map(({ to, label, Icon, end }) => (
           <NavLink
             key={to}
@@ -92,6 +92,7 @@ export default function Layout() {
               `flex-1 flex items-center justify-center py-3.5 transition-colors relative
                ${isActive ? 'text-faith-600' : 'text-gray-900'}`
             }
+            style={{ position: 'relative', zIndex: 1 }}
           >
             {({ isActive }) => (
               <motion.div className="relative" whileTap={{ scale: 0.82 }} transition={{ type: 'spring', stiffness: 500, damping: 25 }}>
