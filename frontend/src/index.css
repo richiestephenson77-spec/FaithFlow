@@ -61,6 +61,25 @@
   border-radius: 50%;
   background: rgba(255,255,255,0.7);
 }
+
+.water-tile-static {
+  position: relative;
+  border-radius: 24px;
+  border: 0.5px solid rgba(255,255,255,0.15);
+  overflow: hidden;
+  transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1);
+}
+.water-tile-static:hover, .water-tile-static:active {
+  transform: scale(1.02);
+}
+.water-tile-static::before {
+  content: '';
+  position: absolute;
+  top: -25%; left: -15%;
+  width: 60%; height: 60%;
+  background: radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.25) 45%, transparent 70%);
+  pointer-events: none;
+}
 .font-cinzel { font-family: 'Cinzel', serif; }
 .font-cinzel-decorative { font-family: 'Cinzel Decorative', serif; }
 

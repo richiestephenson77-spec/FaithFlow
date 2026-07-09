@@ -327,58 +327,59 @@ export default function PrayerPage() {
           )}
         </motion.div>
 
-        {/* Daily Goal — frosted glass card */}
+        {/* Daily Goal — water glass card */}
         <motion.div
           initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.35, ease: 'easeOut' }}
-          className="rounded-2xl px-4 py-3.5"
-          style={{ background: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.12)' }}
+          className="water-tile-static water-tile-blue px-4 py-3.5"
         >
-          <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center justify-between mb-3" style={{ position: 'relative', zIndex: 1 }}>
             <div className="flex items-center gap-2">
-              <Target size={15} strokeWidth={1.5} color="rgba(255,255,255,0.7)" />
-              <p className="text-white/70 text-xs font-medium">Daily Goal</p>
+              <Target size={15} strokeWidth={1.5} color="#163449" />
+              <p className="text-xs font-medium" style={{ color: '#163449' }}>Daily Goal</p>
             </div>
             <div className="flex items-center gap-3">
-              <span className="text-white font-bold text-sm">{quota?.completed ?? 0} / {quota?.target ?? '–'}</span>
-              <button onClick={() => setShowSettings(true)} className="text-white/40 hover:text-white/70 transition-colors">
+              <span className="font-bold text-sm" style={{ color: '#163449' }}>{quota?.completed ?? 0} / {quota?.target ?? '–'}</span>
+              <button onClick={() => setShowSettings(true)} style={{ color: 'rgba(22,52,73,0.4)' }} className="hover:opacity-70 transition-opacity">
                 <Settings size={14} strokeWidth={1.5} />
               </button>
             </div>
           </div>
-          <div className="w-full h-1 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.15)' }}>
+          <div className="w-full h-1 rounded-full overflow-hidden" style={{ background: 'rgba(22,52,73,0.12)', position: 'relative', zIndex: 1 }}>
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${pct}%` }}
               transition={{ duration: 0.8, ease: 'easeOut', delay: 0.3 }}
-              className="h-full rounded-full bg-white"
+              className="h-full rounded-full"
+              style={{ background: '#163449' }}
             />
           </div>
-          {quota?.isComplete && <p className="text-xs font-medium mt-2" style={{ color: 'rgba(255,255,255,0.7)' }}>Goal complete for today</p>}
+          {quota?.isComplete && <p className="text-xs font-medium mt-2" style={{ color: '#4A6674', position: 'relative', zIndex: 1 }}>Goal complete for today</p>}
         </motion.div>
 
         {/* Today's Grace — gratitude card */}
         <motion.button
           initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 0.35, ease: 'easeOut' }}
           onClick={() => !todayGratitude && setShowGratitudeSheet(true)}
-          className="w-full text-left mt-3 rounded-2xl px-4 py-3.5"
-          style={{ background: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.12)' }}
+          className="water-tile-static water-tile-blue w-full text-left mt-3 px-4 py-3.5"
         >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Sparkles size={16} strokeWidth={1.5} color="#262626" />
-              <span className="text-white font-semibold text-sm">Today's Grace</span>
+          <div className="flex items-center justify-between" style={{ position: 'relative', zIndex: 1 }}>
+            <div className="flex items-center gap-2.5">
+              <div className="icon-orb flex items-center justify-center flex-shrink-0" style={{ width: 36, height: 36 }}>
+                <Sparkles size={15} strokeWidth={1.5} color="#A8823C" style={{ position: 'relative', zIndex: 1 }} />
+              </div>
+              <span className="font-semibold text-sm" style={{ color: '#163449' }}>Today's Grace</span>
               {gratitudeStreak > 0 && (
-                <span className="flex items-center gap-0.5 text-[11px]" style={{ color: '#8E8E8E' }}>
-                  <Flame size={10} strokeWidth={2} color="#8E8E8E" />{gratitudeStreak}d
+                <span className="flex items-center gap-0.5 text-[11px]" style={{ color: '#4A6674' }}>
+                  <Flame size={10} strokeWidth={2} color="#4A6674" />{gratitudeStreak}d
                 </span>
               )}
             </div>
-            {!todayGratitude && <ChevronRight size={14} color="rgba(255,255,255,0.4)" />}
+            {!todayGratitude && <ChevronRight size={14} color="#4A6674" />}
           </div>
           {todayGratitude ? (
-            <p className="text-white/70 text-xs mt-2 leading-relaxed line-clamp-2">{todayGratitude.content}</p>
+            <p className="text-xs mt-2 leading-relaxed line-clamp-2" style={{ color: '#4A6674', position: 'relative', zIndex: 1 }}>{todayGratitude.content}</p>
           ) : (
-            <p className="text-white/50 text-xs mt-1">What did God do today?</p>
+            <p className="text-xs mt-1" style={{ color: '#7A9BAD', position: 'relative', zIndex: 1 }}>What did God do today?</p>
           )}
         </motion.button>
 
@@ -386,17 +387,18 @@ export default function PrayerPage() {
         <motion.button
           initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.38, duration: 0.35, ease: 'easeOut' }}
           onClick={() => navigate('/feelings')}
-          className="w-full text-left mt-3 rounded-2xl px-4 py-3.5 flex items-center justify-between"
-          style={{ background: 'rgba(255,255,255,0.08)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255,255,255,0.12)' }}
+          className="water-tile-static water-tile-blue w-full text-left mt-3 px-4 py-3.5 flex items-center justify-between"
         >
-          <div className="flex items-center gap-2">
-            <HeartHandshake size={16} strokeWidth={1.5} color="#262626" />
+          <div className="flex items-center gap-2.5" style={{ position: 'relative', zIndex: 1 }}>
+            <div className="icon-orb flex items-center justify-center flex-shrink-0" style={{ width: 36, height: 36 }}>
+              <HeartHandshake size={15} strokeWidth={1.5} color="#A8823C" style={{ position: 'relative', zIndex: 1 }} />
+            </div>
             <div>
-              <span className="text-white font-semibold text-sm">Need a verse right now?</span>
-              <p className="text-white/50 text-xs mt-0.5">Find scripture for how you're feeling</p>
+              <span className="font-semibold text-sm" style={{ color: '#163449' }}>Need a verse right now?</span>
+              <p className="text-xs mt-0.5" style={{ color: '#4A6674' }}>Find scripture for how you're feeling</p>
             </div>
           </div>
-          <ChevronRight size={14} color="rgba(255,255,255,0.4)" />
+          <ChevronRight size={14} color="#4A6674" style={{ position: 'relative', zIndex: 1 }} />
         </motion.button>
       </div>
 
