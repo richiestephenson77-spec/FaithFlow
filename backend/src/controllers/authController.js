@@ -47,7 +47,8 @@ async function login(req, res) {
     });
 
     res.json({ token, user: sanitize(user) });
-  } catch {
+  } catch (err) {
+    console.error('Login error:', err);
     res.status(500).json({ error: 'Login failed' });
   }
 }
