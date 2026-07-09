@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Globe, MapPin, RefreshCw, Flame, BookOpen, Users, Plus, Bookmark, Play, Target, Settings, TrendingUp, Pencil, Lock, Cross, Sparkles, HeartHandshake, Sun, Cloud, CloudRain, Heart, Zap, ChevronRight, X } from 'lucide-react';
+import { WaterCard, WaterButton, WaterPill } from '../components/water';
 import api from '../utils/api';
 import { fadeUp, fadeIn, scaleIn, slideInRight, slideUp, staggerContainer, staggerContainerFast, staggerItem } from '../utils/animations';
 import { useAuth } from '../contexts/AuthContext';
@@ -302,17 +303,17 @@ export default function PrayerPage() {
 
   return (
     <div className="bg-gray-50 min-h-full">
-      {/* Hero — deep navy premium */}
-      <div className="px-5 pt-5 pb-6" style={{ background: '#0A0F1E' }}>
-        <button onClick={() => navigate(-1)} className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center mb-4">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      {/* Hero */}
+      <WaterCard tone="blue" radius="sm" style={{ borderRadius: '0 0 24px 24px', padding: '20px 20px 24px' }}>
+        <button onClick={() => navigate(-1)} className="w-8 h-8 rounded-full flex items-center justify-center mb-4" style={{ background: 'rgba(22,52,73,0.1)' }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#163449" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
 
         <motion.div
           initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, ease: 'easeOut' }}
           className="flex items-center gap-3 mb-3"
         >
-          <h2 className="text-2xl font-bold text-white leading-tight">
+          <h2 className="text-2xl font-bold leading-tight" style={{ color: '#163449' }}>
             Who will you pray<br />for today?
           </h2>
           {streak !== null && streak > 0 && (
@@ -321,8 +322,8 @@ export default function PrayerPage() {
               className="flex items-center gap-1 px-2 py-1 rounded-full flex-shrink-0 self-start mt-1"
               style={{ background: 'rgba(201,147,47,0.18)' }}
             >
-              <Flame size={11} strokeWidth={2} color="rgba(255,255,255,0.7)" />
-              <span className="text-[11px] font-semibold" style={{ color: 'rgba(255,255,255,0.7)' }}>{streak}</span>
+              <Flame size={11} strokeWidth={2} color="#A8823C" />
+              <span className="text-[11px] font-semibold" style={{ color: '#A8823C' }}>{streak}</span>
             </motion.span>
           )}
         </motion.div>
@@ -400,38 +401,38 @@ export default function PrayerPage() {
           </div>
           <ChevronRight size={14} color="#4A6674" style={{ position: 'relative', zIndex: 1 }} />
         </motion.button>
-      </div>
+      </WaterCard>
 
       {/* Feed */}
       <div className="-mt-5 rounded-t-3xl bg-gray-50 px-4 pt-5 pb-24">
         {/* Action buttons */}
         <motion.div {...fadeUp} transition={{ delay: 0.05, duration: 0.3 }} className="flex gap-2 mb-5">
-          <motion.button
-            whileTap={{ scale: 0.97 }} transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+          <WaterButton
+            variant="primary"
             onClick={() => setShowQueue(true)}
-            className="flex-1 flex items-center justify-center gap-2 bg-[#C9932F] text-gray-900 font-medium rounded-xl text-sm shadow-sm"
+            className="flex-1 flex items-center justify-center gap-2 text-sm"
             style={{ height: 44 }}
           >
             <Play size={14} strokeWidth={2} />
             Start Prayers
-          </motion.button>
-          <motion.button
-            whileTap={{ scale: 0.97 }} transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+          </WaterButton>
+          <WaterButton
+            variant="secondary"
             onClick={() => setShowNewRequest(true)}
-            className="flex-1 flex items-center justify-center gap-2 bg-white border-2 border-gray-200 text-gray-700 font-medium rounded-xl text-sm"
+            className="flex-1 flex items-center justify-center gap-2 text-sm"
             style={{ height: 44 }}
           >
             <Plus size={14} strokeWidth={2} />
             Share Request
-          </motion.button>
-          <motion.button
-            whileTap={{ scale: 0.92 }} transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+          </WaterButton>
+          <WaterButton
+            variant="secondary"
             onClick={() => setShowMyRequests(true)}
-            className="flex items-center justify-center bg-white border border-gray-200 rounded-xl flex-shrink-0"
+            className="flex items-center justify-center flex-shrink-0"
             style={{ height: 44, width: 44 }}
           >
-            <Bookmark size={17} strokeWidth={1.5} color="#6b7280" />
-          </motion.button>
+            <Bookmark size={17} strokeWidth={1.5} color="#4A6674" />
+          </WaterButton>
         </motion.div>
 
         {/* Draft banner */}
@@ -477,31 +478,26 @@ export default function PrayerPage() {
           }} />
         )}
 
-        {/* Worldwide / Near Me toggle — sliding pill */}
+        {/* Worldwide / Near Me toggle */}
         <motion.div {...scaleIn} transition={{ delay: 0.1, duration: 0.25 }} className="mb-3">
-          <div className="relative flex bg-gray-100 rounded-full p-1 mb-2" style={{ height: 38 }}>
-            {/* Sliding background */}
-            <motion.div
-              layoutId="togglePill"
-              className="absolute top-1 bottom-1 rounded-full"
-              style={{ background: '#1a1a2e', width: 'calc(50% - 4px)', left: nearMe ? 'calc(50%)' : '4px' }}
-              transition={{ type: 'spring', stiffness: 400, damping: 30 }}
-            />
-            <button
+          <div className="flex gap-2 mb-2">
+            <WaterPill
+              active={!nearMe}
               onClick={() => { setNearMe(false); loadFeed(false, { nearMe: false }); }}
-              className={`flex-1 flex items-center justify-center gap-1.5 text-xs font-medium rounded-full relative z-10 transition-colors ${!nearMe ? 'text-white' : 'text-gray-500'}`}
+              style={{ flex: 1, justifyContent: 'center', display: 'flex', alignItems: 'center', gap: 6, height: 38 }}
             >
               <Globe size={13} strokeWidth={1.8} /> Worldwide
-            </button>
-            <button
+            </WaterPill>
+            <WaterPill
+              active={nearMe}
               onClick={() => {
                 if (!userCoords) { setShowLocationBanner(true); return; }
                 setNearMe(true); loadFeed(false, { nearMe: true, radius, coords: userCoords });
               }}
-              className={`flex-1 flex items-center justify-center gap-1.5 text-xs font-medium rounded-full relative z-10 transition-colors ${nearMe ? 'text-white' : 'text-gray-500'}`}
+              style={{ flex: 1, justifyContent: 'center', display: 'flex', alignItems: 'center', gap: 6, height: 38 }}
             >
               <MapPin size={13} strokeWidth={1.8} /> Near Me
-            </button>
+            </WaterPill>
           </div>
           <AnimatePresence>
             {nearMe && (
@@ -563,21 +559,12 @@ export default function PrayerPage() {
           </motion.div>
         )}
 
-        {/* Category filter tabs */}
+        {/* Category filter chips */}
         <motion.div {...slideInRight} transition={{ delay: 0.15, duration: 0.3 }} className="flex gap-2 overflow-x-auto pb-2 mb-4 scrollbar-hide -mx-4 px-4">
           {FILTER_TABS.map(tab => (
-            <motion.button key={tab.id} whileTap={{ scale: 0.93 }} onClick={() => setActiveCategory(tab.id)}
-              className={`flex-shrink-0 px-4 rounded-full text-sm font-medium border-0 transition-all ${
-                activeCategory === tab.id
-                  ? 'text-white'
-                  : 'bg-gray-100 text-gray-600'
-              }`}
-              style={{
-                height: 34,
-                background: activeCategory === tab.id ? '#1a1a2e' : undefined,
-              }}>
+            <WaterPill key={tab.id} active={activeCategory === tab.id} onClick={() => setActiveCategory(tab.id)}>
               {tab.label}
-            </motion.button>
+            </WaterPill>
           ))}
         </motion.div>
 
@@ -595,9 +582,9 @@ export default function PrayerPage() {
           <div className="space-y-3">{[1,2,3].map(i => <SkeletonCard key={i} />)}</div>
         ) : filteredTop3.length === 0 && filteredRest.length === 0 ? (
           <motion.div {...fadeIn} className="text-center py-16">
-            <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm" style={{ background: '#1a1a2e' }}>
-              <BookOpen size={26} strokeWidth={1.5} color="white" />
-            </div>
+            <WaterCard tone="blue" style={{ width: 64, height: 64, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+              <BookOpen size={26} strokeWidth={1.5} color="#163449" />
+            </WaterCard>
             <p className="font-semibold text-gray-700">{nearMe ? 'No prayers found nearby' : 'No prayer requests yet'}</p>
             <p className="text-sm text-gray-400 mt-1">{nearMe ? `Try increasing the radius beyond ${radius} km` : 'Be the first to share one!'}</p>
           </motion.div>
@@ -724,14 +711,14 @@ export default function PrayerPage() {
                 <span className="text-[13px] text-gray-600">Share as testimony</span>
               </button>
 
-              <button
+              <WaterButton
+                variant="primary"
                 onClick={handleSaveGratitude}
                 disabled={!gratitudeText.trim() || savingGratitude}
-                className="w-full mt-5 py-3.5 rounded-2xl font-bold text-[15px] text-white transition-opacity"
-                style={{ background: '#262626', opacity: !gratitudeText.trim() || savingGratitude ? 0.4 : 1 }}
+                className="w-full mt-5 py-3.5 text-[15px] font-bold"
               >
                 {savingGratitude ? 'Saving…' : 'Save'}
-              </button>
+              </WaterButton>
             </motion.div>
           </>
         )}
