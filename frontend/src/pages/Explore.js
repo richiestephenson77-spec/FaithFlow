@@ -16,7 +16,7 @@ export default function Explore() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-full pb-32" style={{ background: '#EEF3F5' }}>
+    <div className="min-h-full" style={{ background: '#EEF3F5' }}>
       {/* Header */}
       <div className="px-4 pt-6 pb-5">
         <h2 className="text-2xl font-semibold" style={{ color: '#1A1A1A' }}>Explore</h2>

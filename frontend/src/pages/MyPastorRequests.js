@@ -43,7 +43,7 @@ export default function MyPastorRequests() {
         </div>
       </WaterCard>
 
-      <div className="-mt-3 rounded-t-3xl bg-gray-50 px-4 pt-5 pb-24">
+      <div className="-mt-3 rounded-t-3xl bg-gray-50 px-4 pt-5">
         {loading ? (
           <div className="space-y-3">{[1,2,3].map(i => <div key={i} className="h-24 bg-gray-100 rounded-2xl animate-pulse" />)}</div>
         ) : requests.length === 0 ? (

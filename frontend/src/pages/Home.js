@@ -207,7 +207,7 @@ export default function Home() {
         </div>
       )}
 
-      <div className="px-4 pt-4 pb-24">
+      <div className="px-4 pt-4">
         {/* Prayer Room entry tile */}
         <motion.button
           {...fadeUp}

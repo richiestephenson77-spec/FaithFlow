@@ -102,7 +102,7 @@ export default function Settings() {
   }
 
   return (
-    <div className="bg-gray-50 min-h-full pb-32">
+    <div className="bg-gray-50 min-h-full">
       {/* Header */}
       <div className="bg-gray-50 px-4 pt-4 pb-3 flex items-center gap-2">
         <button

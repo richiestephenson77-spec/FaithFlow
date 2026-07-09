@@ -74,7 +74,7 @@ export default function Messages() {
         </div>
       </div>
 
-      <div className="bg-gray-50 pt-2 pb-24">
+      <div className="bg-gray-50 pt-2">
         {/* Search results */}
         {search.length >= 2 && (
           <div className="px-4 mb-4">

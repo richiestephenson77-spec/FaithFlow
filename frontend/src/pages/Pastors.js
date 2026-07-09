@@ -21,7 +21,7 @@ export default function Pastors() {
         <p className="text-sm" style={{ color: '#4A6674' }}>Connect with a verified pastor for prayer and guidance</p>
       </WaterCard>
 
-      <div className="-mt-3 rounded-t-3xl bg-gray-50 px-4 pt-5 pb-24">
+      <div className="-mt-3 rounded-t-3xl bg-gray-50 px-4 pt-5">
         {loading ? (
           <div className="space-y-3">{[1,2].map(i => <div key={i} className="h-32 bg-gray-100 rounded-2xl animate-pulse" />)}</div>
         ) : pastors.length === 0 ? (

@@ -13,7 +13,7 @@ export default function Feelings() {
   const verses = selected ? VERSES[selected.id] : [];
 
   return (
-    <div className="min-h-full bg-gray-50 pb-28">
+    <div className="min-h-full bg-gray-50">
       {/* Header */}
       <div className="bg-white border-b border-gray-100 px-4 py-3 flex items-center gap-3 sticky top-0 z-20">
         <button onClick={() => navigate(-1)} className="w-9 h-9 flex items-center justify-center">

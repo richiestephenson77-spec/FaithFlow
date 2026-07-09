@@ -78,7 +78,7 @@ export default function Search() {
   const showDiscovery = !query || query.trim().length < 2;
 
   return (
-    <div className="bg-gray-50 min-h-full pb-28">
+    <div className="bg-gray-50 min-h-full">
       {/* Header */}
       <motion.div {...fadeUp} className="px-5 pt-5 pb-4">
         <h2 className="text-2xl font-bold text-gray-900">Find Believers</h2>

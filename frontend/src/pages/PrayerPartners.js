@@ -36,7 +36,7 @@ function NoneState({ onJoin, joining, userHasGender }) {
   ];
 
   return (
-    <div className="px-4 pt-4 pb-32">
+    <div className="px-4 pt-4">
       <div className="rounded-2xl p-5 text-center border" style={{ background: CARD_BG, borderColor: '#EFEFEF' }}>
         <div
           className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
@@ -100,7 +100,7 @@ function WaitingState({ onCancel }) {
   }, []);
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center px-6 pb-32">
+    <div className="flex-1 flex flex-col items-center justify-center px-6">
       <div className="relative flex items-center justify-center mb-6">
         <div className="absolute rounded-full animate-ping" style={{ width: 128, height: 128, background: 'rgba(201,147,47,0.08)' }} />
         <div
@@ -189,7 +189,7 @@ function MatchedState({ partner, partnership, onLeave }) {
   }
 
   return (
-    <div className="pb-32">
+    <div>
       {/* Partner card */}
       <div
         className="mx-4 mt-4 rounded-2xl p-5 text-center border"

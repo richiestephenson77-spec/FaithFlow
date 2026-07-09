@@ -170,7 +170,7 @@ export default function Notifications() {
   }
 
   return (
-    <div className="bg-gray-50 min-h-full pb-28">
+    <div className="bg-gray-50 min-h-full">
       <div className="flex items-center justify-between px-5 pt-5 pb-4">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Notifications</h2>

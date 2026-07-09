@@ -150,7 +150,7 @@ export default function PastorDashboard() {
         </div>
       </WaterCard>
 
-      <div className="-mt-3 rounded-t-3xl bg-gray-50 px-4 pt-5 pb-24">
+      <div className="-mt-3 rounded-t-3xl bg-gray-50 px-4 pt-5">
         {/* Tabs */}
         <div className="flex gap-2 mb-5">
           <WaterPill active={activeTab === 'requests'} onClick={() => setActiveTab('requests')} className="flex-1 py-2.5 text-xs font-bold text-center">

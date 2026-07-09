@@ -290,7 +290,7 @@ export default function Bible() {
             <X size={12} strokeWidth={1.6} color="#C7C7C7" style={{ transform: 'rotate(45deg)' }} />
           </button>
 
-          <div className="px-5 pt-5 pb-28">
+          <div className="px-5 pt-5">
             {error && (
               <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-4 text-sm text-amber-800">
                 {error}
@@ -378,7 +378,7 @@ export default function Bible() {
       )}
 
       {tab === 'search' && (
-        <div className="px-4 pt-5 pb-24">
+        <div className="px-4 pt-5">
           <div className="relative mb-5">
             <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">

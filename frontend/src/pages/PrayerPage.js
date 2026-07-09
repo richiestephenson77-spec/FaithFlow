@@ -405,7 +405,7 @@ export default function PrayerPage() {
       </WaterCard>
 
       {/* Feed */}
-      <div className="-mt-5 rounded-t-3xl bg-gray-50 px-4 pt-5 pb-24">
+      <div className="-mt-5 rounded-t-3xl bg-gray-50 px-4 pt-5">
         {/* Action buttons */}
         <motion.div {...fadeUp} transition={{ delay: 0.05, duration: 0.3 }} className="flex gap-2 mb-5">
           <WaterButton
