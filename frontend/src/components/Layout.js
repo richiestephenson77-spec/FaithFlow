@@ -37,7 +37,7 @@ export default function Layout() {
   const hideHeader = HIDE_HEADER_ON.some(p => location.pathname.startsWith(p));
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col max-w-md mx-auto relative shadow-xl" style={{ transform: 'translateZ(0)' }}>
+    <div className="min-h-screen bg-gray-50 flex flex-col max-w-md mx-auto relative shadow-xl">
       <svg width="0" height="0" style={{ position: 'absolute' }}>
         <defs>
           <filter id="droplet-warp-1" x="-30%" y="-30%" width="160%" height="160%">
