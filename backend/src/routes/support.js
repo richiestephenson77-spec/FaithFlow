@@ -19,11 +19,11 @@ router.post('/contact', authenticate, async (req, res) => {
     });
 
     await resend.emails.send({
-      from: 'FaithFlow <onboarding@resend.dev>',
+      from: 'FaithBridge <onboarding@resend.dev>',
       to: 'richiestephenson.77@gmail.com',
-      subject: `[FaithFlow Support] ${subject}`,
+      subject: `[FaithBridge Support] ${subject}`,
       html: `
-        <h2>FaithFlow Support Request</h2>
+        <h2>FaithBridge Support Request</h2>
         <p><strong>From:</strong> ${user.name} (${user.email})</p>
         <p><strong>Subject:</strong> ${subject}</p>
         <hr/>

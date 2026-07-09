@@ -20,19 +20,19 @@ export default function Logo({ size = 'md', light = true }) {
           position: 'absolute', left: '50%', top: '0',
           transform: 'translateX(-50%)',
           width: '2px', height: '100%',
-          backgroundColor: '#F59E0B', borderRadius: '2px',
+          backgroundColor: '#C9932F', borderRadius: '2px',
         }} />
         {/* Top crossbar (T) */}
         <div style={{
           position: 'absolute', left: '0', top: '4px',
           width: '100%', height: '2px',
-          backgroundColor: '#F59E0B', borderRadius: '2px',
+          backgroundColor: '#C9932F', borderRadius: '2px',
         }} />
         {/* Lower crossbar (cross) */}
         <div style={{
           position: 'absolute', left: '15%', top: '45%',
           width: '70%', height: '1.5px',
-          backgroundColor: '#F59E0B', borderRadius: '2px',
+          backgroundColor: '#C9932F', borderRadius: '2px',
         }} />
       </div>
 
@@ -44,7 +44,7 @@ export default function Logo({ size = 'md', light = true }) {
         letterSpacing: '-0.5px',
         lineHeight: 1,
       }}>
-        hFlow
+        hBridge
       </span>
     </div>
   );

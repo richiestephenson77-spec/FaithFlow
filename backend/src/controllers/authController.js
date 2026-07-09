@@ -71,14 +71,14 @@ async function forgotPassword(req, res) {
     const resetUrl = `${process.env.CLIENT_URL}/reset-password?token=${token}`;
 
     const { data, error: resendError } = await resend.emails.send({
-      from: process.env.RESEND_FROM_EMAIL || 'FaithFlow <onboarding@resend.dev>',
+      from: process.env.RESEND_FROM_EMAIL || 'FaithBridge <onboarding@resend.dev>',
       to: email,
-      subject: 'Reset your FaithFlow password',
+      subject: 'Reset your FaithBridge password',
       html: `
         <div style="font-family:sans-serif;max-width:480px;margin:auto;padding:32px;">
           <div style="text-align:center;margin-bottom:24px;">
             <span style="font-size:40px;">✝</span>
-            <h1 style="color:#7c3aed;margin:8px 0 0;">FaithFlow</h1>
+            <h1 style="color:#7c3aed;margin:8px 0 0;">FaithBridge</h1>
           </div>
           <h2 style="color:#1f2937;">Password Reset Request</h2>
           <p style="color:#4b5563;">Hello ${user.name},</p>

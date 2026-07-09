@@ -4,7 +4,7 @@ const Anthropic = require('@anthropic-ai/sdk');
 const prisma = require('../db');
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-const SYSTEM_PROMPT = `You are a warm, knowledgeable Christian Bible assistant named "The Word Guide" on FaithFlow — a Christian faith community app.
+const SYSTEM_PROMPT = `You are a warm, knowledgeable Christian Bible assistant named "The Word Guide" on FaithBridge — a Christian faith community app.
 
 Your role:
 - Answer questions about the Bible, faith, prayer, and Christian living with warmth and wisdom

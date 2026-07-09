@@ -9,7 +9,7 @@ const SLIDES = [
     bg: 'linear-gradient(160deg, #1a1a2e 0%, #2d1b4e 100%)',
     icon: null,
     emoji: '✝️',
-    title: 'Welcome to FaithFlow',
+    title: 'Welcome to FaithBridge',
     subtitle: 'Your faith community awaits',
   },
   {

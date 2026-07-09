@@ -184,7 +184,7 @@ export default function Settings() {
           <SectionDivider />
           <SettingsRow
             Icon={Star} iconBg="#EC4899"
-            label="Rate FaithFlow" sublabel="Support us with a review"
+            label="Rate FaithBridge" sublabel="Support us with a review"
             onClick={() => {}} soon
           />
         </Section>
@@ -205,7 +205,7 @@ export default function Settings() {
         </motion.div>
 
         <div className="pt-2 pb-6 space-y-1">
-          <p className="text-xs text-gray-300 text-center">FaithFlow v1.0.0</p>
+          <p className="text-xs text-gray-300 text-center">FaithBridge v1.0.0</p>
           <p className="text-xs text-gray-300 text-center">Made with 🙏 for believers worldwide</p>
         </div>
       </motion.div>
@@ -237,7 +237,7 @@ export default function Settings() {
                   </svg>
                 </div>
                 <h3 className="font-bold text-gray-900 text-base mb-1">Log Out?</h3>
-                <p className="text-sm text-gray-400 mb-6">Are you sure you want to log out of FaithFlow?</p>
+                <p className="text-sm text-gray-400 mb-6">Are you sure you want to log out of FaithBridge?</p>
                 <div className="space-y-2 px-2">
                   <button
                     onClick={handleLogout}
