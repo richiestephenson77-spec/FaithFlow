@@ -168,4 +168,33 @@ async function getTotalUnread(req, res) {
   }
 }
 
-module.exports = { getConversations, startConversation, getMessages, sendMessage, markRead, getTotalUnread };
+async function setReaction(req, res) {
+  const { messageId } = req.params;
+  const { emoji } = req.body;
+  if (emoji !== null && (typeof emoji !== 'string' || emoji.length === 0 || emoji.length > 8))
+    return res.status(400).json({ error: 'emoji must be a short string or null' });
+  try {
+    const message = await prisma.message.findUnique({ where: { id: messageId } });
+    if (!message) return res.status(404).json({ error: 'Message not found' });
+
+    const participant = await prisma.conversationParticipant.findUnique({
+      where: { conversationId_userId: { conversationId: message.conversationId, userId: req.user.id } },
+    });
+    if (!participant) return res.status(403).json({ error: 'Not in this conversation' });
+
+    const updated = await prisma.message.update({
+      where: { id: messageId },
+      data: { reaction: emoji },
+    });
+
+    const io = req.app.get('io');
+    io.to(`conversation:${message.conversationId}`).emit('message:reaction', { messageId, emoji });
+
+    res.json({ id: updated.id, reaction: updated.reaction });
+  } catch (err) {
+    console.error('setReaction error:', err);
+    res.status(500).json({ error: 'Failed to set reaction' });
+  }
+}
+
+module.exports = { getConversations, startConversation, getMessages, sendMessage, markRead, getTotalUnread, setReaction };
