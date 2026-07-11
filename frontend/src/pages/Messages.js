@@ -1,7 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { SquarePen } from 'lucide-react';
 import api from '../utils/api';
 import Avatar from '../components/Avatar';
+import { useAuth } from '../contexts/AuthContext';
 
 function getTimeAgo(d) {
   if (!d) return '';
@@ -16,6 +18,8 @@ function getTimeAgo(d) {
 
 export default function Messages() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const searchInputRef = useRef(null);
   const [convos, setConvos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -59,12 +63,22 @@ export default function Messages() {
   return (
     <div className="bg-gray-50 min-h-full">
       <div className="bg-gray-50 px-4 pt-4 pb-3">
-        <h2 className="text-2xl font-bold text-gray-900 mb-3">Messages</h2>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-lg font-bold" style={{ color: '#163449' }}>{user?.name || 'Messages'}</h2>
+          <button
+            onClick={() => searchInputRef.current?.focus()}
+            aria-label="New chat"
+            className="w-9 h-9 flex items-center justify-center"
+          >
+            <SquarePen size={22} strokeWidth={1.8} color="#163449" />
+          </button>
+        </div>
         <div className="water-tile-static water-tile-blue relative">
           <svg className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: '#4A6674', zIndex: 1, position: 'absolute' }} width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
           </svg>
           <input
+            ref={searchInputRef}
             value={search}
             onChange={e => handleSearch(e.target.value)}
             placeholder="Find a believer to message..."
