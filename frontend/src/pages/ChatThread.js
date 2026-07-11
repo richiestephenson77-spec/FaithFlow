@@ -82,7 +82,7 @@ export default function ChatThread() {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
+    <div className="flex flex-col h-full bg-gray-50">
       {/* Header */}
       <WaterCard tone="blue" style={{ borderRadius: '0 0 20px 20px', padding: '16px' }} className="flex items-center gap-3 flex-shrink-0">
         <button onClick={() => navigate('/messages')} className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: 'rgba(22,52,73,0.1)' }}>

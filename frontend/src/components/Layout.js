@@ -17,6 +17,8 @@ const navItems = [
 ];
 
 const HIDE_HEADER_ON = ['/profile'];
+// Individual chat threads (/messages/:id) go immersive — the /messages list keeps its frame
+const HIDE_NAV_ON = ['/messages/'];
 
 export default function Layout() {
   const { notifications, unreadCount, unreadMessages } = useSocket();
@@ -34,10 +36,11 @@ export default function Layout() {
   }, [notifications]);
 
   const location = useLocation();
-  const hideHeader = HIDE_HEADER_ON.some(p => location.pathname.startsWith(p));
+  const hideNav = HIDE_NAV_ON.some(p => location.pathname.startsWith(p) && location.pathname.length > p.length);
+  const hideHeader = HIDE_HEADER_ON.some(p => location.pathname.startsWith(p)) || hideNav;
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col max-w-md mx-auto relative shadow-xl">
+    <div className="h-screen bg-gray-50 flex flex-col max-w-md mx-auto relative shadow-xl overflow-hidden" style={{ height: '100dvh' }}>
       <svg width="0" height="0" style={{ position: 'absolute' }}>
         <defs>
           <filter id="droplet-warp-1" x="-30%" y="-30%" width="160%" height="160%">
@@ -51,7 +54,7 @@ export default function Layout() {
         </defs>
       </svg>
       {!hideHeader && (
-        <header className="water-header water-tile-blue px-4 py-2.5 flex items-center justify-between sticky top-0 z-30">
+        <header className="water-header water-tile-blue px-4 py-2.5 flex items-center justify-between z-30">
           <button onClick={() => setShowCreatePost(true)} className="flex-shrink-0" style={{ position: 'relative', zIndex: 1 }}>
             {user?.profilePhoto ? (
               <img src={user.profilePhoto} alt={user.name} className="w-9 h-9 rounded-full object-cover" />
@@ -80,7 +83,10 @@ export default function Layout() {
 
       {latestToast && <Toast key={latestToast.id} message={latestToast.message} />}
 
-      <main className="flex-1 overflow-y-auto pb-24">
+      <main
+        className={`flex-1 overflow-y-auto ${hideNav ? '' : 'pb-24'}`}
+        style={{ overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' }}
+      >
         <Outlet />
       </main>
 
@@ -94,36 +100,38 @@ export default function Layout() {
         />
       )}
 
-      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 flex gap-3 z-30">
-        {navItems.map(({ to, label, Icon, end }, i) => (
-          <NavLink key={to} to={to} end={end} style={{ position: 'relative', zIndex: 1 }}>
-            {({ isActive }) => (
-              <motion.div
-                whileTap={{ scale: 0.88 }}
-                transition={{ type: 'spring', stiffness: 500, damping: 25 }}
-                className={`droplet-nav droplet-shape-${(i % 5) + 1}`}
-                style={{ width: 58, height: 58, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}
-              >
-                <Icon
-                  size={22}
-                  strokeWidth={isActive ? 2.5 : 1.5}
-                  color={isActive ? '#163449' : 'rgba(22,52,73,0.55)'}
-                  style={{
-                    filter: `url(#droplet-warp-${(i % 2) + 1})`,
-                    position: 'relative',
-                    zIndex: 1,
-                  }}
-                />
-                {label === 'Chats' && unreadMessages > 0 && (
-                  <span className="absolute top-1 right-1 bg-red-500 text-white text-[9px] rounded-full w-4 h-4 flex items-center justify-center leading-none font-bold" style={{ zIndex: 3 }}>
-                    {unreadMessages > 9 ? '9+' : unreadMessages}
-                  </span>
-                )}
-              </motion.div>
-            )}
-          </NavLink>
-        ))}
-      </div>
+      {!hideNav && (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 flex gap-3 z-30">
+          {navItems.map(({ to, label, Icon, end }, i) => (
+            <NavLink key={to} to={to} end={end} style={{ position: 'relative', zIndex: 1 }}>
+              {({ isActive }) => (
+                <motion.div
+                  whileTap={{ scale: 0.88 }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 25 }}
+                  className={`droplet-nav droplet-shape-${(i % 5) + 1}`}
+                  style={{ width: 58, height: 58, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}
+                >
+                  <Icon
+                    size={22}
+                    strokeWidth={isActive ? 2.5 : 1.5}
+                    color={isActive ? '#163449' : 'rgba(22,52,73,0.55)'}
+                    style={{
+                      filter: `url(#droplet-warp-${(i % 2) + 1})`,
+                      position: 'relative',
+                      zIndex: 1,
+                    }}
+                  />
+                  {label === 'Chats' && unreadMessages > 0 && (
+                    <span className="absolute top-1 right-1 bg-red-500 text-white text-[9px] rounded-full w-4 h-4 flex items-center justify-center leading-none font-bold" style={{ zIndex: 3 }}>
+                      {unreadMessages > 9 ? '9+' : unreadMessages}
+                    </span>
+                  )}
+                </motion.div>
+              )}
+            </NavLink>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
