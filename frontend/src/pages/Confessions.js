@@ -63,19 +63,23 @@ export default function Confessions() {
   const [confessions, setConfessions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState('All');
+  const [tab, setTab] = useState('feed'); // 'feed' | 'mine'
   const [showModal, setShowModal] = useState(false);
   const [toast, setToast] = useState('');
 
-  const load = useCallback(async (cat) => {
+  const load = useCallback(async (cat, which) => {
     setLoading(true);
     try {
-      const res = await api.get(`/confessions${cat !== 'All' ? `?category=${cat}` : ''}`);
+      const url = which === 'mine'
+        ? '/confessions/mine'
+        : `/confessions${cat !== 'All' ? `?category=${cat}` : ''}`;
+      const res = await api.get(url);
       setConfessions(res.data);
     } catch {}
     setLoading(false);
   }, []);
 
-  useEffect(() => { load(activeCategory); }, [load, activeCategory]);
+  useEffect(() => { load(activeCategory, tab); }, [load, activeCategory, tab]);
 
   function showToast(msg) {
     setToast(msg);
@@ -121,22 +125,41 @@ export default function Confessions() {
         </div>
       </motion.div>
 
-      {/* Category chips */}
-      <div className="flex gap-2 overflow-x-auto px-4 pb-4 no-scrollbar">
-        {CATEGORIES.map(cat => (
+      {/* Feed / Mine tabs */}
+      <div className="flex gap-2 px-4 pb-4">
+        {[{ id: 'feed', label: 'Wall' }, { id: 'mine', label: 'My Confessions' }].map(t => (
           <button
-            key={cat}
-            onClick={() => setActiveCategory(cat)}
-            className="flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200"
+            key={t.id}
+            onClick={() => setTab(t.id)}
+            className="flex-1 py-2 rounded-full text-sm font-semibold transition-all duration-200"
             style={{
-              background: activeCategory === cat ? 'white' : 'rgba(255,255,255,0.08)',
-              color: activeCategory === cat ? '#111827' : 'rgba(255,255,255,0.6)',
+              background: tab === t.id ? 'white' : 'rgba(255,255,255,0.08)',
+              color: tab === t.id ? '#111827' : 'rgba(255,255,255,0.6)',
             }}
           >
-            {cat}
+            {t.label}
           </button>
         ))}
       </div>
+
+      {/* Category chips — feed only */}
+      {tab === 'feed' && (
+        <div className="flex gap-2 overflow-x-auto px-4 pb-4 no-scrollbar">
+          {CATEGORIES.map(cat => (
+            <button
+              key={cat}
+              onClick={() => setActiveCategory(cat)}
+              className="flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200"
+              style={{
+                background: activeCategory === cat ? 'white' : 'rgba(255,255,255,0.08)',
+                color: activeCategory === cat ? '#111827' : 'rgba(255,255,255,0.6)',
+              }}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Cards */}
       {loading ? (
@@ -147,8 +170,8 @@ export default function Confessions() {
         </div>
       ) : confessions.length === 0 ? (
         <div className="text-center py-20">
-          <p className="font-semibold text-white/60">No confessions yet</p>
-          <p className="text-sm mt-1 text-white/30">Be the first to share anonymously</p>
+          <p className="font-semibold text-white/60">{tab === 'mine' ? 'You haven’t shared anything yet' : 'No confessions yet'}</p>
+          <p className="text-sm mt-1 text-white/30">{tab === 'mine' ? 'Your confessions will appear here — only you can see this list' : 'Be the first to share anonymously'}</p>
         </div>
       ) : (
         <motion.div variants={stagger} initial="initial" animate="animate" className="px-4 space-y-3">

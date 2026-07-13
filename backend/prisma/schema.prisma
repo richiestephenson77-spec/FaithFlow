@@ -56,7 +56,7 @@ model User {
   prayerDraft     PrayerDraft?
   conversationParticipants ConversationParticipant[]
   sentMessages    Message[]
-  confessions     Confession[]
+  confessionAuthors ConfessionAuthor[]
   confessionEncouragements ConfessionEncouragement[]
   confessionComments ConfessionComment[]
   pastorRequests  PastorPrayerRequest[] @relation("PastorRequests")
@@ -147,11 +147,21 @@ model Confession {
   content        String
   category       String    @default("General")
   createdAt      DateTime  @default(now())
-  userId         String
-  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   encouragements ConfessionEncouragement[]
   comments       ConfessionComment[]
   @@map("confessions")
+}
+
+// Authorship lives ONLY here, in its own table, and is never joined into
+// any public confession query. The only read path is GET /confessions/mine,
+// filtered to the requester's own session.
+model ConfessionAuthor {
+  id           String   @id @default(cuid())
+  confessionId String   @unique
+  userId       String
+  createdAt    DateTime @default(now())
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@map("confession_authors")
 }
 
 model ConfessionEncouragement {
