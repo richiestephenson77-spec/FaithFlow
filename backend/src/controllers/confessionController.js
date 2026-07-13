@@ -91,25 +91,35 @@ async function createConfession(req, res) {
 // matched against their own logged-in session (req.user.id).
 async function getMyConfessions(req, res) {
   try {
+    // Two separate queries — there is intentionally NO Prisma relation between
+    // ConfessionAuthor and Confession, so authorship can never be joined into a
+    // confession query. We resolve the author's confession ids first, then fetch
+    // those confessions on their own.
     const authored = await prisma.confessionAuthor.findMany({
       where: { userId: req.user.id },
       orderBy: { createdAt: 'desc' },
-      include: {
-        confession: {
-          include: { _count: { select: { encouragements: true, comments: true } } },
-        },
-      },
+      select: { confessionId: true },
     });
+    const ids = authored.map(a => a.confessionId);
+    if (ids.length === 0) return res.json([]);
+
+    const confessions = await prisma.confession.findMany({
+      where: { id: { in: ids } },
+      include: { _count: { select: { encouragements: true, comments: true } } },
+    });
+    const byId = new Map(confessions.map(c => [c.id, c]));
+
     res.json(
-      authored
-        .filter(a => a.confession) // guard against any dangling author row
-        .map(a => ({
-          id: a.confession.id,
-          content: a.confession.content,
-          category: a.confession.category,
-          createdAt: a.confession.createdAt,
-          heartCount: a.confession._count.encouragements,
-          commentCount: a.confession._count.comments,
+      ids
+        .map(id => byId.get(id))
+        .filter(Boolean) // guard against any dangling author row
+        .map(c => ({
+          id: c.id,
+          content: c.content,
+          category: c.category,
+          createdAt: c.createdAt,
+          heartCount: c._count.encouragements,
+          commentCount: c._count.comments,
         }))
     );
   } catch {
