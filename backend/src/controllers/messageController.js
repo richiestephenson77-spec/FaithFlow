@@ -224,6 +224,9 @@ async function markRead(req, res) {
       where: { conversationId_userId: { conversationId, userId: req.user.id } },
       data: { lastReadAt: new Date() },
     });
+    // Tell the other participant their messages have been seen (live "Seen" receipt)
+    const io = req.app.get('io');
+    io.to(`conversation:${conversationId}`).emit('messages_read', { conversationId, readerId: req.user.id });
     res.json({ ok: true });
   } catch {
     res.status(500).json({ error: 'Failed to mark read' });

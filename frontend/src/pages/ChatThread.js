@@ -125,6 +125,12 @@ export default function ChatThread() {
         ? { ...m, isDeleted: true, content: '', audioUrl: null, reaction: null, replyTo: null }
         : m));
     });
+    socket.on('messages_read', ({ readerId }) => {
+      // The other participant read the thread — mark my sent messages as seen
+      if (readerId && readerId !== user?.id) {
+        setMessages(prev => prev.map(m => (m.senderId === user?.id ? { ...m, isRead: true } : m)));
+      }
+    });
     return () => {
       socket.emit('leave_conversation', conversationId);
       socket.off('message_received');
@@ -132,6 +138,7 @@ export default function ChatThread() {
       socket.off('stop_typing');
       socket.off('message:reaction');
       socket.off('message:unsend');
+      socket.off('messages_read');
     };
   }, [socket, conversationId]);
 
@@ -406,6 +413,9 @@ export default function ChatThread() {
               </div>
               {showTime && (
                 <p className="text-[10px] text-gray-400 mt-0.5 px-1">{getTimeStr(m.createdAt)}</p>
+              )}
+              {i === messages.length - 1 && isMe && m.isRead && !m.isDeleted && (
+                <p className="text-[10px] text-gray-400 mt-0.5 px-1">Seen</p>
               )}
             </div>
           );
