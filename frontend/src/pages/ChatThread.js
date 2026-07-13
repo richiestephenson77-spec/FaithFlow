@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { Mic, Play, Pause } from 'lucide-react';
 import api from '../utils/api';
 import Avatar from '../components/Avatar';
 import { useAuth } from '../contexts/AuthContext';
@@ -10,9 +11,60 @@ function getTimeStr(d) {
   return new Date(d).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
 }
 
+function fmtDuration(s) {
+  const sec = Math.max(0, Math.round(s || 0));
+  return `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`;
+}
+
 const REACTION_OPTIONS = ['❤️', '🙏', '😂', '😮', '😢', '🔥'];
 const DOUBLE_TAP_MS = 300;
 const LONG_PRESS_MS = 500;
+
+// Instagram-style voice-note bubble: tap to play, progress bar, duration label
+function VoiceBubble({ src, duration, isMe }) {
+  const audioRef = useRef(null);
+  const [playing, setPlaying] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [current, setCurrent] = useState(0);
+
+  const fg = isMe ? '#ffffff' : '#163449';
+  const track = isMe ? 'rgba(255,255,255,0.35)' : 'rgba(22,52,73,0.15)';
+
+  function toggle(e) {
+    e.stopPropagation();
+    const a = audioRef.current;
+    if (!a) return;
+    if (playing) a.pause(); else a.play();
+  }
+
+  return (
+    <div className="flex items-center gap-2.5" style={{ minWidth: 168 }}>
+      <button onClick={toggle} className="flex-shrink-0 flex items-center justify-center rounded-full"
+        style={{ width: 30, height: 30, background: isMe ? 'rgba(255,255,255,0.25)' : 'rgba(22,52,73,0.1)' }}>
+        {playing ? <Pause size={15} color={fg} fill={fg} /> : <Play size={15} color={fg} fill={fg} />}
+      </button>
+      <div className="flex-1 rounded-full" style={{ height: 3, background: track }}>
+        <div style={{ width: `${progress * 100}%`, height: '100%', background: fg, borderRadius: 999 }} />
+      </div>
+      <span className="text-[11px] tabular-nums flex-shrink-0" style={{ color: fg }}>
+        {fmtDuration(playing || current ? current : duration)}
+      </span>
+      <audio
+        ref={audioRef}
+        src={src}
+        preload="metadata"
+        onPlay={() => setPlaying(true)}
+        onPause={() => setPlaying(false)}
+        onEnded={() => { setPlaying(false); setProgress(0); setCurrent(0); }}
+        onTimeUpdate={e => {
+          const a = e.target;
+          setCurrent(a.currentTime);
+          if (a.duration && isFinite(a.duration)) setProgress(a.currentTime / a.duration);
+        }}
+      />
+    </div>
+  );
+}
 
 export default function ChatThread() {
   const { conversationId } = useParams();
@@ -25,11 +77,19 @@ export default function ChatThread() {
   const [sending, setSending] = useState(false);
   const [typingUser, setTypingUser] = useState(null);
   const [pickerFor, setPickerFor] = useState(null);
+  const [recording, setRecording] = useState(false);
+  const [recordSeconds, setRecordSeconds] = useState(0);
   const bottomRef = useRef(null);
   const typingTimer = useRef(null);
   const lastTapRef = useRef({ id: null, time: 0 });
   const pressTimerRef = useRef(null);
   const longPressFiredRef = useRef(false);
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
+  const recordStreamRef = useRef(null);
+  const recordTimerRef = useRef(null);
+  const recordStartRef = useRef(0);
+  const cancelRecordRef = useRef(false);
 
   const loadMessages = useCallback(async () => {
     try {
@@ -129,6 +189,69 @@ export default function ChatThread() {
     setSending(false);
   }
 
+  // ---- Voice messages (press-and-hold mic) ----
+  async function sendAudio(blob, duration) {
+    setSending(true);
+    if (socket) socket.emit('stop_typing', { conversationId });
+    try {
+      const ext = blob.type.includes('ogg') ? 'ogg' : blob.type.includes('mp4') ? 'mp4' : 'webm';
+      const fd = new FormData();
+      fd.append('audio', blob, `voice.${ext}`);
+      fd.append('duration', String(duration));
+      const res = await api.post(`/messages/conversations/${conversationId}/audio`, fd);
+      setMessages(prev => [...prev, res.data]);
+    } catch {}
+    setSending(false);
+  }
+
+  async function startRecording() {
+    if (recording) return;
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      recordStreamRef.current = stream;
+      const mr = new MediaRecorder(stream);
+      mediaRecorderRef.current = mr;
+      audioChunksRef.current = [];
+      cancelRecordRef.current = false;
+      mr.ondataavailable = e => { if (e.data.size > 0) audioChunksRef.current.push(e.data); };
+      mr.onstop = () => {
+        recordStreamRef.current?.getTracks().forEach(t => t.stop());
+        clearInterval(recordTimerRef.current);
+        const duration = Math.round((Date.now() - recordStartRef.current) / 1000);
+        setRecording(false);
+        setRecordSeconds(0);
+        if (cancelRecordRef.current || duration < 1) return;
+        const blob = new Blob(audioChunksRef.current, { type: mr.mimeType || 'audio/webm' });
+        sendAudio(blob, duration);
+      };
+      recordStartRef.current = Date.now();
+      mr.start();
+      setRecording(true);
+      setRecordSeconds(0);
+      recordTimerRef.current = setInterval(() => setRecordSeconds(s => s + 1), 1000);
+    } catch {
+      setRecording(false); // mic permission denied / unavailable
+    }
+  }
+
+  function stopRecording(cancel = false) {
+    cancelRecordRef.current = cancel;
+    const mr = mediaRecorderRef.current;
+    if (mr && mr.state !== 'inactive') mr.stop();
+  }
+
+  // Release anywhere ends the recording (press-and-hold pattern)
+  useEffect(() => {
+    if (!recording) return;
+    const stop = () => stopRecording(false);
+    window.addEventListener('pointerup', stop);
+    window.addEventListener('pointercancel', stop);
+    return () => {
+      window.removeEventListener('pointerup', stop);
+      window.removeEventListener('pointercancel', stop);
+    };
+  }, [recording]);
+
   return (
     <div className="flex flex-col h-full bg-gray-50">
       {/* Header */}
@@ -173,7 +296,9 @@ export default function ChatThread() {
                   }`}
                   style={{ WebkitTouchCallout: 'none' }}
                 >
-                  {m.content}
+                  {m.audioUrl
+                    ? <VoiceBubble src={m.audioUrl} duration={m.audioDuration || 0} isMe={isMe} />
+                    : m.content}
                 </div>
 
                 {/* Reaction chip — overlaps the bubble's bottom corner */}
@@ -227,25 +352,54 @@ export default function ChatThread() {
 
       {/* Input */}
       <div className="px-4 py-3 flex items-center gap-2 flex-shrink-0 pb-safe" style={{ background: 'rgba(238,243,245,0.95)' }}>
-        <WaterInput className="flex-1" style={{ borderRadius: 20 }}>
-          <input
-            value={input}
-            onChange={handleInputChange}
-            onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleSend()}
-            placeholder="Message..."
-            className="w-full bg-transparent px-4 py-2.5 text-sm focus:outline-none text-gray-800 placeholder-gray-400"
-          />
-        </WaterInput>
-        <WaterButton
-          variant="primary"
-          onClick={handleSend}
-          disabled={!input.trim() || sending}
-          style={{ width: 40, height: 40, borderRadius: 12, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7A5200" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
-          </svg>
-        </WaterButton>
+        {recording ? (
+          <div className="flex-1 flex items-center gap-3 px-4 rounded-[20px] bg-white border border-gray-100" style={{ height: 42 }}>
+            <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse flex-shrink-0" />
+            <span className="text-sm font-medium tabular-nums text-gray-700">{fmtDuration(recordSeconds)}</span>
+            <span className="flex-1 flex items-center gap-0.5 overflow-hidden">
+              {[10, 16, 8, 20, 12, 18, 9, 15, 11, 17, 7, 14].map((h, i) => (
+                <span key={i} className="rounded-full bg-red-300" style={{ width: 2.5, height: h, animation: `pulse 0.9s ${i * 0.07}s ease-in-out infinite` }} />
+              ))}
+            </span>
+            <span className="text-xs text-gray-400 flex-shrink-0">Release to send</span>
+          </div>
+        ) : (
+          <WaterInput className="flex-1" style={{ borderRadius: 20 }}>
+            <input
+              value={input}
+              onChange={handleInputChange}
+              onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleSend()}
+              placeholder="Message..."
+              className="w-full bg-transparent px-4 py-2.5 text-sm focus:outline-none text-gray-800 placeholder-gray-400"
+            />
+          </WaterInput>
+        )}
+        {input.trim() ? (
+          <WaterButton
+            variant="primary"
+            onClick={handleSend}
+            disabled={sending}
+            style={{ width: 40, height: 40, borderRadius: 12, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7A5200" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+            </svg>
+          </WaterButton>
+        ) : (
+          <button
+            onPointerDown={e => { e.preventDefault(); startRecording(); }}
+            aria-label="Hold to record voice message"
+            className="flex items-center justify-center rounded-full flex-shrink-0 transition-transform"
+            style={{
+              width: 40, height: 40,
+              background: recording ? '#ef4444' : 'rgba(22,52,73,0.1)',
+              transform: recording ? 'scale(1.15)' : 'scale(1)',
+              touchAction: 'none',
+            }}
+          >
+            <Mic size={19} color={recording ? '#fff' : '#163449'} strokeWidth={1.8} />
+          </button>
+        )}
       </div>
     </div>
   );

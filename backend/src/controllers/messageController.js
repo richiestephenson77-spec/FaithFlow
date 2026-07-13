@@ -132,6 +132,53 @@ async function sendMessage(req, res) {
   }
 }
 
+async function sendAudioMessage(req, res) {
+  const { conversationId } = req.params;
+  const audioUrl = req.file?.path;
+  const audioDuration = req.body.duration ? Math.round(Number(req.body.duration)) : null;
+  if (!audioUrl) return res.status(400).json({ error: 'Audio file required' });
+  try {
+    const participant = await prisma.conversationParticipant.findUnique({
+      where: { conversationId_userId: { conversationId, userId: req.user.id } },
+    });
+    if (!participant) return res.status(403).json({ error: 'Not in this conversation' });
+
+    const [message] = await prisma.$transaction([
+      prisma.message.create({
+        data: { conversationId, senderId: req.user.id, content: '', audioUrl, audioDuration },
+        include: { sender: { select: { id: true, name: true, profilePhoto: true } } },
+      }),
+      prisma.conversation.update({ where: { id: conversationId }, data: { updatedAt: new Date() } }),
+    ]);
+
+    const others = await prisma.conversationParticipant.findMany({
+      where: { conversationId, userId: { not: req.user.id } },
+    });
+    const io = req.app.get('io');
+    for (const p of others) {
+      io.to(`conversation:${conversationId}`).emit('message_received', message);
+      await prisma.notification.create({
+        data: {
+          userId: p.userId,
+          type: 'NEW_MESSAGE',
+          message: `New voice message from ${message.sender.name}`,
+          fromUser: req.user.id,
+          refId: conversationId,
+        },
+      });
+      notifyUser(io, p.userId, 'notification', {
+        type: 'NEW_MESSAGE',
+        message: `New voice message from ${message.sender.name}`,
+      });
+    }
+
+    res.status(201).json(message);
+  } catch (err) {
+    console.error('sendAudioMessage error:', err);
+    res.status(500).json({ error: 'Failed to send voice message' });
+  }
+}
+
 async function markRead(req, res) {
   const { conversationId } = req.params;
   try {
@@ -197,4 +244,4 @@ async function setReaction(req, res) {
   }
 }
 
-module.exports = { getConversations, startConversation, getMessages, sendMessage, markRead, getTotalUnread, setReaction };
+module.exports = { getConversations, startConversation, getMessages, sendMessage, sendAudioMessage, markRead, getTotalUnread, setReaction };

@@ -135,6 +135,8 @@ model Message {
   senderId       String
   content        String
   reaction       String?
+  audioUrl       String?
+  audioDuration  Int?
   createdAt      DateTime     @default(now())
   isRead         Boolean      @default(false)
   conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)

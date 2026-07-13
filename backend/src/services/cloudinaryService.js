@@ -44,8 +44,20 @@ const churchStorage = new CloudinaryStorage({
   },
 });
 
+const audioStorage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: 'faithflow/voice',
+    resource_type: 'video', // Cloudinary handles audio under the video resource type
+    allowed_formats: ['webm', 'ogg', 'mp3', 'm4a', 'mp4', 'wav'],
+  },
+});
+
 const uploadProfile = multer({ storage: profileStorage, limits: { fileSize: 10 * 1024 * 1024 } })
   .fields([{ name: 'profilePhoto', maxCount: 1 }, { name: 'coverPhoto', maxCount: 1 }]);
+
+const uploadAudio = multer({ storage: audioStorage, limits: { fileSize: 15 * 1024 * 1024 } })
+  .single('audio');
 
 const uploadPost = multer({ storage: postStorage, limits: { fileSize: 50 * 1024 * 1024 } })
   .array('media', 10);
@@ -53,4 +65,4 @@ const uploadPost = multer({ storage: postStorage, limits: { fileSize: 50 * 1024 
 const uploadChurch = multer({ storage: churchStorage, limits: { fileSize: 10 * 1024 * 1024 } })
   .fields([{ name: 'logo', maxCount: 1 }, { name: 'coverPhoto', maxCount: 1 }]);
 
-module.exports = { uploadProfile, uploadPost, uploadChurch };
+module.exports = { uploadProfile, uploadPost, uploadChurch, uploadAudio };
