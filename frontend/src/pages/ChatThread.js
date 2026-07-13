@@ -79,7 +79,9 @@ export default function ChatThread() {
   const [pickerFor, setPickerFor] = useState(null);
   const [recording, setRecording] = useState(false);
   const [recordSeconds, setRecordSeconds] = useState(0);
+  const [replyTo, setReplyTo] = useState(null);
   const bottomRef = useRef(null);
+  const msgRefs = useRef({});
   const typingTimer = useRef(null);
   const lastTapRef = useRef({ id: null, time: 0 });
   const pressTimerRef = useRef(null);
@@ -179,14 +181,32 @@ export default function ChatThread() {
   async function handleSend() {
     if (!input.trim() || sending) return;
     const content = input.trim();
+    const replyToId = replyTo?.id || null;
     setInput('');
+    setReplyTo(null);
     setSending(true);
     if (socket) socket.emit('stop_typing', { conversationId });
     try {
-      const res = await api.post(`/messages/conversations/${conversationId}`, { content });
+      const res = await api.post(`/messages/conversations/${conversationId}`, { content, replyToId });
       setMessages(prev => [...prev, res.data]);
     } catch {}
     setSending(false);
+  }
+
+  function scrollToMessage(id) {
+    const el = msgRefs.current[id];
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.style.transition = 'background 0.3s';
+      el.style.background = 'rgba(192,96,63,0.12)';
+      setTimeout(() => { el.style.background = 'transparent'; }, 900);
+    }
+  }
+
+  function snippetFor(m) {
+    if (!m) return '';
+    if (m.audioUrl) return '🎤 Voice message';
+    return m.content?.length > 80 ? m.content.slice(0, 80) + '…' : m.content;
   }
 
   // ---- Voice messages (press-and-hold mic) ----
@@ -278,7 +298,19 @@ export default function ChatThread() {
           const isMe = m.senderId === user?.id || m.sender?.id === user?.id;
           const showTime = i === messages.length - 1 || messages[i + 1]?.senderId !== m.senderId;
           return (
-            <div key={m.id} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
+            <div key={m.id} ref={el => { if (el) msgRefs.current[m.id] = el; }} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
+              {/* Quoted reply preview above the bubble */}
+              {m.replyTo && (
+                <button
+                  onClick={() => scrollToMessage(m.replyTo.id)}
+                  className={`max-w-[78%] mb-0.5 px-3 py-1 rounded-t-xl text-left ${isMe ? 'self-end' : 'self-start'}`}
+                  style={{ background: 'rgba(22,52,73,0.06)', borderLeft: '2px solid #C0603F' }}
+                >
+                  <span className="text-[11px] text-gray-500 line-clamp-1">
+                    {m.replyTo.senderId === user?.id ? 'You' : (other?.name || 'Them')}: {snippetFor(m.replyTo)}
+                  </span>
+                </button>
+              )}
               <div className={`relative max-w-[78%] ${m.reaction ? 'mb-2.5' : ''}`}>
                 <div
                   onClick={() => handleBubbleTap(m)}
@@ -312,21 +344,30 @@ export default function ChatThread() {
                   </button>
                 )}
 
-                {/* Long-press reaction picker */}
+                {/* Long-press reaction + action picker */}
                 {pickerFor === m.id && (
                   <div
-                    className={`absolute -top-11 ${isMe ? 'right-0' : 'left-0'} bg-white rounded-full shadow-lg border border-gray-100 flex items-center gap-1 px-2 py-1.5`}
-                    style={{ zIndex: 20 }}
+                    className={`absolute -top-[104px] ${isMe ? 'right-0' : 'left-0'} bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden`}
+                    style={{ zIndex: 20, minWidth: 190 }}
                   >
-                    {REACTION_OPTIONS.map(emoji => (
-                      <button
-                        key={emoji}
-                        onClick={() => applyReaction(m.id, m.reaction === emoji ? null : emoji)}
-                        className={`text-lg leading-none rounded-full p-0.5 active:scale-125 transition-transform ${m.reaction === emoji ? 'bg-gray-100' : ''}`}
-                      >
-                        {emoji}
-                      </button>
-                    ))}
+                    <div className="flex items-center gap-1 px-2 py-1.5 border-b border-gray-100">
+                      {REACTION_OPTIONS.map(emoji => (
+                        <button
+                          key={emoji}
+                          onClick={() => applyReaction(m.id, m.reaction === emoji ? null : emoji)}
+                          className={`text-lg leading-none rounded-full p-0.5 active:scale-125 transition-transform ${m.reaction === emoji ? 'bg-gray-100' : ''}`}
+                        >
+                          {emoji}
+                        </button>
+                      ))}
+                    </div>
+                    <button
+                      onClick={() => { setReplyTo(m); setPickerFor(null); }}
+                      className="w-full text-left px-4 py-2.5 text-sm text-gray-700 active:bg-gray-50 flex items-center gap-2"
+                    >
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#163449" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>
+                      Reply
+                    </button>
                   </div>
                 )}
               </div>
@@ -349,6 +390,23 @@ export default function ChatThread() {
         )}
         <div ref={bottomRef} />
       </div>
+
+      {/* Reply preview strip above composer */}
+      {replyTo && (
+        <div className="px-4 pt-2 flex-shrink-0" style={{ background: 'rgba(238,243,245,0.95)' }}>
+          <div className="flex items-center gap-2 rounded-xl px-3 py-2" style={{ background: 'rgba(22,52,73,0.06)', borderLeft: '2px solid #C0603F' }}>
+            <div className="flex-1 min-w-0">
+              <p className="text-[11px] font-semibold" style={{ color: '#C0603F' }}>
+                Replying to {replyTo.senderId === user?.id ? 'yourself' : (other?.name || 'them')}
+              </p>
+              <p className="text-xs text-gray-500 truncate">{snippetFor(replyTo)}</p>
+            </div>
+            <button onClick={() => setReplyTo(null)} className="p-1 flex-shrink-0" aria-label="Cancel reply">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6B7680" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Input */}
       <div className="px-4 py-3 flex items-center gap-2 flex-shrink-0 pb-safe" style={{ background: 'rgba(238,243,245,0.95)' }}>

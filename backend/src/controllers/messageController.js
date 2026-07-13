@@ -77,7 +77,10 @@ async function getMessages(req, res) {
     const messages = await prisma.message.findMany({
       where: { conversationId },
       orderBy: { createdAt: 'asc' },
-      include: { sender: { select: { id: true, name: true, profilePhoto: true } } },
+      include: {
+        sender: { select: { id: true, name: true, profilePhoto: true } },
+        replyTo: { select: { id: true, content: true, senderId: true, audioUrl: true } },
+      },
     });
     res.json(messages);
   } catch {
@@ -87,7 +90,7 @@ async function getMessages(req, res) {
 
 async function sendMessage(req, res) {
   const { conversationId } = req.params;
-  const { content } = req.body;
+  const { content, replyToId } = req.body;
   if (!content?.trim()) return res.status(400).json({ error: 'Message content required' });
   try {
     const participant = await prisma.conversationParticipant.findUnique({
@@ -95,10 +98,20 @@ async function sendMessage(req, res) {
     });
     if (!participant) return res.status(403).json({ error: 'Not in this conversation' });
 
+    // Only allow replying to a message that belongs to this same conversation
+    let validReplyToId = null;
+    if (replyToId) {
+      const parent = await prisma.message.findUnique({ where: { id: replyToId }, select: { conversationId: true } });
+      if (parent && parent.conversationId === conversationId) validReplyToId = replyToId;
+    }
+
     const [message] = await prisma.$transaction([
       prisma.message.create({
-        data: { conversationId, senderId: req.user.id, content: content.trim() },
-        include: { sender: { select: { id: true, name: true, profilePhoto: true } } },
+        data: { conversationId, senderId: req.user.id, content: content.trim(), replyToId: validReplyToId },
+        include: {
+          sender: { select: { id: true, name: true, profilePhoto: true } },
+          replyTo: { select: { id: true, content: true, senderId: true, audioUrl: true } },
+        },
       }),
       prisma.conversation.update({ where: { id: conversationId }, data: { updatedAt: new Date() } }),
     ]);

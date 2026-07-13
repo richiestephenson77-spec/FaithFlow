@@ -137,10 +137,13 @@ model Message {
   reaction       String?
   audioUrl       String?
   audioDuration  Int?
+  replyToId      String?
   createdAt      DateTime     @default(now())
   isRead         Boolean      @default(false)
   conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   sender         User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  replyTo        Message?     @relation("MessageReplies", fields: [replyToId], references: [id], onDelete: SetNull)
+  replies        Message[]    @relation("MessageReplies")
   @@map("messages")
 }
 
