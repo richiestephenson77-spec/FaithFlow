@@ -20,6 +20,28 @@ const REACTION_OPTIONS = ['❤️', '🙏', '😂', '😮', '😢', '🔥'];
 const DOUBLE_TAP_MS = 300;
 const LONG_PRESS_MS = 500;
 
+// Compact prayer-request card shared into a chat (tap to open full request)
+function SharedPrayerCard({ request, isMe, onOpen }) {
+  if (!request) {
+    return <span className="text-xs italic" style={{ color: isMe ? 'rgba(255,255,255,0.8)' : '#9AA6AD' }}>Prayer request no longer available</span>;
+  }
+  const fg = isMe ? '#ffffff' : '#163449';
+  const sub = isMe ? 'rgba(255,255,255,0.85)' : '#4A6674';
+  return (
+    <button onClick={onOpen} className="text-left rounded-xl overflow-hidden" style={{ width: 220, background: isMe ? 'rgba(255,255,255,0.15)' : 'rgba(22,52,73,0.05)', border: `1px solid ${isMe ? 'rgba(255,255,255,0.25)' : 'rgba(22,52,73,0.1)'}` }}>
+      <div className="px-3 py-2.5">
+        <div className="flex items-center gap-1.5 mb-1">
+          <span aria-hidden>🙏</span>
+          <span className="text-[10px] font-bold uppercase tracking-wide" style={{ color: fg }}>Prayer Request</span>
+        </div>
+        <p className="text-sm font-semibold leading-snug line-clamp-1" style={{ color: fg }}>{request.title}</p>
+        {request.body && <p className="text-xs leading-snug line-clamp-2 mt-0.5" style={{ color: sub }}>{request.body}</p>}
+        <p className="text-[11px] mt-1.5 font-medium" style={{ color: fg }}>Tap to pray →</p>
+      </div>
+    </button>
+  );
+}
+
 // Instagram-style voice-note bubble: tap to play, progress bar, duration label
 function VoiceBubble({ src, duration, isMe }) {
   const audioRef = useRef(null);
@@ -80,6 +102,9 @@ export default function ChatThread() {
   const [recording, setRecording] = useState(false);
   const [recordSeconds, setRecordSeconds] = useState(0);
   const [replyTo, setReplyTo] = useState(null);
+  const [showAttach, setShowAttach] = useState(false);
+  const [showPrayerPicker, setShowPrayerPicker] = useState(false);
+  const [myPrayers, setMyPrayers] = useState(null);
   const bottomRef = useRef(null);
   const msgRefs = useRef({});
   const typingTimer = useRef(null);
@@ -236,6 +261,25 @@ export default function ChatThread() {
     return m.content?.length > 80 ? m.content.slice(0, 80) + '…' : m.content;
   }
 
+  async function openPrayerPicker() {
+    setShowAttach(false);
+    setShowPrayerPicker(true);
+    if (myPrayers === null) {
+      try {
+        const res = await api.get('/prayers/mine');
+        setMyPrayers((res.data || []).filter(p => !p.isAnswered));
+      } catch { setMyPrayers([]); }
+    }
+  }
+
+  async function sharePrayer(prayerRequestId) {
+    setShowPrayerPicker(false);
+    try {
+      const res = await api.post(`/messages/conversations/${conversationId}/share-prayer`, { prayerRequestId });
+      setMessages(prev => [...prev, res.data]);
+    } catch {}
+  }
+
   // ---- Voice messages (press-and-hold mic) ----
   async function sendAudio(blob, duration) {
     setSending(true);
@@ -359,9 +403,11 @@ export default function ChatThread() {
                 >
                   {m.isDeleted
                     ? 'Message unsent'
-                    : m.audioUrl
-                      ? <VoiceBubble src={m.audioUrl} duration={m.audioDuration || 0} isMe={isMe} />
-                      : m.content}
+                    : m.sharedPrayerRequestId
+                      ? <SharedPrayerCard request={m.sharedPrayerRequest} isMe={isMe} onOpen={() => m.sharedPrayerRequest && navigate(`/prayer/${m.sharedPrayerRequest.id}`)} />
+                      : m.audioUrl
+                        ? <VoiceBubble src={m.audioUrl} duration={m.audioDuration || 0} isMe={isMe} />
+                        : m.content}
                 </div>
 
                 {/* Reaction chip — overlaps the bubble's bottom corner */}
@@ -452,7 +498,46 @@ export default function ChatThread() {
       )}
 
       {/* Input */}
-      <div className="px-4 py-3 flex items-center gap-2 flex-shrink-0 pb-safe" style={{ background: 'rgba(238,243,245,0.95)' }}>
+      <div className="px-4 py-3 flex items-center gap-2 flex-shrink-0 pb-safe relative" style={{ background: 'rgba(238,243,245,0.95)' }}>
+        {/* Attachment menu */}
+        {showAttach && (
+          <>
+            <div className="fixed inset-0 z-30" onClick={() => setShowAttach(false)} />
+            <div className="absolute bottom-full left-4 mb-2 z-40 bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden" style={{ minWidth: 210 }}>
+              <button onClick={() => setShowAttach(false)} className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 active:bg-gray-50">
+                <span className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: 'rgba(22,52,73,0.08)' }}>📷</span>
+                Photo / Camera
+              </button>
+              <button
+                onClick={() => { setShowAttach(false); startRecording(); }}
+                className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 active:bg-gray-50 border-t border-gray-100"
+              >
+                <span className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: 'rgba(22,52,73,0.08)' }}><Mic size={16} color="#163449" /></span>
+                Voice note
+              </button>
+              <button
+                onClick={openPrayerPicker}
+                className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 active:bg-gray-50 border-t border-gray-100"
+              >
+                <span className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: 'rgba(192,96,63,0.12)' }}>🙏</span>
+                Share a Prayer Request
+              </button>
+            </div>
+          </>
+        )}
+
+        {!recording && (
+          <button
+            onClick={() => setShowAttach(v => !v)}
+            aria-label="Attachments"
+            className="flex items-center justify-center rounded-full flex-shrink-0"
+            style={{ width: 40, height: 40, background: 'rgba(22,52,73,0.1)' }}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#163449" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ transform: showAttach ? 'rotate(45deg)' : 'none', transition: 'transform 0.15s' }}>
+              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+          </button>
+        )}
         {recording ? (
           <div className="flex-1 flex items-center gap-3 px-4 rounded-[20px] bg-white border border-gray-100" style={{ height: 42 }}>
             <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse flex-shrink-0" />
@@ -502,6 +587,49 @@ export default function ChatThread() {
           </button>
         )}
       </div>
+
+      {/* Share a Prayer Request — picker sheet */}
+      {showPrayerPicker && (
+        <div className="fixed inset-0 z-50 flex items-end bg-black/50" onClick={() => setShowPrayerPicker(false)}>
+          <div className="w-full max-w-md mx-auto bg-white rounded-t-3xl pb-8 max-h-[75vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="sticky top-0 bg-white pt-3 pb-3 px-5 border-b border-gray-100">
+              <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-3" />
+              <div className="flex items-center justify-between">
+                <button onClick={() => setShowPrayerPicker(false)} className="text-sm text-gray-400 font-medium">Cancel</button>
+                <h3 className="text-base font-bold text-gray-900">Share a Prayer Request</h3>
+                <div className="w-12" />
+              </div>
+            </div>
+            <div className="px-4 pt-4">
+              {myPrayers === null ? (
+                <div className="space-y-3">{[1, 2, 3].map(i => <div key={i} className="h-20 bg-gray-100 rounded-2xl animate-pulse" />)}</div>
+              ) : myPrayers.length === 0 ? (
+                <div className="text-center py-12">
+                  <p className="font-semibold text-gray-600">No active prayer requests</p>
+                  <p className="text-sm text-gray-400 mt-1">Share one from the Prayer page first.</p>
+                </div>
+              ) : (
+                <div className="space-y-2.5">
+                  {myPrayers.map(p => (
+                    <button
+                      key={p.id}
+                      onClick={() => sharePrayer(p.id)}
+                      className="w-full text-left bg-white rounded-2xl p-4 border border-gray-100 shadow-sm active:scale-[0.99] transition-transform"
+                    >
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <span aria-hidden>🙏</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wide" style={{ color: '#C0603F' }}>{p.category || 'Prayer'}</span>
+                      </div>
+                      <p className="text-sm font-semibold text-gray-900 line-clamp-1">{p.title}</p>
+                      {p.body && <p className="text-xs text-gray-500 line-clamp-2 mt-0.5">{p.body}</p>}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

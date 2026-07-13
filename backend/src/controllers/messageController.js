@@ -66,6 +66,24 @@ async function startConversation(req, res) {
   }
 }
 
+// Attach a `sharedPrayerRequest` object to any messages that reference one.
+// Plain-id lookup (no FK) so a deleted request just resolves to null.
+async function hydrateSharedPrayers(messages) {
+  const ids = [...new Set(messages.map(m => m.sharedPrayerRequestId).filter(Boolean))];
+  if (ids.length === 0) return messages;
+  const requests = await prisma.prayerRequest.findMany({
+    where: { id: { in: ids } },
+    select: {
+      id: true, title: true, body: true, category: true, isAnswered: true, createdAt: true,
+      user: { select: { id: true, name: true, profilePhoto: true } },
+    },
+  });
+  const byId = new Map(requests.map(r => [r.id, r]));
+  return messages.map(m => m.sharedPrayerRequestId
+    ? { ...m, sharedPrayerRequest: byId.get(m.sharedPrayerRequestId) || null }
+    : m);
+}
+
 async function getMessages(req, res) {
   const { conversationId } = req.params;
   try {
@@ -82,7 +100,7 @@ async function getMessages(req, res) {
         replyTo: { select: { id: true, content: true, senderId: true, audioUrl: true } },
       },
     });
-    res.json(messages);
+    res.json(await hydrateSharedPrayers(messages));
   } catch {
     res.status(500).json({ error: 'Failed to get messages' });
   }
@@ -213,6 +231,58 @@ async function unsendMessage(req, res) {
   }
 }
 
+async function sharePrayerRequest(req, res) {
+  const { conversationId } = req.params;
+  const { prayerRequestId } = req.body;
+  if (!prayerRequestId) return res.status(400).json({ error: 'prayerRequestId required' });
+  try {
+    const participant = await prisma.conversationParticipant.findUnique({
+      where: { conversationId_userId: { conversationId, userId: req.user.id } },
+    });
+    if (!participant) return res.status(403).json({ error: 'Not in this conversation' });
+
+    // Only allow sharing your OWN prayer request
+    const pr = await prisma.prayerRequest.findUnique({ where: { id: prayerRequestId }, select: { userId: true } });
+    if (!pr) return res.status(404).json({ error: 'Prayer request not found' });
+    if (pr.userId !== req.user.id) return res.status(403).json({ error: 'You can only share your own prayer requests' });
+
+    const [message] = await prisma.$transaction([
+      prisma.message.create({
+        data: { conversationId, senderId: req.user.id, content: '', sharedPrayerRequestId: prayerRequestId },
+        include: { sender: { select: { id: true, name: true, profilePhoto: true } } },
+      }),
+      prisma.conversation.update({ where: { id: conversationId }, data: { updatedAt: new Date() } }),
+    ]);
+
+    const [hydrated] = await hydrateSharedPrayers([message]);
+    const others = await prisma.conversationParticipant.findMany({
+      where: { conversationId, userId: { not: req.user.id } },
+    });
+    const io = req.app.get('io');
+    for (const p of others) {
+      io.to(`conversation:${conversationId}`).emit('message_received', hydrated);
+      await prisma.notification.create({
+        data: {
+          userId: p.userId,
+          type: 'NEW_MESSAGE',
+          message: `${message.sender.name} shared a prayer request`,
+          fromUser: req.user.id,
+          refId: conversationId,
+        },
+      });
+      notifyUser(io, p.userId, 'notification', {
+        type: 'NEW_MESSAGE',
+        message: `${message.sender.name} shared a prayer request`,
+      });
+    }
+
+    res.status(201).json(hydrated);
+  } catch (err) {
+    console.error('sharePrayerRequest error:', err);
+    res.status(500).json({ error: 'Failed to share prayer request' });
+  }
+}
+
 async function markRead(req, res) {
   const { conversationId } = req.params;
   try {
@@ -281,4 +351,4 @@ async function setReaction(req, res) {
   }
 }
 
-module.exports = { getConversations, startConversation, getMessages, sendMessage, sendAudioMessage, markRead, getTotalUnread, setReaction, unsendMessage };
+module.exports = { getConversations, startConversation, getMessages, sendMessage, sendAudioMessage, markRead, getTotalUnread, setReaction, unsendMessage, sharePrayerRequest };
