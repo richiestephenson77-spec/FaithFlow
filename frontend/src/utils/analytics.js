@@ -21,13 +21,13 @@ export function initPostHog() {
 
 export function identifyUser(user) {
   if (!posthog.__loaded) return;
+  // Associate events with the pseudonymous user id only. Do NOT send PII
+  // (email, name, church, location) to a third-party analytics service —
+  // it isn't needed for analytics and needlessly exposes personal data.
+  // Only non-identifying product metrics are attached as person properties.
   posthog.identify(user.id, {
-    name: user.name,
-    email: user.email,
-    church: user.churchName,
-    location: user.location,
     prayerStreak: user.prayerStreak,
-    createdAt: user.createdAt,
+    accountCreatedAt: user.createdAt,
   });
 }
 

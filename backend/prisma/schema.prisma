@@ -87,7 +87,7 @@ model User {
 model PrayerCell {
   id           String              @id @default(cuid())
   hostId       String
-  host         User                @relation("PrayerCellHost", fields: [hostId], references: [id])
+  host         User                @relation("PrayerCellHost", fields: [hostId], references: [id], onDelete: Cascade)
   isActive     Boolean             @default(true)
   startedAt    DateTime            @default(now())
   endedAt      DateTime?
@@ -103,8 +103,8 @@ model PrayerCellSession {
   guestId  String
   joinedAt DateTime   @default(now())
   leftAt   DateTime?
-  cell     PrayerCell @relation(fields: [cellId], references: [id])
-  guest    User       @relation("PrayerCellGuest", fields: [guestId], references: [id])
+  cell     PrayerCell @relation(fields: [cellId], references: [id], onDelete: Cascade)
+  guest    User       @relation("PrayerCellGuest", fields: [guestId], references: [id], onDelete: Cascade)
 
   @@map("prayer_cell_sessions")
 }
@@ -453,8 +453,8 @@ model PrayerPartnership {
   status    String   @default("ACTIVE")
   startedAt DateTime @default(now())
   expiresAt DateTime
-  user1     User     @relation("User1Partnerships", fields: [user1Id], references: [id])
-  user2     User     @relation("User2Partnerships", fields: [user2Id], references: [id])
+  user1     User     @relation("User1Partnerships", fields: [user1Id], references: [id], onDelete: Cascade)
+  user2     User     @relation("User2Partnerships", fields: [user2Id], references: [id], onDelete: Cascade)
 
   @@unique([user1Id, user2Id])
   @@map("prayer_partnerships")
@@ -466,7 +466,7 @@ model PrayerPartnerRequest {
   status    String   @default("WAITING")
   gender    String
   createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("prayer_partner_requests")
 }
