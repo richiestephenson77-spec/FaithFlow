@@ -59,6 +59,34 @@ function setupSocket(io) {
       io.emit('cell:directory_updated');
     });
 
+    // ---- 1:1 direct call signaling (reuses the same socket infra as messages) ----
+    // Invite is routed by userId (callee may be anywhere in the app); the
+    // response carries socket ids so both peers can exchange offer/answer/ice.
+    socket.on('call:invite', ({ toUserId, fromUser, callType, conversationId }) => {
+      notifyUser(io, toUserId, 'call:incoming', { fromUser, fromSocketId: socket.id, callType, conversationId });
+    });
+    socket.on('call:accept', ({ toSocketId, fromUser }) => {
+      io.to(toSocketId).emit('call:accepted', { fromSocketId: socket.id, fromUser });
+    });
+    socket.on('call:decline', ({ toSocketId }) => {
+      if (toSocketId) io.to(toSocketId).emit('call:declined');
+    });
+    socket.on('call:cancel', ({ toUserId }) => {
+      notifyUser(io, toUserId, 'call:canceled', {});
+    });
+    socket.on('call:end', ({ toSocketId }) => {
+      if (toSocketId) io.to(toSocketId).emit('call:ended');
+    });
+    socket.on('call:offer', ({ toSocketId, offer }) => {
+      io.to(toSocketId).emit('call:offer', { offer, fromSocketId: socket.id });
+    });
+    socket.on('call:answer', ({ toSocketId, answer }) => {
+      io.to(toSocketId).emit('call:answer', { answer });
+    });
+    socket.on('call:ice', ({ toSocketId, candidate }) => {
+      if (toSocketId) io.to(toSocketId).emit('call:ice', { candidate });
+    });
+
     socket.on('disconnect', () => {
       if (userId) connectedUsers.delete(userId);
       if (socket.data.cellId) {

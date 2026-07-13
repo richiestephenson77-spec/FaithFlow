@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Mic, Play, Pause } from 'lucide-react';
+import { Mic, Play, Pause, Phone, Video } from 'lucide-react';
 import api from '../utils/api';
 import Avatar from '../components/Avatar';
 import { useAuth } from '../contexts/AuthContext';
 import { useSocket } from '../contexts/SocketContext';
 import { WaterCard, WaterButton, WaterInput } from '../components/water';
+import CallOverlay from '../components/CallOverlay';
 
 function getTimeStr(d) {
   return new Date(d).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
@@ -105,6 +106,7 @@ export default function ChatThread() {
   const [showAttach, setShowAttach] = useState(false);
   const [showPrayerPicker, setShowPrayerPicker] = useState(false);
   const [myPrayers, setMyPrayers] = useState(null);
+  const [activeCall, setActiveCall] = useState(null);
   const bottomRef = useRef(null);
   const msgRefs = useRef({});
   const typingTimer = useRef(null);
@@ -156,6 +158,10 @@ export default function ChatThread() {
         setMessages(prev => prev.map(m => (m.senderId === user?.id ? { ...m, isRead: true } : m)));
       }
     });
+    socket.on('call:incoming', (payload) => {
+      // One call at a time; ignore new invites while a call is active
+      setActiveCall(prev => prev || { direction: 'in', callType: payload.callType, fromUser: payload.fromUser, fromSocketId: payload.fromSocketId });
+    });
     return () => {
       socket.emit('leave_conversation', conversationId);
       socket.off('message_received');
@@ -164,6 +170,7 @@ export default function ChatThread() {
       socket.off('message:reaction');
       socket.off('message:unsend');
       socket.off('messages_read');
+      socket.off('call:incoming');
     };
   }, [socket, conversationId]);
 
@@ -356,7 +363,32 @@ export default function ChatThread() {
         <div className="flex-1">
           <p className="font-bold text-sm leading-tight" style={{ color: '#163449' }}>{other?.name || '...'}</p>
         </div>
+        <button
+          onClick={() => other && setActiveCall({ direction: 'out', callType: 'audio' })}
+          aria-label="Audio call"
+          className="w-9 h-9 rounded-full flex items-center justify-center" style={{ background: 'rgba(22,52,73,0.08)' }}
+        >
+          <Phone size={18} color="#163449" strokeWidth={1.8} />
+        </button>
+        <button
+          onClick={() => other && setActiveCall({ direction: 'out', callType: 'video' })}
+          aria-label="Video call"
+          className="w-9 h-9 rounded-full flex items-center justify-center" style={{ background: 'rgba(22,52,73,0.08)' }}
+        >
+          <Video size={18} color="#163449" strokeWidth={1.8} />
+        </button>
       </WaterCard>
+
+      {activeCall && other && (
+        <CallOverlay
+          socket={socket}
+          me={user}
+          other={other}
+          conversationId={conversationId}
+          call={activeCall}
+          onClose={() => setActiveCall(null)}
+        />
+      )}
 
       {/* Tap-away dismiss for the reaction picker */}
       {pickerFor && (
