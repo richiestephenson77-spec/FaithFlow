@@ -138,6 +138,7 @@ model Message {
   audioUrl       String?
   audioDuration  Int?
   replyToId      String?
+  isDeleted      Boolean      @default(false)
   createdAt      DateTime     @default(now())
   isRead         Boolean      @default(false)
   conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)

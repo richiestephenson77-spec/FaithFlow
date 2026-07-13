@@ -120,12 +120,18 @@ export default function ChatThread() {
     socket.on('message:reaction', ({ messageId, emoji }) => {
       setMessages(prev => prev.map(m => m.id === messageId ? { ...m, reaction: emoji } : m));
     });
+    socket.on('message:unsend', ({ messageId }) => {
+      setMessages(prev => prev.map(m => m.id === messageId
+        ? { ...m, isDeleted: true, content: '', audioUrl: null, reaction: null, replyTo: null }
+        : m));
+    });
     return () => {
       socket.emit('leave_conversation', conversationId);
       socket.off('message_received');
       socket.off('typing');
       socket.off('stop_typing');
       socket.off('message:reaction');
+      socket.off('message:unsend');
     };
   }, [socket, conversationId]);
 
@@ -155,6 +161,7 @@ export default function ChatThread() {
 
   function handleBubbleTap(m) {
     if (longPressFiredRef.current) { longPressFiredRef.current = false; return; }
+    if (m.isDeleted) return;
     const now = Date.now();
     const { id, time } = lastTapRef.current;
     if (id === m.id && now - time < DOUBLE_TAP_MS) {
@@ -166,6 +173,7 @@ export default function ChatThread() {
   }
 
   function startPress(m) {
+    if (m.isDeleted) return;
     longPressFiredRef.current = false;
     clearTimeout(pressTimerRef.current);
     pressTimerRef.current = setTimeout(() => {
@@ -191,6 +199,18 @@ export default function ChatThread() {
       setMessages(prev => [...prev, res.data]);
     } catch {}
     setSending(false);
+  }
+
+  async function unsend(messageId) {
+    setPickerFor(null);
+    setMessages(prev => prev.map(m => m.id === messageId
+      ? { ...m, isDeleted: true, content: '', audioUrl: null, reaction: null, replyTo: null }
+      : m));
+    try {
+      await api.patch(`/messages/${messageId}/unsend`);
+    } catch {
+      loadMessages(); // recover server truth on failure
+    }
   }
 
   function scrollToMessage(id) {
@@ -322,15 +342,19 @@ export default function ChatThread() {
                   onMouseLeave={cancelPress}
                   onContextMenu={e => e.preventDefault()}
                   className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed select-none cursor-pointer ${
-                    isMe
-                      ? 'bg-gradient-to-br from-amber-400 to-orange-500 text-white rounded-br-sm'
-                      : 'bg-white border border-gray-100 text-gray-800 shadow-sm rounded-bl-sm'
+                    m.isDeleted
+                      ? 'bg-gray-100 text-gray-400 italic rounded-br-sm rounded-bl-sm'
+                      : isMe
+                        ? 'bg-gradient-to-br from-amber-400 to-orange-500 text-white rounded-br-sm'
+                        : 'bg-white border border-gray-100 text-gray-800 shadow-sm rounded-bl-sm'
                   }`}
                   style={{ WebkitTouchCallout: 'none' }}
                 >
-                  {m.audioUrl
-                    ? <VoiceBubble src={m.audioUrl} duration={m.audioDuration || 0} isMe={isMe} />
-                    : m.content}
+                  {m.isDeleted
+                    ? 'Message unsent'
+                    : m.audioUrl
+                      ? <VoiceBubble src={m.audioUrl} duration={m.audioDuration || 0} isMe={isMe} />
+                      : m.content}
                 </div>
 
                 {/* Reaction chip — overlaps the bubble's bottom corner */}
@@ -347,7 +371,7 @@ export default function ChatThread() {
                 {/* Long-press reaction + action picker */}
                 {pickerFor === m.id && (
                   <div
-                    className={`absolute -top-[104px] ${isMe ? 'right-0' : 'left-0'} bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden`}
+                    className={`absolute bottom-full mb-1.5 ${isMe ? 'right-0' : 'left-0'} bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden`}
                     style={{ zIndex: 20, minWidth: 190 }}
                   >
                     <div className="flex items-center gap-1 px-2 py-1.5 border-b border-gray-100">
@@ -368,6 +392,15 @@ export default function ChatThread() {
                       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#163449" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>
                       Reply
                     </button>
+                    {isMe && (
+                      <button
+                        onClick={() => unsend(m.id)}
+                        className="w-full text-left px-4 py-2.5 text-sm text-red-500 active:bg-gray-50 flex items-center gap-2 border-t border-gray-100"
+                      >
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                        Unsend
+                      </button>
+                    )}
                   </div>
                 )}
               </div>

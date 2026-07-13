@@ -192,6 +192,27 @@ async function sendAudioMessage(req, res) {
   }
 }
 
+async function unsendMessage(req, res) {
+  const { messageId } = req.params;
+  try {
+    const message = await prisma.message.findUnique({ where: { id: messageId } });
+    if (!message) return res.status(404).json({ error: 'Message not found' });
+    if (message.senderId !== req.user.id) return res.status(403).json({ error: 'You can only unsend your own messages' });
+
+    await prisma.message.update({
+      where: { id: messageId },
+      data: { isDeleted: true, content: '', audioUrl: null, audioDuration: null, reaction: null, replyToId: null },
+    });
+
+    const io = req.app.get('io');
+    io.to(`conversation:${message.conversationId}`).emit('message:unsend', { messageId });
+    res.json({ ok: true, messageId });
+  } catch (err) {
+    console.error('unsendMessage error:', err);
+    res.status(500).json({ error: 'Failed to unsend message' });
+  }
+}
+
 async function markRead(req, res) {
   const { conversationId } = req.params;
   try {
@@ -257,4 +278,4 @@ async function setReaction(req, res) {
   }
 }
 
-module.exports = { getConversations, startConversation, getMessages, sendMessage, sendAudioMessage, markRead, getTotalUnread, setReaction };
+module.exports = { getConversations, startConversation, getMessages, sendMessage, sendAudioMessage, markRead, getTotalUnread, setReaction, unsendMessage };
