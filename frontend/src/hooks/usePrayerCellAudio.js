@@ -1,28 +1,18 @@
 import { useRef } from 'react';
 
+// TURN credentials come from env only — never hardcode them. These are
+// exposed to the browser by necessity (WebRTC needs them client-side),
+// which is why they live behind REACT_APP_ vars and must be rotatable.
+const TURN_USERNAME = process.env.REACT_APP_TURN_USERNAME;
+const TURN_CREDENTIAL = process.env.REACT_APP_TURN_CREDENTIAL;
+
 const ICE_SERVERS = {
   iceServers: [
     { urls: 'stun:stun.relay.metered.ca:80' },
-    {
-      urls: 'turn:global.relay.metered.ca:80',
-      username: process.env.REACT_APP_TURN_USERNAME || '6903730ea433392b8b066028',
-      credential: process.env.REACT_APP_TURN_CREDENTIAL || 'ArYgGPWsr7Q4sx5N',
-    },
-    {
-      urls: 'turn:global.relay.metered.ca:80?transport=tcp',
-      username: process.env.REACT_APP_TURN_USERNAME || '6903730ea433392b8b066028',
-      credential: process.env.REACT_APP_TURN_CREDENTIAL || 'ArYgGPWsr7Q4sx5N',
-    },
-    {
-      urls: 'turn:global.relay.metered.ca:443',
-      username: process.env.REACT_APP_TURN_USERNAME || '6903730ea433392b8b066028',
-      credential: process.env.REACT_APP_TURN_CREDENTIAL || 'ArYgGPWsr7Q4sx5N',
-    },
-    {
-      urls: 'turns:global.relay.metered.ca:443?transport=tcp',
-      username: process.env.REACT_APP_TURN_USERNAME || '6903730ea433392b8b066028',
-      credential: process.env.REACT_APP_TURN_CREDENTIAL || 'ArYgGPWsr7Q4sx5N',
-    },
+    { urls: 'turn:global.relay.metered.ca:80', username: TURN_USERNAME, credential: TURN_CREDENTIAL },
+    { urls: 'turn:global.relay.metered.ca:80?transport=tcp', username: TURN_USERNAME, credential: TURN_CREDENTIAL },
+    { urls: 'turn:global.relay.metered.ca:443', username: TURN_USERNAME, credential: TURN_CREDENTIAL },
+    { urls: 'turns:global.relay.metered.ca:443?transport=tcp', username: TURN_USERNAME, credential: TURN_CREDENTIAL },
   ],
 };
 
