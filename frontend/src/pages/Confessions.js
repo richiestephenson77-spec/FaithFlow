@@ -7,6 +7,22 @@ import api from '../utils/api';
 const CATEGORIES = ['All', 'Anxiety', 'Doubt', 'Relationships', 'Addiction', 'Grief', 'Sin', 'Loneliness', 'Other'];
 const BG = '#0A0F1E';
 
+// Confessions are anonymous. Whitelist the ONLY fields the client is allowed to
+// hold, so no author-identifying data (userId/user/author/name) can ever live on
+// the client even if an API response were to include it. Never add identity here.
+function sanitizeConfession(c) {
+  if (!c) return c;
+  return {
+    id: c.id,
+    content: c.content,
+    category: c.category,
+    createdAt: c.createdAt,
+    heartCount: c.heartCount,
+    commentCount: c.commentCount,
+    hasHearted: c.hasHearted,
+  };
+}
+
 function getTimeAgo(d) {
   const diff = Date.now() - new Date(d);
   const m = Math.floor(diff / 60000);
@@ -74,7 +90,7 @@ export default function Confessions() {
         ? '/confessions/mine'
         : `/confessions${cat !== 'All' ? `?category=${cat}` : ''}`;
       const res = await api.get(url);
-      setConfessions(res.data);
+      setConfessions((res.data || []).map(sanitizeConfession));
     } catch {}
     setLoading(false);
   }, []);
@@ -100,7 +116,7 @@ export default function Confessions() {
   }
 
   function onNewConfession(c) {
-    setConfessions(prev => [c, ...prev]);
+    setConfessions(prev => [sanitizeConfession(c), ...prev]);
     setShowModal(false);
     showToast('Shared anonymously 🙏');
   }

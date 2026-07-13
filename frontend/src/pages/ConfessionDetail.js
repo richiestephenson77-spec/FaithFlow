@@ -8,6 +8,21 @@ import { useAuth } from '../contexts/AuthContext';
 
 const BG = '#0A0F1E';
 
+// Confessions are anonymous — only ever hold these non-identifying fields on the
+// client. Prevents any author-identifying data from living in client state.
+function sanitizeConfession(c) {
+  if (!c) return c;
+  return {
+    id: c.id,
+    content: c.content,
+    category: c.category,
+    createdAt: c.createdAt,
+    heartCount: c.heartCount,
+    commentCount: c.commentCount,
+    hasHearted: c.hasHearted,
+  };
+}
+
 function getTimeAgo(d) {
   const diff = Date.now() - new Date(d);
   const m = Math.floor(diff / 60000);
@@ -69,7 +84,7 @@ export default function ConfessionDetail() {
 
   useEffect(() => {
     api.get(`/confessions/${id}`)
-      .then(res => setConfession(res.data))
+      .then(res => setConfession(sanitizeConfession(res.data)))
       .catch(() => {})
       .finally(() => setLoadingConfession(false));
 
