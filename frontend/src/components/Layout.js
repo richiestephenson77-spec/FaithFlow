@@ -19,6 +19,8 @@ const navItems = [
 const HIDE_HEADER_ON = ['/profile'];
 // Individual chat threads (/messages/:id) go immersive — the /messages list keeps its frame
 const HIDE_NAV_ON = ['/messages/'];
+// Confession wall + detail hide the nav (immersive, back-arrow to leave) but KEEP the header
+const HIDE_NAV_EXACT = ['/confessions'];
 
 export default function Layout() {
   const { notifications, unreadCount, unreadMessages } = useSocket();
@@ -36,8 +38,11 @@ export default function Layout() {
   }, [notifications]);
 
   const location = useLocation();
-  const hideNav = HIDE_NAV_ON.some(p => location.pathname.startsWith(p) && location.pathname.length > p.length);
-  const hideHeader = HIDE_HEADER_ON.some(p => location.pathname.startsWith(p)) || hideNav;
+  const hideNavThread = HIDE_NAV_ON.some(p => location.pathname.startsWith(p) && location.pathname.length > p.length);
+  const hideNavConfession = HIDE_NAV_EXACT.some(p => location.pathname.startsWith(p));
+  const hideNav = hideNavThread || hideNavConfession;
+  // Threads have their own header, so hide the global one there; confessions keep it.
+  const hideHeader = HIDE_HEADER_ON.some(p => location.pathname.startsWith(p)) || hideNavThread;
 
   return (
     <div className="h-screen bg-gray-50 flex flex-col max-w-md mx-auto relative shadow-xl overflow-hidden" style={{ height: '100dvh' }}>

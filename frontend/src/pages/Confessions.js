@@ -3,9 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence, useAnimation } from 'framer-motion';
 import { Heart, MessageCircle, PenLine, ChevronLeft, Shield, User } from 'lucide-react';
 import api from '../utils/api';
+import { WaterPill } from '../components/water';
 
 const CATEGORIES = ['All', 'Anxiety', 'Doubt', 'Relationships', 'Addiction', 'Grief', 'Sin', 'Loneliness', 'Other'];
-const BG = '#0A0F1E';
+const BG = '#EEF3F5';
+const ACCENT = '#C0603F';
 
 // Confessions are anonymous. Whitelist the ONLY fields the client is allowed to
 // hold, so no author-identifying data (userId/user/author/name) can ever live on
@@ -37,9 +39,9 @@ function AnonAvatar({ size = 36 }) {
   return (
     <div
       className="rounded-full flex items-center justify-center flex-shrink-0"
-      style={{ width: size, height: size, background: 'rgba(255,255,255,0.08)' }}
+      style={{ width: size, height: size, background: 'rgba(22,52,73,0.08)' }}
     >
-      <User size={size * 0.45} color="rgba(255,255,255,0.4)" strokeWidth={1.5} />
+      <User size={size * 0.45} color="#7A9BAD" strokeWidth={1.5} />
     </div>
   );
 }
@@ -61,9 +63,9 @@ function HeartButton({ hasHearted, heartCount, onHeart }) {
         size={16}
         strokeWidth={1.8}
         fill={hasHearted ? '#ef4444' : 'none'}
-        color={hasHearted ? '#ef4444' : 'rgba(255,255,255,0.4)'}
+        color={hasHearted ? '#ef4444' : '#9AA6AD'}
       />
-      <span className="text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>{heartCount}</span>
+      <span className="text-sm" style={{ color: '#6B7680' }}>{heartCount}</span>
     </motion.button>
   );
 }
@@ -122,7 +124,7 @@ export default function Confessions() {
   }
 
   return (
-    <div className="min-h-screen pb-32" style={{ background: BG }}>
+    <div className="min-h-full pb-28" style={{ background: BG }}>
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}
@@ -131,11 +133,11 @@ export default function Confessions() {
         className="px-5 pt-5 pb-4 flex items-center gap-3"
       >
         <button onClick={() => navigate(-1)} className="p-1 -ml-1 flex-shrink-0">
-          <ChevronLeft size={22} color="white" strokeWidth={2} />
+          <ChevronLeft size={22} color="#163449" strokeWidth={2} />
         </button>
         <div>
-          <h2 className="text-2xl font-bold text-white leading-tight">Confession Wall</h2>
-          <p className="text-sm mt-0.5" style={{ color: 'rgba(148,163,184,1)' }}>
+          <h2 className="text-2xl font-bold leading-tight" style={{ color: '#163449' }}>Confession Wall</h2>
+          <p className="text-sm mt-0.5" style={{ color: '#6B7680' }}>
             A safe, anonymous space.
           </p>
         </div>
@@ -144,17 +146,14 @@ export default function Confessions() {
       {/* Feed / Mine tabs */}
       <div className="flex gap-2 px-4 pb-4">
         {[{ id: 'feed', label: 'Wall' }, { id: 'mine', label: 'My Confessions' }].map(t => (
-          <button
+          <WaterPill
             key={t.id}
+            active={tab === t.id}
             onClick={() => setTab(t.id)}
-            className="flex-1 py-2 rounded-full text-sm font-semibold transition-all duration-200"
-            style={{
-              background: tab === t.id ? 'white' : 'rgba(255,255,255,0.08)',
-              color: tab === t.id ? '#111827' : 'rgba(255,255,255,0.6)',
-            }}
+            className="flex-1 py-2 text-sm font-semibold text-center"
           >
             {t.label}
-          </button>
+          </WaterPill>
         ))}
       </div>
 
@@ -162,17 +161,9 @@ export default function Confessions() {
       {tab === 'feed' && (
         <div className="flex gap-2 overflow-x-auto px-4 pb-4 no-scrollbar">
           {CATEGORIES.map(cat => (
-            <button
-              key={cat}
-              onClick={() => setActiveCategory(cat)}
-              className="flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-all duration-200"
-              style={{
-                background: activeCategory === cat ? 'white' : 'rgba(255,255,255,0.08)',
-                color: activeCategory === cat ? '#111827' : 'rgba(255,255,255,0.6)',
-              }}
-            >
+            <WaterPill key={cat} active={activeCategory === cat} onClick={() => setActiveCategory(cat)}>
               {cat}
-            </button>
+            </WaterPill>
           ))}
         </div>
       )}
@@ -181,13 +172,13 @@ export default function Confessions() {
       {loading ? (
         <div className="space-y-3 px-4">
           {[1, 2, 3].map(i => (
-            <div key={i} className="h-36 rounded-[20px] animate-pulse" style={{ background: 'rgba(255,255,255,0.05)' }} />
+            <div key={i} className="h-36 rounded-[20px] animate-pulse" style={{ background: 'rgba(22,52,73,0.06)' }} />
           ))}
         </div>
       ) : confessions.length === 0 ? (
         <div className="text-center py-20">
-          <p className="font-semibold text-white/60">{tab === 'mine' ? 'You haven’t shared anything yet' : 'No confessions yet'}</p>
-          <p className="text-sm mt-1 text-white/30">{tab === 'mine' ? 'Your confessions will appear here — only you can see this list' : 'Be the first to share anonymously'}</p>
+          <p className="font-semibold" style={{ color: '#4A6674' }}>{tab === 'mine' ? 'You haven’t shared anything yet' : 'No confessions yet'}</p>
+          <p className="text-sm mt-1" style={{ color: '#9AA6AD' }}>{tab === 'mine' ? 'Your confessions will appear here — only you can see this list' : 'Be the first to share anonymously'}</p>
         </div>
       ) : (
         <motion.div variants={stagger} initial="initial" animate="animate" className="px-4 space-y-3">
@@ -203,13 +194,13 @@ export default function Confessions() {
         </motion.div>
       )}
 
-      {/* FAB */}
+      {/* Share Anonymously — flat terracotta primary, pinned bottom */}
       <motion.button
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.96 }}
         onClick={() => setShowModal(true)}
-        className="fixed bottom-24 left-1/2 -translate-x-1/2 flex items-center gap-2 text-white font-semibold text-sm px-6 py-3 rounded-full z-30"
-        style={{ background: '#f59e0b', boxShadow: '0 8px 24px rgba(245,158,11,0.35)' }}
+        className="fixed bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 text-white font-semibold text-sm px-6 py-3 rounded-full z-30"
+        style={{ background: ACCENT, boxShadow: '0 6px 16px rgba(20,40,60,0.18)' }}
       >
         <PenLine size={16} strokeWidth={2} />
         Share Anonymously
@@ -222,8 +213,8 @@ export default function Confessions() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
-            className="fixed bottom-36 left-1/2 -translate-x-1/2 z-50 text-white text-sm font-medium px-5 py-3 rounded-2xl shadow-xl"
-            style={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(12px)' }}
+            className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 text-sm font-medium px-5 py-3 rounded-2xl shadow-xl"
+            style={{ background: 'white', color: '#163449', border: '1px solid rgba(22,52,73,0.08)' }}
           >
             {toast}
           </motion.div>
@@ -247,8 +238,9 @@ function ConfessionCard({ confession: c, onHeart, onRead }) {
       onClick={onRead}
       className="rounded-[20px] p-5 cursor-pointer active:opacity-80 transition-opacity"
       style={{
-        background: 'rgba(255,255,255,0.06)',
-        border: '1px solid rgba(255,255,255,0.08)',
+        background: '#FFFFFF',
+        border: '1px solid rgba(22,52,73,0.08)',
+        boxShadow: '0 1px 3px rgba(20,40,60,0.05)',
       }}
     >
       {/* Header */}
@@ -256,14 +248,14 @@ function ConfessionCard({ confession: c, onHeart, onRead }) {
         <div className="flex items-center gap-2.5">
           <AnonAvatar size={34} />
           <div>
-            <p className="text-sm font-medium" style={{ color: 'rgba(255,255,255,0.7)' }}>Anonymous</p>
-            <p className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>{getTimeAgo(c.createdAt)}</p>
+            <p className="text-sm font-medium" style={{ color: '#163449' }}>Anonymous</p>
+            <p className="text-xs" style={{ color: '#9AA6AD' }}>{getTimeAgo(c.createdAt)}</p>
           </div>
         </div>
         {c.category && c.category !== 'General' && (
           <span
             className="text-xs px-2.5 py-0.5 rounded-full"
-            style={{ background: 'rgba(255,255,255,0.08)', color: 'rgba(255,255,255,0.5)' }}
+            style={{ background: 'rgba(22,52,73,0.06)', color: '#6B7680' }}
           >
             {c.category}
           </span>
@@ -271,12 +263,13 @@ function ConfessionCard({ confession: c, onHeart, onRead }) {
       </div>
 
       {/* Content */}
-      <p className="text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.8)' }}>
+      <p className="text-sm leading-relaxed" style={{ color: '#262626' }}>
         {displayText}
         {isLong && !expanded && (
           <button
             onClick={e => { e.stopPropagation(); setExpanded(true); }}
-            className="ml-1 text-amber-400 font-medium text-sm"
+            className="ml-1 font-medium text-sm"
+            style={{ color: ACCENT }}
           >
             Read more
           </button>
@@ -284,7 +277,7 @@ function ConfessionCard({ confession: c, onHeart, onRead }) {
       </p>
 
       {/* Footer */}
-      <div className="flex items-center justify-between mt-4 pt-3" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+      <div className="flex items-center justify-between mt-4 pt-3" style={{ borderTop: '1px solid rgba(22,52,73,0.07)' }}>
         <div className="flex items-center gap-4" onClick={e => e.stopPropagation()}>
           <HeartButton hasHearted={c.hasHearted} heartCount={c.heartCount} onHeart={onHeart} />
           <div
@@ -294,11 +287,11 @@ function ConfessionCard({ confession: c, onHeart, onRead }) {
               onRead();
             }}
           >
-            <MessageCircle size={16} strokeWidth={1.8} color="rgba(255,255,255,0.4)" />
-            <span className="text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>{c.commentCount}</span>
+            <MessageCircle size={16} strokeWidth={1.8} color="#9AA6AD" />
+            <span className="text-sm" style={{ color: '#6B7680' }}>{c.commentCount}</span>
           </div>
         </div>
-        <span className="text-xs text-amber-400 font-medium">Read →</span>
+        <span className="text-xs font-medium" style={{ color: ACCENT }}>Read →</span>
       </div>
     </div>
   );
@@ -328,7 +321,7 @@ function ConfessionModal({ onClose, onCreate }) {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="fixed inset-0 z-50 flex items-end"
-      style={{ background: 'rgba(0,0,0,0.7)' }}
+      style={{ background: 'rgba(0,0,0,0.5)' }}
       onClick={e => e.target === e.currentTarget && onClose()}
     >
       <motion.div
@@ -337,61 +330,53 @@ function ConfessionModal({ onClose, onCreate }) {
         exit={{ y: '100%' }}
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
         className="w-full rounded-t-3xl pb-8 max-h-[90vh] overflow-y-auto"
-        style={{ background: '#131929' }}
+        style={{ background: '#FFFFFF' }}
       >
-        <div className="w-10 h-1 rounded-full mx-auto mt-3 mb-1" style={{ background: 'rgba(255,255,255,0.15)' }} />
+        <div className="w-10 h-1 rounded-full mx-auto mt-3 mb-1" style={{ background: 'rgba(22,52,73,0.15)' }} />
 
         <div className="flex items-center justify-between px-5 py-3">
           <button onClick={onClose}>
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="2" strokeLinecap="round">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#9AA6AD" strokeWidth="2" strokeLinecap="round">
               <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
             </svg>
           </button>
           <div className="text-center">
-            <p className="text-base font-semibold text-white">Share Anonymously</p>
-            <p className="text-xs mt-0.5" style={{ color: 'rgba(255,255,255,0.4)' }}>No one will ever know this was you</p>
+            <p className="text-base font-semibold" style={{ color: '#163449' }}>Share Anonymously</p>
+            <p className="text-xs mt-0.5" style={{ color: '#9AA6AD' }}>No one will ever know this was you</p>
           </div>
           <div className="w-6" />
         </div>
 
         <div className="px-5 space-y-4">
-          <div className="rounded-2xl p-4 relative" style={{ background: 'rgba(255,255,255,0.06)' }}>
+          <div className="rounded-2xl p-4 relative" style={{ background: '#F3F6F8', border: '1px solid rgba(22,52,73,0.08)' }}>
             <textarea
               value={content}
               onChange={e => setContent(e.target.value.slice(0, 500))}
               rows={5}
               autoFocus
               placeholder={"What's on your heart?\nThis is a safe place..."}
-              className="w-full bg-transparent text-sm placeholder-white/30 resize-none focus:outline-none leading-relaxed"
-              style={{ color: 'rgba(255,255,255,0.85)' }}
+              className="w-full bg-transparent text-sm resize-none focus:outline-none leading-relaxed"
+              style={{ color: '#262626' }}
             />
-            <p className={`text-xs text-right mt-1 ${charCount > 400 ? 'text-amber-400' : 'text-white/20'}`}>
+            <p className="text-xs text-right mt-1" style={{ color: charCount > 400 ? ACCENT : '#9AA6AD' }}>
               {charCount}/500
             </p>
           </div>
 
           <div>
-            <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: 'rgba(255,255,255,0.4)' }}>Category</p>
+            <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: '#6B7680' }}>Category</p>
             <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
               {cats.map(cat => (
-                <button
-                  key={cat}
-                  onClick={() => setCategory(cat)}
-                  className="flex-shrink-0 px-3.5 py-1.5 rounded-full text-sm font-medium transition-colors duration-200"
-                  style={{
-                    background: category === cat ? 'white' : 'rgba(255,255,255,0.08)',
-                    color: category === cat ? '#111827' : 'rgba(255,255,255,0.6)',
-                  }}
-                >
+                <WaterPill key={cat} active={category === cat} onClick={() => setCategory(cat)}>
                   {cat}
-                </button>
+                </WaterPill>
               ))}
             </div>
           </div>
 
-          <div className="rounded-xl p-3 flex items-start gap-2" style={{ background: 'rgba(255,255,255,0.05)' }}>
-            <Shield size={14} color="rgba(255,255,255,0.3)" strokeWidth={1.8} className="mt-0.5 flex-shrink-0" />
-            <p className="text-xs leading-relaxed" style={{ color: 'rgba(255,255,255,0.4)' }}>
+          <div className="rounded-xl p-3 flex items-start gap-2" style={{ background: 'rgba(22,52,73,0.05)' }}>
+            <Shield size={14} color="#7A9BAD" strokeWidth={1.8} className="mt-0.5 flex-shrink-0" />
+            <p className="text-xs leading-relaxed" style={{ color: '#6B7680' }}>
               Your identity is completely hidden. No name, no photo, no trace.
             </p>
           </div>
@@ -401,7 +386,7 @@ function ConfessionModal({ onClose, onCreate }) {
             onClick={handleSubmit}
             disabled={saving || content.trim().length < 10}
             className="w-full font-semibold text-sm py-3.5 rounded-2xl text-white transition-colors"
-            style={{ background: content.trim().length >= 10 ? '#f59e0b' : 'rgba(255,255,255,0.1)' }}
+            style={{ background: content.trim().length >= 10 ? ACCENT : 'rgba(22,52,73,0.15)' }}
           >
             {saving ? (
               <span className="flex items-center justify-center gap-2">
