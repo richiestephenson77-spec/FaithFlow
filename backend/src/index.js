@@ -35,17 +35,38 @@ const allowedOrigins = [
   'capacitor://localhost',
   'http://localhost',
   'https://localhost',
-  // Live-reload dev: capacitor.config.ts server.url points the native app at
-  // the dev machine's LAN IP. This changes if the machine reconnects to
-  // wifi/gets a new DHCP lease — update here (or set DEV_LAN_ORIGIN) if
-  // live-reload CORS breaks again after a network change.
-  'http://192.168.1.146:3000',
-  process.env.DEV_LAN_ORIGIN,
 ].filter(Boolean);
+
+// Railway doesn't set NODE_ENV, so RAILWAY_ENVIRONMENT is the reliable prod
+// signal here (confirmed: NODE_ENV is undefined in the live Railway service).
+// Checking both means this still works correctly if NODE_ENV ever IS set.
+const isProdEnv = process.env.NODE_ENV === 'production' || process.env.RAILWAY_ENVIRONMENT === 'production';
+
+// Dev-only, live-reload origins: the Capacitor app's capacitor.config.ts
+// server.url points at the dev machine's LAN IP, which changes on every new
+// DHCP lease (wifi reconnect, network switch, etc). Rather than hardcoding
+// one IP and re-editing this file each time it changes, allow any private-
+// network origin — but ONLY when not running in production.
+const DEV_PRIVATE_ORIGIN_PATTERNS = [
+  /^http:\/\/localhost:\d+$/,
+  /^http:\/\/192\.168\.\d{1,3}\.\d{1,3}:\d+$/,
+  /^http:\/\/10\.\d{1,3}\.\d{1,3}\.\d{1,3}:\d+$/,
+  /^http:\/\/172\.(1[6-9]|2\d|3[0-1])\.\d{1,3}\.\d{1,3}:\d+$/,
+];
+
+function corsOriginCheck(origin, callback) {
+  // No Origin header (curl, server-to-server) isn't a browser CORS request —
+  // the server doesn't need to allow it via CORS headers to let it through.
+  if (allowedOrigins.includes(origin)) return callback(null, true);
+  if (!isProdEnv && origin && DEV_PRIVATE_ORIGIN_PATTERNS.some((re) => re.test(origin))) {
+    return callback(null, true);
+  }
+  callback(null, false);
+}
 
 const io = new Server(server, {
   cors: {
-    origin: allowedOrigins,
+    origin: corsOriginCheck,
     methods: ['GET', 'POST'],
   },
 });
@@ -53,7 +74,7 @@ const io = new Server(server, {
 setupSocket(io);
 app.set('io', io);
 
-app.use(cors({ origin: allowedOrigins }));
+app.use(cors({ origin: corsOriginCheck }));
 app.use(express.json());
 app.use('/uploads', express.static('uploads'));
 
