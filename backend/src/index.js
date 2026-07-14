@@ -37,16 +37,21 @@ const allowedOrigins = [
   'https://localhost',
 ].filter(Boolean);
 
-// Railway doesn't set NODE_ENV, so RAILWAY_ENVIRONMENT is the reliable prod
-// signal here (confirmed: NODE_ENV is undefined in the live Railway service).
-// Checking both means this still works correctly if NODE_ENV ever IS set.
-const isProdEnv = process.env.NODE_ENV === 'production' || process.env.RAILWAY_ENVIRONMENT === 'production';
+// This app has only ONE backend deployment — Railway's "production"
+// environment (RAILWAY_ENVIRONMENT=production; Railway never sets NODE_ENV,
+// confirmed empirically on the live service). The native live-reload app
+// points directly at this same URL, not a separate dev backend. So gating
+// on NODE_ENV/RAILWAY_ENVIRONMENT would make the dev-origin allowance a
+// permanent no-op — verified live: it did. Use an explicit opt-in var
+// instead, defaulting to OFF, so production CORS is UNCHANGED unless this
+// is deliberately set on the Railway service.
+const allowDevOrigins = process.env.ALLOW_DEV_ORIGINS === 'true';
 
 // Dev-only, live-reload origins: the Capacitor app's capacitor.config.ts
 // server.url points at the dev machine's LAN IP, which changes on every new
 // DHCP lease (wifi reconnect, network switch, etc). Rather than hardcoding
 // one IP and re-editing this file each time it changes, allow any private-
-// network origin — but ONLY when not running in production.
+// network origin — but ONLY when ALLOW_DEV_ORIGINS=true is explicitly set.
 const DEV_PRIVATE_ORIGIN_PATTERNS = [
   /^http:\/\/localhost:\d+$/,
   /^http:\/\/192\.168\.\d{1,3}\.\d{1,3}:\d+$/,
@@ -58,7 +63,7 @@ function corsOriginCheck(origin, callback) {
   // No Origin header (curl, server-to-server) isn't a browser CORS request —
   // the server doesn't need to allow it via CORS headers to let it through.
   if (allowedOrigins.includes(origin)) return callback(null, true);
-  if (!isProdEnv && origin && DEV_PRIVATE_ORIGIN_PATTERNS.some((re) => re.test(origin))) {
+  if (allowDevOrigins && origin && DEV_PRIVATE_ORIGIN_PATTERNS.some((re) => re.test(origin))) {
     return callback(null, true);
   }
   callback(null, false);
