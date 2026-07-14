@@ -33,10 +33,10 @@ export default function Signup() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col prayer-gradient">
+    <div className="min-h-screen flex flex-col bg-[#FAFAFA]">
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-12">
-        <div className="text-white text-center mb-8">
-          <Logo size="md" light={true} />
+        <div className="text-center mb-8">
+          <Logo size="md" light={false} />
         </div>
 
         <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl">

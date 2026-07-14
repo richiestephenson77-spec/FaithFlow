@@ -1,7 +1,6 @@
 import { motion } from 'framer-motion';
 import { Globe, MapPin } from 'lucide-react';
 import Avatar from './Avatar';
-import { WaterButton } from './water';
 
 const BORDER = { 1: '#F5C842', 2: '#C0C0C0', 3: '#CD7F32' };
 
@@ -22,8 +21,8 @@ export default function TopPrayerCard({ request, currentUserId, onPray, onUserCl
 
   return (
     <div
-      className="bg-white rounded-2xl p-4 shadow-sm relative"
-      style={{ border: `2px solid ${borderColor}` }}
+      className="bg-white rounded-2xl p-4 relative"
+      style={{ border: '1px solid #EFEFEF' }}
     >
       {/* Rank badge — bounces in */}
       <motion.div
@@ -82,10 +81,11 @@ export default function TopPrayerCard({ request, currentUserId, onPray, onUserCl
           {/* Live count — re-animates when count changes */}
           <motion.p
             key={request.prayerCount}
-            initial={{ scale: 1.15, color: '#C0603F' }}
-            animate={{ scale: 1, color: '#B8822A' }}
+            initial={{ scale: 1.15 }}
+            animate={{ scale: 1 }}
             transition={{ duration: 0.3 }}
             className="text-xs font-semibold mt-2 flex items-center gap-1"
+            style={{ color: '#C0603F' }}
           >
             <Globe size={11} strokeWidth={2} /> {request.prayerCount} {request.prayerCount === 1 ? 'person' : 'people'} praying worldwide
           </motion.p>
@@ -104,9 +104,9 @@ export default function TopPrayerCard({ request, currentUserId, onPray, onUserCl
               )}
               {!request.isAnswered && (
                 isOwner ? (
-                  <button disabled className="text-xs font-bold rounded-xl px-4 py-2 shadow-sm bg-gray-100 text-gray-400 cursor-not-allowed">Pray Now</button>
+                  <button disabled className="text-xs font-bold rounded-xl px-4 py-2 bg-gray-100 text-gray-400 cursor-not-allowed">Pray Now</button>
                 ) : (
-                  <WaterButton variant="primary" onClick={onPray} className="text-xs font-bold px-4 py-2">Pray Now</WaterButton>
+                  <button onClick={onPray} className="text-xs font-bold px-4 py-2 rounded-xl text-white" style={{ background: '#C0603F' }}>Pray Now</button>
                 )
               )}
             </div>

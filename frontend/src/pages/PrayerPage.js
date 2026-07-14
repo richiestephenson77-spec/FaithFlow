@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Globe, MapPin, RefreshCw, Flame, BookOpen, Users, Plus, Bookmark, Play, Target, Settings, TrendingUp, Pencil, Lock, Cross, Sparkles, HeartHandshake, Sun, Cloud, CloudRain, Heart, Zap, X } from 'lucide-react';
-import { WaterCard, WaterButton, WaterPill } from '../components/water';
 import api from '../utils/api';
 import { fadeUp, fadeIn, scaleIn, slideInRight, slideUp, staggerContainer, staggerContainerFast, staggerItem } from '../utils/animations';
 import { useAuth } from '../contexts/AuthContext';
@@ -111,9 +110,9 @@ function PrayerCard({ request, currentUserId, onPray, onUserClick, onMarkAnswere
               )}
               {!request.isAnswered && (
                 isOwner ? (
-                  <button disabled className="text-xs font-bold rounded-xl px-4 py-2 shadow-sm bg-gray-100 text-gray-400 cursor-not-allowed">Pray Now</button>
+                  <button disabled className="text-xs font-bold rounded-xl px-4 py-2 bg-gray-100 text-gray-400 cursor-not-allowed">Pray Now</button>
                 ) : (
-                  <WaterButton variant="primary" onClick={onPray} className="text-xs font-bold px-4 py-2">Pray Now</WaterButton>
+                  <button onClick={onPray} className="text-xs font-bold px-4 py-2 rounded-xl text-white" style={{ background: '#C0603F' }}>Pray Now</button>
                 )
               )}
             </div>
@@ -304,8 +303,8 @@ export default function PrayerPage() {
 
   return (
     <div className="bg-gray-50 min-h-full">
-      {/* Hero */}
-      <WaterCard tone="blue" radius="sm" style={{ borderRadius: '0 0 24px 24px', padding: '14px 16px 16px' }}>
+      {/* Hero — flat white */}
+      <div className="bg-white" style={{ padding: '14px 16px 16px', borderBottom: '1px solid #EFEFEF' }}>
         <button onClick={() => navigate(-1)} className="w-8 h-8 rounded-full flex items-center justify-center mb-2.5" style={{ background: 'rgba(22,52,73,0.1)' }}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#163449" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
@@ -329,33 +328,34 @@ export default function PrayerPage() {
           )}
         </motion.div>
 
-        {/* Daily Goal — water glass card */}
+        {/* Daily Goal — flat card */}
         <motion.div
           initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.35, ease: 'easeOut' }}
-          className="water-tile-static water-tile-blue px-4 py-3"
+          className="bg-white rounded-2xl px-4 py-3"
+          style={{ border: '1px solid #EFEFEF' }}
         >
-          <div className="flex items-center justify-between mb-2.5" style={{ position: 'relative', zIndex: 1 }}>
+          <div className="flex items-center justify-between mb-2.5">
             <div className="flex items-center gap-2">
-              <Target size={15} strokeWidth={1.5} color="#163449" />
+              <Target size={15} strokeWidth={1.5} color="#C0603F" />
               <p className="text-xs font-medium" style={{ color: '#163449' }}>Daily Goal</p>
             </div>
             <div className="flex items-center gap-3">
               <span className="font-bold text-sm" style={{ color: '#163449' }}>{quota?.completed ?? 0} / {quota?.target ?? '–'}</span>
-              <button onClick={() => setShowSettings(true)} style={{ color: 'rgba(22,52,73,0.4)' }} className="hover:opacity-70 transition-opacity">
+              <button onClick={() => setShowSettings(true)} style={{ color: '#9AA6AD' }} className="hover:opacity-70 transition-opacity">
                 <Settings size={14} strokeWidth={1.5} />
               </button>
             </div>
           </div>
-          <div className="w-full h-1 rounded-full overflow-hidden" style={{ background: 'rgba(22,52,73,0.12)', position: 'relative', zIndex: 1 }}>
+          <div className="w-full h-1 rounded-full overflow-hidden" style={{ background: '#EFEFEF' }}>
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${pct}%` }}
               transition={{ duration: 0.8, ease: 'easeOut', delay: 0.3 }}
               className="h-full rounded-full"
-              style={{ background: '#163449' }}
+              style={{ background: '#C0603F' }}
             />
           </div>
-          {quota?.isComplete && <p className="text-xs font-medium mt-2" style={{ color: '#4A6674', position: 'relative', zIndex: 1 }}>Goal complete for today</p>}
+          {quota?.isComplete && <p className="text-xs font-medium mt-2" style={{ color: '#6B7680' }}>Goal complete for today</p>}
         </motion.div>
 
         {/* Today's Grace + Need a verse — compact side-by-side rows */}
@@ -365,61 +365,56 @@ export default function PrayerPage() {
         >
           <button
             onClick={() => !todayGratitude && setShowGratitudeSheet(true)}
-            className="water-tile-static water-tile-blue flex-1 text-left px-3 py-2.5 flex items-center gap-2"
+            className="bg-white rounded-2xl flex-1 text-left px-3 py-2.5 flex items-center gap-2"
+            style={{ border: '1px solid #EFEFEF' }}
           >
-            <div className="icon-orb flex items-center justify-center flex-shrink-0" style={{ width: 28, height: 28, position: 'relative', zIndex: 1 }}>
-              <Sparkles size={13} strokeWidth={1.5} color="#C0603F" style={{ position: 'relative', zIndex: 1 }} />
-            </div>
-            <span className="font-semibold text-xs" style={{ color: '#163449', position: 'relative', zIndex: 1 }}>Today's Grace</span>
+            <Sparkles size={15} strokeWidth={1.8} color="#C0603F" className="flex-shrink-0" />
+            <span className="font-semibold text-xs" style={{ color: '#163449' }}>Today's Grace</span>
             {gratitudeStreak > 0 && (
-              <span className="flex items-center gap-0.5 text-[10px] ml-auto" style={{ color: '#4A6674', position: 'relative', zIndex: 1 }}>
-                <Flame size={9} strokeWidth={2} color="#4A6674" />{gratitudeStreak}d
+              <span className="flex items-center gap-0.5 text-[10px] ml-auto" style={{ color: '#6B7680' }}>
+                <Flame size={9} strokeWidth={2} color="#6B7680" />{gratitudeStreak}d
               </span>
             )}
           </button>
 
           <button
             onClick={() => navigate('/feelings')}
-            className="water-tile-static water-tile-blue flex-1 text-left px-3 py-2.5 flex items-center gap-2"
+            className="bg-white rounded-2xl flex-1 text-left px-3 py-2.5 flex items-center gap-2"
+            style={{ border: '1px solid #EFEFEF' }}
           >
-            <div className="icon-orb flex items-center justify-center flex-shrink-0" style={{ width: 28, height: 28, position: 'relative', zIndex: 1 }}>
-              <HeartHandshake size={13} strokeWidth={1.5} color="#C0603F" style={{ position: 'relative', zIndex: 1 }} />
-            </div>
-            <span className="font-semibold text-xs" style={{ color: '#163449', position: 'relative', zIndex: 1 }}>Need a verse</span>
+            <HeartHandshake size={15} strokeWidth={1.8} color="#C0603F" className="flex-shrink-0" />
+            <span className="font-semibold text-xs" style={{ color: '#163449' }}>Need a verse</span>
           </button>
         </motion.div>
-      </WaterCard>
+      </div>
 
       {/* Feed */}
-      <div className="-mt-5 rounded-t-3xl bg-gray-50 px-4 pt-5">
+      <div className="bg-gray-50 px-4 pt-4">
         {/* Action buttons */}
         <motion.div {...fadeUp} transition={{ delay: 0.05, duration: 0.3 }} className="flex gap-2 mb-3">
-          <WaterButton
-            variant="primary"
+          <button
             onClick={() => setShowQueue(true)}
-            className="flex-1 flex items-center justify-center gap-2 text-sm"
-            style={{ height: 40 }}
+            className="flex-1 flex items-center justify-center gap-2 text-sm font-semibold text-white rounded-xl"
+            style={{ height: 40, background: '#C0603F' }}
           >
             <Play size={14} strokeWidth={2} />
             Start Prayers
-          </WaterButton>
-          <WaterButton
-            variant="secondary"
+          </button>
+          <button
             onClick={() => setShowNewRequest(true)}
-            className="flex-1 flex items-center justify-center gap-2 text-sm"
-            style={{ height: 40 }}
+            className="flex-1 flex items-center justify-center gap-2 text-sm font-semibold bg-white rounded-xl"
+            style={{ height: 40, border: '1px solid #EFEFEF', color: '#163449' }}
           >
             <Plus size={14} strokeWidth={2} />
             Share Request
-          </WaterButton>
-          <WaterButton
-            variant="secondary"
+          </button>
+          <button
             onClick={() => setShowMyRequests(true)}
-            className="flex items-center justify-center flex-shrink-0"
-            style={{ height: 40, width: 40 }}
+            className="flex items-center justify-center flex-shrink-0 bg-white rounded-xl"
+            style={{ height: 40, width: 40, border: '1px solid #EFEFEF' }}
           >
-            <Bookmark size={17} strokeWidth={1.5} color="#4A6674" />
-          </WaterButton>
+            <Bookmark size={17} strokeWidth={1.5} color="#163449" />
+          </button>
         </motion.div>
 
         {/* Draft banner */}
@@ -468,23 +463,33 @@ export default function PrayerPage() {
         {/* Worldwide / Near Me toggle */}
         <motion.div {...scaleIn} transition={{ delay: 0.1, duration: 0.25 }} className="mb-2">
           <div className="flex gap-2 mb-2">
-            <WaterPill
-              active={!nearMe}
+            <button
               onClick={() => { setNearMe(false); loadFeed(false, { nearMe: false }); }}
-              style={{ flex: 1, justifyContent: 'center', display: 'flex', alignItems: 'center', gap: 6, height: 34 }}
+              className="flex-1 flex items-center justify-center gap-1.5 rounded-full text-xs font-semibold"
+              style={{
+                height: 34,
+                background: !nearMe ? '#163449' : '#FFFFFF',
+                color: !nearMe ? '#FFFFFF' : '#6B7680',
+                border: !nearMe ? '1px solid #163449' : '1px solid #EFEFEF',
+              }}
             >
               <Globe size={13} strokeWidth={1.8} /> Worldwide
-            </WaterPill>
-            <WaterPill
-              active={nearMe}
+            </button>
+            <button
               onClick={() => {
                 if (!userCoords) { setShowLocationBanner(true); return; }
                 setNearMe(true); loadFeed(false, { nearMe: true, radius, coords: userCoords });
               }}
-              style={{ flex: 1, justifyContent: 'center', display: 'flex', alignItems: 'center', gap: 6, height: 34 }}
+              className="flex-1 flex items-center justify-center gap-1.5 rounded-full text-xs font-semibold"
+              style={{
+                height: 34,
+                background: nearMe ? '#163449' : '#FFFFFF',
+                color: nearMe ? '#FFFFFF' : '#6B7680',
+                border: nearMe ? '1px solid #163449' : '1px solid #EFEFEF',
+              }}
             >
               <MapPin size={13} strokeWidth={1.8} /> Near Me
-            </WaterPill>
+            </button>
           </div>
           <AnimatePresence>
             {nearMe && (
@@ -510,7 +515,7 @@ export default function PrayerPage() {
             className="mb-4"
           >
             <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2">Live Now</p>
-            <div className="flex gap-4 overflow-x-auto pb-1 scrollbar-hide">
+            <div className="flex gap-4 overflow-x-auto pb-1 no-scrollbar">
               {/* Host button */}
               <button
                 onClick={() => navigate('/prayer-cells')}
@@ -547,11 +552,20 @@ export default function PrayerPage() {
         )}
 
         {/* Category filter chips */}
-        <motion.div {...slideInRight} transition={{ delay: 0.15, duration: 0.3 }} className="flex gap-2 overflow-x-auto pb-1.5 mb-3 scrollbar-hide -mx-4 px-4">
+        <motion.div {...slideInRight} transition={{ delay: 0.15, duration: 0.3 }} className="flex gap-2 overflow-x-auto pb-1.5 mb-3 no-scrollbar -mx-4 px-4">
           {FILTER_TABS.map(tab => (
-            <WaterPill key={tab.id} active={activeCategory === tab.id} onClick={() => setActiveCategory(tab.id)}>
+            <button
+              key={tab.id}
+              onClick={() => setActiveCategory(tab.id)}
+              className="flex-shrink-0 px-3.5 py-1.5 rounded-full text-xs font-medium whitespace-nowrap"
+              style={{
+                background: activeCategory === tab.id ? '#163449' : '#FFFFFF',
+                color: activeCategory === tab.id ? '#FFFFFF' : '#6B7680',
+                border: activeCategory === tab.id ? '1px solid #163449' : '1px solid #EFEFEF',
+              }}
+            >
               {tab.label}
-            </WaterPill>
+            </button>
           ))}
         </motion.div>
 
@@ -569,9 +583,9 @@ export default function PrayerPage() {
           <div className="space-y-3">{[1,2,3].map(i => <SkeletonCard key={i} />)}</div>
         ) : filteredTop3.length === 0 && filteredRest.length === 0 ? (
           <motion.div {...fadeIn} className="text-center py-16">
-            <WaterCard tone="blue" style={{ width: 64, height: 64, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
-              <BookOpen size={26} strokeWidth={1.5} color="#163449" />
-            </WaterCard>
+            <div className="bg-white" style={{ width: 64, height: 64, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', border: '1px solid #EFEFEF' }}>
+              <BookOpen size={26} strokeWidth={1.5} color="#C0603F" />
+            </div>
             <p className="font-semibold text-gray-700">{nearMe ? 'No prayers found nearby' : 'No prayer requests yet'}</p>
             <p className="text-sm text-gray-400 mt-1">{nearMe ? `Try increasing the radius beyond ${radius} km` : 'Be the first to share one!'}</p>
           </motion.div>
@@ -698,14 +712,14 @@ export default function PrayerPage() {
                 <span className="text-[13px] text-gray-600">Share as testimony</span>
               </button>
 
-              <WaterButton
-                variant="primary"
+              <button
                 onClick={handleSaveGratitude}
                 disabled={!gratitudeText.trim() || savingGratitude}
-                className="w-full mt-5 py-3.5 text-[15px] font-bold"
+                className="w-full mt-5 py-3.5 text-[15px] font-bold text-white rounded-xl disabled:opacity-45"
+                style={{ background: '#C0603F' }}
               >
                 {savingGratitude ? 'Saving…' : 'Save'}
-              </WaterButton>
+              </button>
             </motion.div>
           </>
         )}
@@ -740,9 +754,11 @@ function QuotaSettingsSheet({ current, onSave, onClose, saving }) {
             <input type="number" value={custom} onChange={e => setCustom(e.target.value)}
               placeholder="Custom number..." min="1" max="100"
               className="flex-1 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-faith-400" />
-            <WaterButton variant="primary" onClick={() => custom && onSave(custom)} disabled={saving || !custom} className="font-bold px-4 py-2.5 text-sm">
+            <button onClick={() => custom && onSave(custom)} disabled={saving || !custom}
+              className="font-bold px-4 py-2.5 text-sm text-white rounded-xl disabled:opacity-45"
+              style={{ background: '#C0603F' }}>
               {saving ? '...' : 'Set'}
-            </WaterButton>
+            </button>
           </div>
           <p className="text-xs text-gray-400 text-center">Current goal: {current} prayers/day</p>
         </div>

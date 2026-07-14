@@ -1,5 +1,8 @@
 export default function Logo({ size = 'md', light = true }) {
-  const color = light ? 'white' : '#111827';
+  // light = white logo (for dark/colored backgrounds); otherwise dark ink
+  const color = light ? 'white' : '#163449';
+  // Cross-T follows the text color so it stays visible on any background
+  const barShadow = light ? '0 0 1px rgba(0,0,0,0.3)' : 'none';
 
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '0px' }}>
@@ -20,22 +23,22 @@ export default function Logo({ size = 'md', light = true }) {
           position: 'absolute', left: '50%', top: '0',
           transform: 'translateX(-50%)',
           width: '2px', height: '100%',
-          backgroundColor: '#FFFFFF', borderRadius: '2px',
-          boxShadow: '0 0 1px rgba(0,0,0,0.3)',
+          backgroundColor: color, borderRadius: '2px',
+          boxShadow: barShadow,
         }} />
         {/* Top crossbar (T) */}
         <div style={{
           position: 'absolute', left: '0', top: '4px',
           width: '100%', height: '2px',
-          backgroundColor: '#FFFFFF', borderRadius: '2px',
-          boxShadow: '0 0 1px rgba(0,0,0,0.3)',
+          backgroundColor: color, borderRadius: '2px',
+          boxShadow: barShadow,
         }} />
         {/* Lower crossbar (cross) */}
         <div style={{
           position: 'absolute', left: '15%', top: '45%',
           width: '70%', height: '1.5px',
-          backgroundColor: '#FFFFFF', borderRadius: '2px',
-          boxShadow: '0 0 1px rgba(0,0,0,0.3)',
+          backgroundColor: color, borderRadius: '2px',
+          boxShadow: barShadow,
         }} />
       </div>
 
