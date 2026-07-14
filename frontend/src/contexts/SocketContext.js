@@ -5,6 +5,11 @@ import api from '../utils/api';
 
 const SocketContext = createContext(null);
 
+// socket.io connects to the server ORIGIN (not the /api path). Derive it from
+// REACT_APP_API_URL, falling back to the absolute live backend so the native
+// Capacitor app (no web host to resolve '/' against) can still connect.
+const SOCKET_URL = (process.env.REACT_APP_API_URL || 'https://faithflow-production.up.railway.app/api').replace(/\/api\/?$/, '');
+
 export function SocketProvider({ children }) {
   const { user } = useAuth();
   const socketRef = useRef(null);
@@ -26,7 +31,7 @@ export function SocketProvider({ children }) {
   useEffect(() => {
     if (!user) return;
 
-    const socket = io('/', { query: { userId: user.id } });
+    const socket = io(SOCKET_URL, { query: { userId: user.id } });
     socketRef.current = socket;
 
     socket.on('notification', (data) => {
