@@ -5,7 +5,7 @@ import api from '../utils/api';
 import Avatar from '../components/Avatar';
 import { useAuth } from '../contexts/AuthContext';
 import { useSocket } from '../contexts/SocketContext';
-import { WaterCard, WaterButton, WaterInput } from '../components/water';
+import { WaterButton, WaterInput } from '../components/water';
 import CallOverlay from '../components/CallOverlay';
 
 function getTimeStr(d) {
@@ -352,32 +352,35 @@ export default function ChatThread() {
 
   return (
     <div className="flex flex-col h-full bg-gray-50">
-      {/* Header */}
-      <WaterCard tone="blue" style={{ borderRadius: '0 0 20px 20px', padding: '16px' }} className="flex items-center gap-3 flex-shrink-0">
-        <button onClick={() => navigate('/messages')} className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: 'rgba(22,52,73,0.1)' }}>
+      {/* Header — slim single-row messaging bar */}
+      <div className="water-tile-blue flex items-center gap-2 flex-shrink-0 px-3" style={{ height: 60, borderRadius: '0 0 20px 20px' }}>
+        <button onClick={() => navigate('/messages')} aria-label="Back" className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(22,52,73,0.1)' }}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#163449" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="15 18 9 12 15 6"/>
           </svg>
         </button>
-        {other && <Avatar user={other} size="sm" />}
-        <div className="flex-1">
-          <p className="font-bold text-sm leading-tight" style={{ color: '#163449' }}>{other?.name || '...'}</p>
-        </div>
+        <button
+          onClick={() => other && navigate(`/profile/${other.id}`)}
+          className="flex items-center gap-2.5 flex-1 min-w-0 text-left"
+        >
+          {other && <Avatar user={other} size="sm" />}
+          <p className="font-bold text-sm leading-tight truncate" style={{ color: '#163449' }}>{other?.name || '...'}</p>
+        </button>
         <button
           onClick={() => other && setActiveCall({ direction: 'out', callType: 'audio' })}
           aria-label="Audio call"
-          className="w-9 h-9 rounded-full flex items-center justify-center" style={{ background: 'rgba(22,52,73,0.08)' }}
+          className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(22,52,73,0.08)' }}
         >
           <Phone size={18} color="#163449" strokeWidth={1.8} />
         </button>
         <button
           onClick={() => other && setActiveCall({ direction: 'out', callType: 'video' })}
           aria-label="Video call"
-          className="w-9 h-9 rounded-full flex items-center justify-center" style={{ background: 'rgba(22,52,73,0.08)' }}
+          className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(22,52,73,0.08)' }}
         >
           <Video size={18} color="#163449" strokeWidth={1.8} />
         </button>
-      </WaterCard>
+      </div>
 
       {activeCall && other && (
         <CallOverlay
