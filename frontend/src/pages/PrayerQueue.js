@@ -124,7 +124,7 @@ export default function PrayerQueue({ onClose, onComplete }) {
   return (
     <div className={`fixed inset-0 z-50 flex flex-col transition-all duration-300 ${phase === 'flash' ? 'bg-emerald-900' : 'bg-gray-900'}`}>
       {/* Top bar */}
-      <div className="px-4 pt-safe pt-4 pb-3 flex items-center gap-3">
+      <div className="px-4 pt-safe pb-3 flex items-center gap-3">
         <button onClick={onClose} className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>

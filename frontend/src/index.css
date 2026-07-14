@@ -5,6 +5,18 @@
 /* App shell owns all scrolling — the browser page itself never scrolls */
 html, body { height: 100%; overflow: hidden; }
 
+/* Native safe-area insets (notch/status bar top, home indicator bottom).
+   env() resolves to 0 on web/Android, so these are no-ops there and only
+   add real spacing inside the native Capacitor shell. */
+.safe-top { padding-top: env(safe-area-inset-top); }
+.safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+/* Additive variants for spots that pair a safe-area class with a base
+   Tailwind padding utility — a plain env()-only rule would win the CSS
+   cascade and silently zero out the base padding on non-notch devices,
+   so these bake the intended base gap in via calc() instead. */
+.pt-safe { padding-top: calc(1rem + env(safe-area-inset-top)); }
+.pb-safe { padding-bottom: calc(0.75rem + env(safe-area-inset-bottom)); }
+
 * { font-family: 'Inter', sans-serif; }
 
 .no-scrollbar::-webkit-scrollbar { display: none; }

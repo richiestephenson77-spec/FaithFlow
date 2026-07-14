@@ -1,5 +1,7 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { Capacitor } from '@capacitor/core';
+import { StatusBar, Style } from '@capacitor/status-bar';
 import { initPostHog } from './utils/analytics';
 import posthog from './utils/analytics';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -129,6 +131,15 @@ function AppRoutes() {
 
 export default function App() {
   useEffect(() => { initPostHog(); }, []);
+
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
+    // Keep the webview drawing under the status bar (that's what makes
+    // env(safe-area-inset-top) non-zero, which the padding fix relies on),
+    // and use dark status bar content since the app is light-themed.
+    StatusBar.setOverlaysWebView({ overlay: true }).catch(() => {});
+    StatusBar.setStyle({ style: Style.Light }).catch(() => {});
+  }, []);
 
   return (
     <AuthProvider>

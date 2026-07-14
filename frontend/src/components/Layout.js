@@ -59,7 +59,10 @@ export default function Layout() {
         </defs>
       </svg>
       {!hideHeader && (
-        <header className="water-header water-tile-blue px-4 py-2.5 flex items-center justify-between z-30">
+        <header
+          className="water-header water-tile-blue px-4 pb-2.5 flex items-center justify-between z-30"
+          style={{ paddingTop: 'calc(0.625rem + env(safe-area-inset-top))' }}
+        >
           <button onClick={() => setShowCreatePost(true)} className="flex-shrink-0" style={{ position: 'relative', zIndex: 1 }}>
             {user?.profilePhoto ? (
               <img src={user.profilePhoto} alt={user.name} className="w-9 h-9 rounded-full object-cover" />
@@ -89,8 +92,17 @@ export default function Layout() {
       {latestToast && <Toast key={latestToast.id} message={latestToast.message} />}
 
       <main
-        className={`flex-1 overflow-y-auto ${hideNav ? '' : 'pb-24'}`}
-        style={{ overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' }}
+        className="flex-1 overflow-y-auto"
+        style={{
+          overscrollBehavior: 'contain',
+          WebkitOverflowScrolling: 'touch',
+          // No global header here (profile / chat thread) — the page's own
+          // top content would otherwise sit under the status bar/notch.
+          paddingTop: hideHeader ? 'env(safe-area-inset-top)' : undefined,
+          // Floating nav sits at safe-bottom + 1rem; clear it (and the
+          // home indicator) with matching bottom padding when it's shown.
+          paddingBottom: hideNav ? undefined : 'calc(6rem + env(safe-area-inset-bottom))',
+        }}
       >
         <Outlet />
       </main>
@@ -106,7 +118,10 @@ export default function Layout() {
       )}
 
       {!hideNav && (
-        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 flex gap-3 z-30">
+        <div
+          className="fixed left-1/2 -translate-x-1/2 flex gap-3 z-30"
+          style={{ bottom: 'calc(1rem + env(safe-area-inset-bottom))' }}
+        >
           {navItems.map(({ to, label, Icon, end }, i) => (
             <NavLink key={to} to={to} end={end} style={{ position: 'relative', zIndex: 1 }}>
               {({ isActive }) => (
