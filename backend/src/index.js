@@ -35,6 +35,12 @@ const allowedOrigins = [
   'capacitor://localhost',
   'http://localhost',
   'https://localhost',
+  // Live-reload dev: capacitor.config.ts server.url points the native app at
+  // the dev machine's LAN IP. This changes if the machine reconnects to
+  // wifi/gets a new DHCP lease — update here (or set DEV_LAN_ORIGIN) if
+  // live-reload CORS breaks again after a network change.
+  'http://192.168.1.146:3000',
+  process.env.DEV_LAN_ORIGIN,
 ].filter(Boolean);
 
 const io = new Server(server, {
