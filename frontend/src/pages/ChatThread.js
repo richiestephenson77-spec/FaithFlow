@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, Fragment } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Mic, Play, Pause, Phone, Video } from 'lucide-react';
 import api from '../utils/api';
@@ -10,6 +10,21 @@ import CallOverlay from '../components/CallOverlay';
 
 function getTimeStr(d) {
   return new Date(d).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+}
+
+function isSameDay(a, b) {
+  const da = new Date(a), db = new Date(b);
+  return da.getFullYear() === db.getFullYear() && da.getMonth() === db.getMonth() && da.getDate() === db.getDate();
+}
+
+function dayLabel(dateStr) {
+  const d = new Date(dateStr);
+  const today = new Date();
+  const yesterday = new Date();
+  yesterday.setDate(today.getDate() - 1);
+  if (isSameDay(d, today)) return 'Today';
+  if (isSameDay(d, yesterday)) return 'Yesterday';
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
 function fmtDuration(s) {
@@ -109,6 +124,7 @@ export default function ChatThread() {
   const [activeCall, setActiveCall] = useState(null);
   const bottomRef = useRef(null);
   const msgRefs = useRef({});
+  const imageInputRef = useRef(null);
   const typingTimer = useRef(null);
   const lastTapRef = useRef({ id: null, time: 0 });
   const pressTimerRef = useRef(null);
@@ -265,6 +281,7 @@ export default function ChatThread() {
   function snippetFor(m) {
     if (!m) return '';
     if (m.audioUrl) return '🎤 Voice message';
+    if (m.imageUrl) return '📷 Photo';
     return m.content?.length > 80 ? m.content.slice(0, 80) + '…' : m.content;
   }
 
@@ -300,6 +317,26 @@ export default function ChatThread() {
       setMessages(prev => [...prev, res.data]);
     } catch {}
     setSending(false);
+  }
+
+  // ---- Image messages (Photo/Camera) ----
+  async function sendImage(file) {
+    if (!file) return;
+    setSending(true);
+    if (socket) socket.emit('stop_typing', { conversationId });
+    try {
+      const fd = new FormData();
+      fd.append('image', file);
+      const res = await api.post(`/messages/conversations/${conversationId}/image`, fd);
+      setMessages(prev => [...prev, res.data]);
+    } catch {}
+    setSending(false);
+  }
+
+  function handleImagePick(e) {
+    const file = e.target.files?.[0];
+    e.target.value = ''; // allow re-picking the same file later
+    if (file) sendImage(file);
   }
 
   async function startRecording() {
@@ -403,8 +440,16 @@ export default function ChatThread() {
         {messages.map((m, i) => {
           const isMe = m.senderId === user?.id || m.sender?.id === user?.id;
           const showTime = i === messages.length - 1 || messages[i + 1]?.senderId !== m.senderId;
+          const prev = messages[i - 1];
+          const showDayDivider = !prev || !isSameDay(m.createdAt, prev.createdAt);
           return (
-            <div key={m.id} ref={el => { if (el) msgRefs.current[m.id] = el; }} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
+            <Fragment key={m.id}>
+              {showDayDivider && (
+                <div className="flex justify-center my-3">
+                  <span className="text-[11px] font-medium text-gray-400 bg-gray-100 px-3 py-1 rounded-full">{dayLabel(m.createdAt)}</span>
+                </div>
+              )}
+            <div ref={el => { if (el) msgRefs.current[m.id] = el; }} className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
               {/* Quoted reply preview above the bubble */}
               {m.replyTo && (
                 <button
@@ -427,7 +472,7 @@ export default function ChatThread() {
                   onMouseUp={cancelPress}
                   onMouseLeave={cancelPress}
                   onContextMenu={e => e.preventDefault()}
-                  className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed select-none cursor-pointer ${
+                  className={`${m.imageUrl && !m.isDeleted ? 'p-1' : 'px-4 py-2.5'} rounded-2xl text-sm leading-relaxed select-none cursor-pointer ${
                     m.isDeleted
                       ? 'bg-gray-100 text-gray-400 italic rounded-br-sm rounded-bl-sm'
                       : isMe
@@ -440,9 +485,11 @@ export default function ChatThread() {
                     ? 'Message unsent'
                     : m.sharedPrayerRequestId
                       ? <SharedPrayerCard request={m.sharedPrayerRequest} isMe={isMe} onOpen={() => m.sharedPrayerRequest && navigate(`/prayer/${m.sharedPrayerRequest.id}`)} />
-                      : m.audioUrl
-                        ? <VoiceBubble src={m.audioUrl} duration={m.audioDuration || 0} isMe={isMe} />
-                        : m.content}
+                      : m.imageUrl
+                        ? <img src={m.imageUrl} alt="" onClick={e => { e.stopPropagation(); window.open(m.imageUrl, '_blank', 'noopener'); }} className="rounded-xl block" style={{ maxHeight: 260, maxWidth: '100%', objectFit: 'cover' }} />
+                        : m.audioUrl
+                          ? <VoiceBubble src={m.audioUrl} duration={m.audioDuration || 0} isMe={isMe} />
+                          : m.content}
                 </div>
 
                 {/* Reaction chip — overlaps the bubble's bottom corner */}
@@ -499,6 +546,7 @@ export default function ChatThread() {
                 <p className="text-[10px] text-gray-400 mt-0.5 px-1">Seen</p>
               )}
             </div>
+            </Fragment>
           );
         })}
         {typingUser && (
@@ -534,21 +582,18 @@ export default function ChatThread() {
 
       {/* Input */}
       <div className="px-4 py-3 flex items-center gap-2 flex-shrink-0 pb-safe relative" style={{ background: 'rgba(238,243,245,0.95)' }}>
+        <input ref={imageInputRef} type="file" accept="image/*" onChange={handleImagePick} className="hidden" />
         {/* Attachment menu */}
         {showAttach && (
           <>
             <div className="fixed inset-0 z-30" onClick={() => setShowAttach(false)} />
             <div className="absolute bottom-full left-4 mb-2 z-40 bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden" style={{ minWidth: 210 }}>
-              <button onClick={() => setShowAttach(false)} className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 active:bg-gray-50">
+              <button
+                onClick={() => { setShowAttach(false); imageInputRef.current?.click(); }}
+                className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 active:bg-gray-50"
+              >
                 <span className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: 'rgba(22,52,73,0.08)' }}>📷</span>
                 Photo / Camera
-              </button>
-              <button
-                onClick={() => { setShowAttach(false); startRecording(); }}
-                className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 active:bg-gray-50 border-t border-gray-100"
-              >
-                <span className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: 'rgba(22,52,73,0.08)' }}><Mic size={16} color="#163449" /></span>
-                Voice note
               </button>
               <button
                 onClick={openPrayerPicker}

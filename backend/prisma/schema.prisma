@@ -137,6 +137,7 @@ model Message {
   reaction       String?
   audioUrl       String?
   audioDuration  Int?
+  imageUrl       String?
   replyToId      String?
   isDeleted      Boolean      @default(false)
   sharedPrayerRequestId String?

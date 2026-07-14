@@ -59,10 +59,21 @@ const uploadProfile = multer({ storage: profileStorage, limits: { fileSize: 10 *
 const uploadAudio = multer({ storage: audioStorage, limits: { fileSize: 15 * 1024 * 1024 } })
   .single('audio');
 
+const messageImageStorage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: 'faithflow/messages',
+    allowed_formats: ['jpg', 'jpeg', 'png', 'webp', 'gif'],
+  },
+});
+
+const uploadMessageImage = multer({ storage: messageImageStorage, limits: { fileSize: 15 * 1024 * 1024 } })
+  .single('image');
+
 const uploadPost = multer({ storage: postStorage, limits: { fileSize: 50 * 1024 * 1024 } })
   .array('media', 10);
 
 const uploadChurch = multer({ storage: churchStorage, limits: { fileSize: 10 * 1024 * 1024 } })
   .fields([{ name: 'logo', maxCount: 1 }, { name: 'coverPhoto', maxCount: 1 }]);
 
-module.exports = { uploadProfile, uploadPost, uploadChurch, uploadAudio };
+module.exports = { uploadProfile, uploadPost, uploadChurch, uploadAudio, uploadMessageImage };

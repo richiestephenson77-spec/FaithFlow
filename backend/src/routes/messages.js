@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const { authenticate } = require('../middleware/auth');
-const { uploadAudio } = require('../services/cloudinaryService');
-const { getConversations, startConversation, getMessages, sendMessage, sendAudioMessage, markRead, getTotalUnread, setReaction, unsendMessage, sharePrayerRequest } = require('../controllers/messageController');
+const { uploadAudio, uploadMessageImage } = require('../services/cloudinaryService');
+const { getConversations, startConversation, getMessages, sendMessage, sendAudioMessage, sendImageMessage, markRead, getTotalUnread, setReaction, unsendMessage, sharePrayerRequest } = require('../controllers/messageController');
 
 router.get('/unread', authenticate, getTotalUnread);
 router.get('/conversations', authenticate, getConversations);
@@ -14,6 +14,12 @@ router.post('/conversations/:conversationId/audio', authenticate, (req, res, nex
     next();
   });
 }, sendAudioMessage);
+router.post('/conversations/:conversationId/image', authenticate, (req, res, next) => {
+  uploadMessageImage(req, res, (err) => {
+    if (err) return res.status(400).json({ error: err.message });
+    next();
+  });
+}, sendImageMessage);
 router.post('/conversations/:conversationId/share-prayer', authenticate, sharePrayerRequest);
 router.put('/conversations/:conversationId/read', authenticate, markRead);
 router.patch('/:messageId/reaction', authenticate, setReaction);
