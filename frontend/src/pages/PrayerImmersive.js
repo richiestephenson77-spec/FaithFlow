@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronLeft, ChevronUp, Globe } from 'lucide-react';
 import api from '../utils/api';
 import { useSocket } from '../contexts/SocketContext';
+import { hapticMedium, hapticSuccess } from '../utils/haptics';
 
 const ACCENT = '#2C4055';
 const DASH_EMPTY = '#E5E3DE';
@@ -102,12 +103,14 @@ export default function PrayerImmersive() {
 
   async function pray() {
     if (!current || praying || prayedIds.has(current.id) || current.isOwner) return;
+    hapticMedium();
     setPraying(true);
     try {
       // Reuse the existing quick-prayer flow exactly: start → end → complete-prayer
       const startRes = await api.post(`/prayers/${current.id}/start`);
       await api.post(`/prayers/session/${startRes.data.id}/end`);
       const q = await api.post('/quota/complete-prayer', { prayerRequestId: current.id });
+      hapticSuccess();
       setPrayedIds(prev => new Set(prev).add(current.id));
       if (q.data && q.data.target != null) setQuota(prevQ => ({ ...(prevQ || {}), completed: q.data.completed, target: q.data.target, isComplete: q.data.isComplete }));
       // Optimistically bump the worldwide count (socket may also update it)

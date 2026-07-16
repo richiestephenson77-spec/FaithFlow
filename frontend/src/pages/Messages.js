@@ -1,9 +1,10 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SquarePen } from 'lucide-react';
 import api from '../utils/api';
 import Avatar from '../components/Avatar';
 import { useAuth } from '../contexts/AuthContext';
+import PullToRefresh from '../components/PullToRefresh';
 
 function getTimeAgo(d) {
   if (!d) return '';
@@ -28,12 +29,14 @@ export default function Messages() {
   const [startingConvo, setStartingConvo] = useState(null);
   const [convoError, setConvoError] = useState(null);
 
-  useEffect(() => {
-    api.get('/messages/conversations')
+  const loadConvos = useCallback(() => {
+    return api.get('/messages/conversations')
       .then(res => setConvos(res.data))
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => { loadConvos(); }, [loadConvos]);
 
   async function handleSearch(val) {
     setSearch(val);
@@ -61,6 +64,7 @@ export default function Messages() {
   }
 
   return (
+    <PullToRefresh onRefresh={loadConvos}>
     <div className="bg-gray-50 min-h-full">
       <div className="bg-gray-50 px-4 pt-4 pb-3">
         <div className="flex items-center justify-between mb-3">
@@ -168,5 +172,6 @@ export default function Messages() {
         )}
       </div>
     </div>
+    </PullToRefresh>
   );
 }

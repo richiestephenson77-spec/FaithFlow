@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bell, Heart, MessageCircle, UserPlus, Sparkles, Users } from 'lucide-react';
 import api from '../utils/api';
 import { useSocket } from '../contexts/SocketContext';
 import Avatar from '../components/Avatar';
+import PullToRefresh from '../components/PullToRefresh';
 
 function getTimeAgo(dateStr) {
   const diff = Date.now() - new Date(dateStr);
@@ -126,11 +127,15 @@ export default function Notifications() {
   const [loading, setLoading] = useState(true);
   const { notifications: live, markAllRead } = useSocket();
 
-  useEffect(() => {
-    api.get('/notifications')
+  const loadNotifications = useCallback(() => {
+    return api.get('/notifications')
       .then(res => setNotifications(res.data))
       .catch(() => {})
       .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    loadNotifications();
     api.post('/notifications/read-all').catch(() => {});
     markAllRead();
   }, []);
@@ -170,6 +175,7 @@ export default function Notifications() {
   }
 
   return (
+    <PullToRefresh onRefresh={loadNotifications}>
     <div className="bg-gray-50 min-h-full">
       <div className="flex items-center justify-between px-5 pt-5 pb-4">
         <div>
@@ -217,5 +223,6 @@ export default function Notifications() {
         </motion.div>
       )}
     </div>
+    </PullToRefresh>
   );
 }

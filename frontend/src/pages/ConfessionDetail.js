@@ -5,6 +5,7 @@ import { ChevronLeft, Heart, MessageCircle, User, Lock, Send } from 'lucide-reac
 import api from '../utils/api';
 import Avatar from '../components/Avatar';
 import { useAuth } from '../contexts/AuthContext';
+import { hapticLight } from '../utils/haptics';
 
 const BG = '#EEF3F5';
 const ACCENT = '#2C4055';
@@ -87,6 +88,7 @@ export default function ConfessionDetail() {
 
   async function handleHeart() {
     if (!confession) return;
+    hapticLight();
     setConfession(c => ({ ...c, hasHearted: !c.hasHearted, heartCount: c.heartCount + (c.hasHearted ? -1 : 1) }));
     try {
       await api.post(`/confessions/${id}/heart`);

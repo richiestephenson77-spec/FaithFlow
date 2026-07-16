@@ -1,13 +1,14 @@
-import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
+import { NavLink, useNavigate, useLocation, useOutlet } from 'react-router-dom';
 import { useSocket } from '../contexts/SocketContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Home, Compass, Search, MessageCircle, User, Bell, HandHeart } from 'lucide-react';
 import Toast from './Toast';
 import Logo from './Logo';
 import CreatePostModal from './CreatePostModal';
 import ErrorBoundary from './ErrorBoundary';
+import { hapticLight } from '../utils/haptics';
 
 const navItems = [
   { to: '/', label: 'Home', Icon: Home, end: true },
@@ -25,6 +26,30 @@ const SHOW_HEADER_ON = ['/'];
 const HIDE_NAV_ON = ['/messages/', '/pray/'];
 // Confession wall + detail and Bible Maps hide the bottom nav (immersive, back-arrow to leave)
 const HIDE_NAV_EXACT = ['/confessions', '/bible-maps'];
+
+// Cross-fade between pages on navigation. We animate opacity ONLY (no transform):
+// a transform on this wrapper would establish a containing block and re-anchor
+// every `position: fixed` composer/bottom-sheet/full-screen page to the wrapper
+// instead of the viewport. Opacity is safe. useOutlet() (not <Outlet/>) lets the
+// exiting page keep rendering its own content while it fades out.
+function AnimatedOutlet({ fullHeight }) {
+  const location = useLocation();
+  const element = useOutlet();
+  return (
+    <AnimatePresence mode="wait" initial={false}>
+      <motion.div
+        key={location.pathname}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.18, ease: 'easeOut' }}
+        style={fullHeight ? { height: '100%' } : { minHeight: '100%' }}
+      >
+        {element}
+      </motion.div>
+    </AnimatePresence>
+  );
+}
 
 export default function Layout() {
   const { notifications, unreadCount, unreadMessages } = useSocket();
@@ -46,6 +71,11 @@ export default function Layout() {
   const hideNavConfession = HIDE_NAV_EXACT.some(p => location.pathname.startsWith(p));
   const hideNav = hideNavThread || hideNavConfession;
   const showHeader = SHOW_HEADER_ON.includes(location.pathname);
+  // Pages that fill the viewport with their own flex/scroll layout (chat thread,
+  // confession detail, immersive prayer, bible map) need a height:100% wrapper so
+  // their `h-full` children resolve; every other page grows and lets <main> scroll.
+  const isConfessionDetail = location.pathname.startsWith('/confessions/') && location.pathname.length > '/confessions/'.length;
+  const fullHeightPage = hideNavThread || isConfessionDetail || location.pathname === '/bible-maps';
 
   return (
     <div className="h-screen bg-gray-50 flex flex-col max-w-md mx-auto relative shadow-xl overflow-hidden" style={{ height: '100dvh' }}>
@@ -99,7 +129,7 @@ export default function Layout() {
             header/nav (rendered outside this) survive. Keyed by pathname
             so navigating away auto-recovers. */}
         <ErrorBoundary resetKey={location.pathname}>
-          <Outlet />
+          <AnimatedOutlet fullHeight={fullHeightPage} />
         </ErrorBoundary>
       </main>
 
@@ -119,7 +149,7 @@ export default function Layout() {
           style={{ bottom: 'calc(0.5rem + env(safe-area-inset-bottom))' }}
         >
           {navItems.map(({ to, label, Icon, end }) => (
-            <NavLink key={to} to={to} end={end}>
+            <NavLink key={to} to={to} end={end} onClick={hapticLight}>
               {({ isActive }) => (
                 <motion.div
                   whileTap={{ scale: 0.88 }}

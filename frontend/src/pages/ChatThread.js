@@ -7,6 +7,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useSocket } from '../contexts/SocketContext';
 import { WaterButton, WaterInput } from '../components/water';
 import Skeleton from '../components/Skeleton';
+import { hapticMedium, hapticLight } from '../utils/haptics';
 import CallOverlay from '../components/CallOverlay';
 
 function getTimeStr(d) {
@@ -207,6 +208,7 @@ export default function ChatThread() {
   }
 
   async function applyReaction(messageId, emoji) {
+    hapticLight();
     setPickerFor(null);
     setMessages(prev => prev.map(m => m.id === messageId ? { ...m, reaction: emoji } : m));
     try {
@@ -246,6 +248,7 @@ export default function ChatThread() {
 
   async function handleSend() {
     if (!input.trim() || sending) return;
+    hapticMedium();
     const content = input.trim();
     const replyToId = replyTo?.id || null;
     setInput('');
@@ -364,6 +367,7 @@ export default function ChatThread() {
       };
       recordStartRef.current = Date.now();
       mr.start();
+      hapticMedium(); // recording started
       setRecording(true);
       setRecordSeconds(0);
       recordTimerRef.current = setInterval(() => setRecordSeconds(s => s + 1), 1000);
@@ -375,7 +379,7 @@ export default function ChatThread() {
   function stopRecording(cancel = false) {
     cancelRecordRef.current = cancel;
     const mr = mediaRecorderRef.current;
-    if (mr && mr.state !== 'inactive') mr.stop();
+    if (mr && mr.state !== 'inactive') { hapticMedium(); mr.stop(); } // recording stopped
   }
 
   // Release anywhere ends the recording (press-and-hold pattern)

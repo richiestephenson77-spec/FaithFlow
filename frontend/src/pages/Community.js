@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import Avatar from '../components/Avatar';
 import { useNavigate } from 'react-router-dom';
 import { WaterButton } from '../components/water';
+import PullToRefresh from '../components/PullToRefresh';
 
 const POST_TYPES = ['UPDATE', 'TESTIMONY', 'VERSE'];
 const TYPE_LABELS = { UPDATE: 'Update', TESTIMONY: 'Testimony', VERSE: 'Scripture' };
@@ -50,6 +51,7 @@ export default function Community() {
   }
 
   return (
+    <PullToRefresh onRefresh={loadPosts}>
     <div className="bg-gray-50 min-h-full">
       {/* Composer */}
       <div className="bg-white border-b border-gray-100 px-4 py-3">
@@ -90,6 +92,7 @@ export default function Community() {
         )}
       </div>
     </div>
+    </PullToRefresh>
   );
 }
 

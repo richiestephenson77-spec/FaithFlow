@@ -13,6 +13,8 @@ import TestimonyModal from '../components/TestimonyModal';
 import MyPrayerRequestsDrawer from '../components/MyPrayerRequestsDrawer';
 import TopPrayerCard from '../components/TopPrayerCard';
 import LocationBanner from '../components/LocationBanner';
+import { hapticMedium, hapticSuccess } from '../utils/haptics';
+import PullToRefresh from '../components/PullToRefresh';
 
 const FILTER_TABS = [
   { id: 'ALL',          label: 'All' },
@@ -254,6 +256,7 @@ export default function PrayerPage() {
   }
 
   async function startPraying(request) {
+    hapticMedium();
     try {
       const res = await api.post(`/prayers/${request.id}/start`);
       setActiveSession({ session: res.data, request });
@@ -283,6 +286,7 @@ export default function PrayerPage() {
     setSavingGratitude(true);
     try {
       const res = await api.post('/gratitude', { content: gratitudeText, mood: gratitudeMood, isPublic: gratitudePublic });
+      hapticSuccess();
       setTodayGratitude(res.data.entry);
       setGratitudeStreak(res.data.streak || gratitudeStreak);
       setShowGratitudeSheet(false);
@@ -306,6 +310,7 @@ export default function PrayerPage() {
   function startImmersive() {
     const q = [...filteredTop3, ...filteredRest];
     if (q.length === 0) return;
+    hapticMedium();
     navigate(`/pray/${q[0].id}`, { state: { queue: q, quota } });
   }
 
@@ -319,6 +324,7 @@ export default function PrayerPage() {
   });
 
   return (
+    <PullToRefresh onRefresh={() => loadFeed(true)}>
     <div className="bg-gray-50 min-h-full">
       {/* Hero — flat white */}
       <div className="bg-white" style={{ padding: '14px 16px 16px', borderBottom: '1px solid #EFEFEF' }}>
@@ -746,6 +752,7 @@ export default function PrayerPage() {
       </AnimatePresence>
       {showSettings && <QuotaSettingsSheet current={parseInt(target)} onSave={saveTarget} onClose={() => setShowSettings(false)} saving={savingTarget} />}
     </div>
+    </PullToRefresh>
   );
 }
 

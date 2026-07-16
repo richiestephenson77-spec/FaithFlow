@@ -4,6 +4,8 @@ import { motion, AnimatePresence, useAnimation } from 'framer-motion';
 import { Heart, MessageCircle, PenLine, ChevronLeft, Shield, User } from 'lucide-react';
 import api from '../utils/api';
 import { WaterPill } from '../components/water';
+import { hapticLight } from '../utils/haptics';
+import PullToRefresh from '../components/PullToRefresh';
 
 const CATEGORIES = ['All', 'Anxiety', 'Doubt', 'Relationships', 'Addiction', 'Grief', 'Sin', 'Loneliness', 'Other'];
 const BG = '#EEF3F5';
@@ -105,6 +107,7 @@ export default function Confessions() {
   }
 
   async function handleHeart(id) {
+    hapticLight();
     setConfessions(prev => prev.map(c => c.id === id
       ? { ...c, hasHearted: !c.hasHearted, heartCount: c.heartCount + (c.hasHearted ? -1 : 1) }
       : c));
@@ -124,6 +127,7 @@ export default function Confessions() {
   }
 
   return (
+    <PullToRefresh onRefresh={() => load(activeCategory, tab)}>
     <div className="min-h-full pb-28" style={{ background: BG }}>
       {/* Header */}
       <motion.div
@@ -238,6 +242,7 @@ export default function Confessions() {
         {showModal && <ConfessionModal onClose={() => setShowModal(false)} onCreate={onNewConfession} />}
       </AnimatePresence>
     </div>
+    </PullToRefresh>
   );
 }
 
