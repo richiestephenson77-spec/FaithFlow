@@ -136,7 +136,7 @@ export default function ConfessionDetail() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: BG }}>
+    <div className="h-full flex flex-col" style={{ background: BG }}>
       {/* Header */}
       <div className="flex items-center gap-3 px-4 pt-5 pb-3" style={{ borderBottom: '1px solid rgba(22,52,73,0.08)' }}>
         <button onClick={() => navigate(-1)} className="p-1 -ml-1">
@@ -247,8 +247,8 @@ export default function ConfessionDetail() {
 
       {/* Fixed comment input */}
       <div
-        className="fixed bottom-0 left-0 right-0 px-4 pt-3 pb-6 z-20"
-        style={{ background: '#FFFFFF', borderTop: '1px solid rgba(22,52,73,0.08)' }}
+        className="fixed bottom-0 left-0 right-0 px-4 pt-3 z-20"
+        style={{ background: '#FFFFFF', borderTop: '1px solid rgba(22,52,73,0.08)', paddingBottom: 'calc(1.25rem + env(safe-area-inset-bottom))' }}
       >
         <div className="flex items-end gap-2">
           <Avatar user={me} size="sm" />

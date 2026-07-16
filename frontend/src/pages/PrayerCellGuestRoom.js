@@ -113,7 +113,7 @@ export default function PrayerCellGuestRoom() {
   const progress = timeLeft / PRAYER_DURATION;
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: BG }}>
+    <div className="h-full flex flex-col" style={{ background: BG }}>
       {/* Top bar */}
       <div className="flex items-center justify-between px-5 pt-5 pb-4">
         <div />
@@ -235,7 +235,7 @@ export default function PrayerCellGuestRoom() {
       </div>
 
       {/* Mute */}
-      <div className="flex justify-center pb-12">
+      <div className="flex justify-center" style={{ paddingBottom: 'calc(3rem + env(safe-area-inset-bottom))' }}>
         <motion.button
           whileTap={{ scale: 0.9 }}
           onClick={handleMute}

@@ -29,7 +29,7 @@ export default function ForgotPassword() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#C0603F]">
+    <div className="min-h-screen flex flex-col bg-[#C0603F]" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-12">
         <div className="text-white text-center mb-10">
           <Logo size="lg" light={true} />

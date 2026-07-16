@@ -27,7 +27,7 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FAFAFA]">
+    <div className="min-h-screen flex flex-col bg-[#FAFAFA]" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-12">
         <div className="text-center mb-10">
           <Logo size="lg" light={false} />

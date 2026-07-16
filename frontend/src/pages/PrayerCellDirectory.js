@@ -96,7 +96,7 @@ export default function PrayerCellDirectory() {
   }
 
   return (
-    <div className="min-h-screen" style={{ background: '#FAFAFA' }}>
+    <div className="h-full" style={{ background: '#FAFAFA' }}>
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}

@@ -485,7 +485,7 @@ export default function PrayerPartners() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: BG }}>
+    <div className="h-full flex flex-col" style={{ background: BG }}>
       {/* Header */}
       <div className="flex items-center gap-3 px-4 pt-5 pb-3 bg-white" style={{ borderBottom: '1px solid #EFEFEF' }}>
         <button onClick={() => navigate(-1)} className="p-1 -ml-1">
