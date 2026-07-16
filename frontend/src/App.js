@@ -50,6 +50,7 @@ import PrayerCellHostRoom from './pages/PrayerCellHostRoom';
 import PrayerCellGuestRoom from './pages/PrayerCellGuestRoom';
 import Layout from './components/Layout';
 import LoadingScreen from './components/LoadingScreen';
+import ErrorBoundary from './components/ErrorBoundary';
 
 function PrivateRoute({ children }) {
   const { user, loading } = useAuth();
@@ -147,7 +148,10 @@ export default function App() {
     <AuthProvider>
       <BrowserRouter>
         <PageViewTracker />
-        <AppRoutes />
+        {/* Top-level safety net — catches shell/provider errors too */}
+        <ErrorBoundary>
+          <AppRoutes />
+        </ErrorBoundary>
       </BrowserRouter>
     </AuthProvider>
   );

@@ -7,6 +7,7 @@ import { Home, Compass, Search, MessageCircle, User, Bell, HandHeart } from 'luc
 import Toast from './Toast';
 import Logo from './Logo';
 import CreatePostModal from './CreatePostModal';
+import ErrorBoundary from './ErrorBoundary';
 
 const navItems = [
   { to: '/', label: 'Home', Icon: Home, end: true },
@@ -94,7 +95,12 @@ export default function Layout() {
           paddingBottom: hideNav ? undefined : 'calc(4.5rem + env(safe-area-inset-bottom))',
         }}
       >
-        <Outlet />
+        {/* Per-page boundary — a page crash shows the fallback but the
+            header/nav (rendered outside this) survive. Keyed by pathname
+            so navigating away auto-recovers. */}
+        <ErrorBoundary resetKey={location.pathname}>
+          <Outlet />
+        </ErrorBoundary>
       </main>
 
       {showCreatePost && (

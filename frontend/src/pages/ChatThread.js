@@ -6,6 +6,7 @@ import Avatar from '../components/Avatar';
 import { useAuth } from '../contexts/AuthContext';
 import { useSocket } from '../contexts/SocketContext';
 import { WaterButton, WaterInput } from '../components/water';
+import Skeleton from '../components/Skeleton';
 import CallOverlay from '../components/CallOverlay';
 
 function getTimeStr(d) {
@@ -110,6 +111,7 @@ export default function ChatThread() {
   const { socket } = useSocket();
   const navigate = useNavigate();
   const [messages, setMessages] = useState([]);
+  const [loadingMessages, setLoadingMessages] = useState(true);
   const [other, setOther] = useState(null);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
@@ -147,6 +149,7 @@ export default function ChatThread() {
       if (convo) setOther(convo.other);
       api.put(`/messages/conversations/${conversationId}/read`).catch(() => {});
     } catch {}
+    finally { setLoadingMessages(false); }
   }, [conversationId]);
 
   useEffect(() => { loadMessages(); }, [loadMessages]);
@@ -437,6 +440,15 @@ export default function ChatThread() {
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-2">
+        {loadingMessages && messages.length === 0 && (
+          <div className="space-y-3">
+            {[['start', 150], ['end', 190], ['start', 110], ['end', 160], ['start', 200]].map(([side, w], i) => (
+              <div key={i} className={`flex ${side === 'end' ? 'justify-end' : 'justify-start'}`}>
+                <Skeleton width={w} height={38} rounded={18} />
+              </div>
+            ))}
+          </div>
+        )}
         {messages.map((m, i) => {
           const isMe = m.senderId === user?.id || m.sender?.id === user?.id;
           const showTime = i === messages.length - 1 || messages[i + 1]?.senderId !== m.senderId;
