@@ -7,7 +7,7 @@ function getStreakMessage(streak) {
   return { title: '🔥 Streak Increased!', sub: 'Every prayer matters.' };
 }
 
-const COLORS = ['#f59e0b', '#3b82f6', '#10b981', '#ef4444', '#8b5cf6', '#ffffff'];
+const COLORS = ['#C0603F', '#3b82f6', '#10b981', '#ef4444', '#8b5cf6', '#ffffff'];
 
 function Confetti() {
   const canvasRef = useRef(null);
@@ -62,7 +62,7 @@ export default function StreakCelebration({ streak, onDone }) {
   const isRecord = streak.isRecord;
 
   return (
-    <div className="min-h-screen prayer-gradient flex flex-col items-center justify-center px-6 relative overflow-hidden">
+    <div className="min-h-screen bg-[#C0603F] flex flex-col items-center justify-center px-6 relative overflow-hidden">
       <Confetti />
 
       <div className="relative z-10 text-center text-white">
@@ -70,7 +70,7 @@ export default function StreakCelebration({ streak, onDone }) {
         <div className="text-8xl mb-4 animate-bounce">🔥</div>
 
         {isRecord && (
-          <div className="bg-amber-400/30 border border-amber-300/50 rounded-full px-4 py-1 text-amber-200 text-xs font-bold uppercase tracking-widest mb-4 inline-block">
+          <div className="bg-terracotta-400/30 border border-terracotta-300/50 rounded-full px-4 py-1 text-terracotta-200 text-xs font-bold uppercase tracking-widest mb-4 inline-block">
             🏆 New Personal Record!
           </div>
         )}

@@ -59,9 +59,9 @@ function PastorPicker({ selectedPastors, onToggle }) {
       {selectedPastors.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {selectedPastors.map(p => (
-            <div key={p.id} className="flex items-center gap-1.5 bg-amber-50 border border-amber-200 rounded-full px-3 py-1">
-              <span className="text-xs font-semibold text-amber-700">{p.name}</span>
-              <button onClick={() => onToggle(p)} className="text-amber-400">
+            <div key={p.id} className="flex items-center gap-1.5 bg-terracotta-50 border border-terracotta-200 rounded-full px-3 py-1">
+              <span className="text-xs font-semibold text-terracotta-700">{p.name}</span>
+              <button onClick={() => onToggle(p)} className="text-terracotta-400">
                 <X size={10} strokeWidth={2.5} />
               </button>
             </div>
@@ -87,7 +87,7 @@ function PastorPicker({ selectedPastors, onToggle }) {
               type="button"
               onClick={() => onToggle(p)}
               className={`w-full flex items-center gap-3 px-4 py-3 text-left border-b border-gray-50 last:border-0 transition-colors ${
-                selectedIds.has(p.id) ? 'bg-amber-50' : 'bg-white hover:bg-gray-50'
+                selectedIds.has(p.id) ? 'bg-terracotta-50' : 'bg-white hover:bg-gray-50'
               }`}
             >
               <Avatar user={p} size="sm" />
@@ -96,7 +96,7 @@ function PastorPicker({ selectedPastors, onToggle }) {
                 {p.pastorChurch && <p className="text-xs text-gray-400 truncate">{p.pastorChurch}</p>}
               </div>
               {selectedIds.has(p.id) && (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C0603F" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="20 6 9 17 4 12"/>
                 </svg>
               )}
@@ -108,7 +108,7 @@ function PastorPicker({ selectedPastors, onToggle }) {
         <p className="text-xs text-gray-400 px-1">No pastors found</p>
       )}
       {selectedPastors.length === 0 && (
-        <p className="text-xs text-amber-500 font-medium px-1">Select at least one pastor to continue</p>
+        <p className="text-xs text-terracotta-500 font-medium px-1">Select at least one pastor to continue</p>
       )}
     </motion.div>
   );
@@ -229,7 +229,7 @@ export default function NewPrayerRequestModal({ onClose, onCreate, initialBody =
                   initial={{ opacity: 0, scale: 0.85 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.85 }}
-                  className="text-xs px-2 py-0.5 rounded-full bg-amber-50 text-amber-600"
+                  className="text-xs px-2 py-0.5 rounded-full bg-terracotta-50 text-terracotta-600"
                 >
                   {draftLabel}
                 </motion.span>
@@ -241,7 +241,7 @@ export default function NewPrayerRequestModal({ onClose, onCreate, initialBody =
             onClick={handleSubmit}
             disabled={submitDisabled}
             className="text-white text-sm font-medium px-5 py-2 rounded-full transition-colors"
-            style={{ background: submitDisabled ? '#FCD34D' : '#F59E0B' }}
+            style={{ background: submitDisabled ? '#E9B9A6' : '#C0603F' }}
           >
             {loading ? 'Posting…' : 'Post'}
           </button>
@@ -360,7 +360,7 @@ export default function NewPrayerRequestModal({ onClose, onCreate, initialBody =
               type="button"
               onClick={() => setIsUrgent(v => !v)}
               className="relative w-12 h-6 rounded-full transition-colors flex-shrink-0"
-              style={{ background: isUrgent ? '#F59E0B' : '#E5E7EB' }}
+              style={{ background: isUrgent ? '#C0603F' : '#E5E7EB' }}
             >
               <span
                 className="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform"

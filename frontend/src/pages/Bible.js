@@ -218,7 +218,7 @@ export default function Bible() {
     return (
       <>
         {text.slice(0, idx)}
-        <mark className="bg-amber-200 text-gray-900 rounded px-0.5">{text.slice(idx, idx + query.trim().length)}</mark>
+        <mark className="bg-terracotta-200 text-gray-900 rounded px-0.5">{text.slice(idx, idx + query.trim().length)}</mark>
         {text.slice(idx + query.trim().length)}
       </>
     );
@@ -292,14 +292,14 @@ export default function Bible() {
 
           <div className="px-5 pt-5">
             {error && (
-              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-4 text-sm text-amber-800">
+              <div className="bg-terracotta-50 border border-terracotta-200 rounded-2xl p-4 mb-4 text-sm text-terracotta-800">
                 {error}
               </div>
             )}
 
             <div className="mb-5">
               <h3 className="font-serif text-2xl font-bold text-gray-900">{book.name} {chapter}</h3>
-              <div className="mt-2 h-[3px] w-10 bg-amber-500 rounded-full" />
+              <div className="mt-2 h-[3px] w-10 bg-terracotta-500 rounded-full" />
             </div>
 
             {loading ? (
@@ -326,10 +326,10 @@ export default function Bible() {
                       key={i}
                       id={`verse-${v.verse}`}
                       className={`group relative inline transition-colors duration-700 rounded px-1 ${
-                        activeVerse === v.verse ? 'bg-amber-100' : 'hover:bg-amber-50'
+                        activeVerse === v.verse ? 'bg-terracotta-100' : 'hover:bg-terracotta-50'
                       }`}
                     >
-                      <sup className="text-xs text-amber-600 font-sans align-top mr-1 select-none">{v.verse}</sup>
+                      <sup className="text-xs text-terracotta-600 font-sans align-top mr-1 select-none">{v.verse}</sup>
                       {v.text.trim().split(/\s+/).map((w, wi) => (
                         <WordSpan
                           key={wi}
@@ -391,12 +391,12 @@ export default function Bible() {
               onChange={e => setSearchQuery(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && doSearch(searchQuery)}
               placeholder='e.g. "love" or "john 3:16"'
-              className="w-full bg-white rounded-2xl pl-11 pr-20 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+              className="w-full bg-white rounded-2xl pl-11 pr-20 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-terracotta-400"
               autoFocus
             />
             <button
               onClick={() => doSearch(searchQuery)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 bg-amber-500 text-white text-xs font-bold px-3 py-1.5 rounded-xl"
+              className="absolute right-3 top-1/2 -translate-y-1/2 bg-terracotta-500 text-white text-xs font-bold px-3 py-1.5 rounded-xl"
             >
               Search
             </button>
@@ -404,7 +404,7 @@ export default function Bible() {
 
           {searching && (
             <div className="flex justify-center py-8">
-              <div className="w-6 h-6 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
+              <div className="w-6 h-6 border-2 border-terracotta-400 border-t-transparent rounded-full animate-spin" />
             </div>
           )}
 
@@ -417,7 +417,7 @@ export default function Bible() {
 
           {!searching && !searched && (
             <div className="text-center py-16">
-              <div className="w-16 h-16 bg-amber-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+              <div className="w-16 h-16 bg-terracotta-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
                 </svg>
@@ -430,7 +430,7 @@ export default function Bible() {
           <div className="space-y-3">
             {searchResults.map((v, i) => (
               <div key={i} className="bg-white rounded-2xl p-4 shadow-sm">
-                <p className="text-xs font-bold text-amber-600 mb-1">
+                <p className="text-xs font-bold text-terracotta-600 mb-1">
                   {v.book_name} {v.chapter}:{v.verse}
                 </p>
                 <p className="font-serif text-sm text-gray-800 leading-relaxed">
@@ -507,7 +507,7 @@ export default function Bible() {
 
               {wordLoading && (
                 <div className="flex items-center gap-2 py-4">
-                  <div className="w-4 h-4 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
+                  <div className="w-4 h-4 border-2 border-terracotta-500 border-t-transparent rounded-full animate-spin" />
                   <span className="text-sm text-gray-400">Looking up "{wordPopup.word}"...</span>
                 </div>
               )}
@@ -515,12 +515,12 @@ export default function Bible() {
               {wordData && !wordData.error && (
                 <div className="space-y-4 max-h-[55vh] overflow-y-auto">
                   {wordData.root && (
-                    <div className="bg-amber-50 rounded-2xl p-3">
-                      <p className="text-xs text-amber-600 font-semibold uppercase tracking-wider mb-1">
+                    <div className="bg-terracotta-50 rounded-2xl p-3">
+                      <p className="text-xs text-terracotta-600 font-semibold uppercase tracking-wider mb-1">
                         {wordData.root.lang} Origin
                       </p>
-                      <p className="text-2xl font-bold text-amber-700 mb-1">{wordData.root.word}</p>
-                      <p className="text-sm text-amber-600 italic">{wordData.root.transliteration}</p>
+                      <p className="text-2xl font-bold text-terracotta-700 mb-1">{wordData.root.word}</p>
+                      <p className="text-sm text-terracotta-600 italic">{wordData.root.transliteration}</p>
                       <p className="text-sm text-gray-700 mt-1">"{wordData.root.meaning}"</p>
                     </div>
                   )}
@@ -537,7 +537,7 @@ export default function Bible() {
                       <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-2">In Scripture</p>
                       {wordData.verses.slice(0, 3).map((v, i) => (
                         <div key={i} className="mb-2 pb-2 border-b border-gray-100 last:border-0">
-                          <p className="text-xs font-semibold text-amber-600 mb-0.5">{v.reference}</p>
+                          <p className="text-xs font-semibold text-terracotta-600 mb-0.5">{v.reference}</p>
                           <p className="text-xs text-gray-600 leading-relaxed font-serif italic">{v.text}</p>
                         </div>
                       ))}

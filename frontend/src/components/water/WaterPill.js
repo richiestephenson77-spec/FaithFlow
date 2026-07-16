@@ -1,5 +1,4 @@
-import { WATER_BLUE, WATER_NEUTRAL } from '../../styles/waterTokens';
-
+// Flat pill: active = subtle gray tint + dark ink; inactive = transparent + muted text.
 export default function WaterPill({
   active = false,
   onClick,
@@ -7,21 +6,17 @@ export default function WaterPill({
   style = {},
   children,
 }) {
-  const token = active ? WATER_BLUE : WATER_NEUTRAL;
-
   return (
     <button
       onClick={onClick}
       className={className}
       style={{
-        position: 'relative',
-        overflow: 'hidden',
         borderRadius: 999,
-        border: active ? '1px solid rgba(22,52,73,0.25)' : token.border,
-        background: token.background,
-        boxShadow: token.boxShadow,
-        color: active ? '#163449' : '#6B7680',
-        fontWeight: active ? 600 : 400,
+        border: 'none',
+        background: active ? 'rgba(0,0,0,0.04)' : 'transparent',
+        boxShadow: 'none',
+        color: active ? '#163449' : '#8E8E8E',
+        fontWeight: active ? 500 : 400,
         padding: '6px 14px',
         fontSize: 13,
         whiteSpace: 'nowrap',
@@ -31,17 +26,7 @@ export default function WaterPill({
         ...style,
       }}
     >
-      <span
-        aria-hidden
-        style={{
-          position: 'absolute',
-          top: '-40%', left: '-10%',
-          width: '50%', height: '180%',
-          background: 'radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.2) 45%, transparent 70%)',
-          pointerEvents: 'none',
-        }}
-      />
-      <span style={{ position: 'relative', zIndex: 1 }}>{children}</span>
+      {children}
     </button>
   );
 }

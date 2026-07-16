@@ -2,6 +2,7 @@ import { TONES } from '../../styles/waterTokens';
 
 const RADIUS = { sm: 16, md: 20, lg: 24, xl: 32 };
 
+// Flat card: white surface, hairline border, no gradient/shadow/specular.
 export default function WaterCard({
   tone = 'blue',
   onClick,
@@ -20,8 +21,6 @@ export default function WaterCard({
       onClick={onClick}
       className={className}
       style={{
-        position: 'relative',
-        overflow: 'hidden',
         borderRadius,
         border: token.border,
         background: token.background,
@@ -29,21 +28,7 @@ export default function WaterCard({
         ...style,
       }}
     >
-      {/* specular highlight */}
-      <span
-        aria-hidden
-        style={{
-          position: 'absolute',
-          top: '-25%', left: '-15%',
-          width: '60%', height: '60%',
-          background: 'radial-gradient(circle, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.3) 45%, transparent 70%)',
-          pointerEvents: 'none',
-        }}
-      />
-      {/* content above specular */}
-      <div style={{ position: 'relative', zIndex: 1 }}>
-        {children}
-      </div>
+      {children}
     </El>
   );
 }

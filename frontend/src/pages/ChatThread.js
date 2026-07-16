@@ -476,7 +476,7 @@ export default function ChatThread() {
                     m.isDeleted
                       ? 'bg-gray-100 text-gray-400 italic rounded-br-sm rounded-bl-sm'
                       : isMe
-                        ? 'bg-gradient-to-br from-amber-400 to-orange-500 text-white rounded-br-sm'
+                        ? 'bg-[#C0603F] text-white rounded-br-sm'
                         : 'bg-white border border-gray-100 text-gray-800 shadow-sm rounded-bl-sm'
                   }`}
                   style={{ WebkitTouchCallout: 'none' }}

@@ -47,8 +47,8 @@ export default function ChapterVersePicker({ book, currentChapter, currentVerse,
                 <button key={ch} onClick={() => setSelectedChapter(ch)}
                   className={`aspect-square rounded-xl text-sm font-bold transition-colors flex items-center justify-center ${
                     ch === selectedChapter
-                      ? 'bg-amber-500 text-white shadow-sm'
-                      : 'bg-gray-50 text-gray-700 hover:bg-amber-100'
+                      ? 'bg-terracotta-500 text-white shadow-sm'
+                      : 'bg-gray-50 text-gray-700 hover:bg-terracotta-100'
                   }`}>
                   {ch}
                 </button>
@@ -69,14 +69,14 @@ export default function ChapterVersePicker({ book, currentChapter, currentVerse,
               >
                 <button
                   onClick={() => onSelectChapterOnly(selectedChapter)}
-                  className="w-full mb-3 py-3 bg-amber-50 border border-amber-200 rounded-2xl text-sm font-bold text-amber-700"
+                  className="w-full mb-3 py-3 bg-terracotta-50 border border-terracotta-200 rounded-2xl text-sm font-bold text-terracotta-700"
                 >
                   Read from beginning
                 </button>
 
                 {loadingVerses ? (
                   <div className="flex justify-center py-8">
-                    <div className="w-6 h-6 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
+                    <div className="w-6 h-6 border-2 border-terracotta-400 border-t-transparent rounded-full animate-spin" />
                   </div>
                 ) : (
                   <div className="grid grid-cols-6 gap-2 pb-2">
@@ -86,8 +86,8 @@ export default function ChapterVersePicker({ book, currentChapter, currentVerse,
                         <button key={v} onClick={() => onSelectVerse(selectedChapter, v)}
                           className={`aspect-square rounded-xl text-sm font-bold transition-colors flex items-center justify-center ${
                             isCurrent
-                              ? 'bg-white text-amber-600 ring-2 ring-amber-500'
-                              : 'bg-gray-50 text-gray-700 hover:bg-amber-100'
+                              ? 'bg-white text-terracotta-600 ring-2 ring-terracotta-500'
+                              : 'bg-gray-50 text-gray-700 hover:bg-terracotta-100'
                           }`}>
                           {v}
                         </button>

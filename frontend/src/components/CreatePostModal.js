@@ -97,7 +97,7 @@ export default function CreatePostModal({ onClose, onCreate }) {
             <button
               onClick={() => mediaFile && setStep(2)}
               disabled={!mediaFile}
-              className={`font-bold text-sm px-3 py-1 rounded-full ${mediaFile ? 'text-amber-500' : 'text-gray-300'}`}
+              className={`font-bold text-sm px-3 py-1 rounded-full ${mediaFile ? 'text-terracotta-500' : 'text-gray-300'}`}
             >
               Next →
             </button>
@@ -159,7 +159,7 @@ export default function CreatePostModal({ onClose, onCreate }) {
             <button
               onClick={handleShare}
               disabled={sharing || !content.trim()}
-              className="font-bold text-sm px-4 py-1.5 rounded-full bg-amber-400 text-gray-900 disabled:opacity-40 flex items-center gap-1.5"
+              className="font-bold text-sm px-4 py-1.5 rounded-full bg-terracotta-400 text-gray-900 disabled:opacity-40 flex items-center gap-1.5"
             >
               {sharing ? (
                 <svg className="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
@@ -234,13 +234,13 @@ export default function CreatePostModal({ onClose, onCreate }) {
                     onChange={e => setBibleVerse(e.target.value)}
                     placeholder="Type the verse text here..."
                     rows={3}
-                    className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-amber-300 text-gray-700"
+                    className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-terracotta-300 text-gray-700"
                   />
                   <input
                     value={bibleRef}
                     onChange={e => setBibleRef(e.target.value)}
                     placeholder="Reference (e.g. John 3:16)"
-                    className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-300 text-gray-700"
+                    className="w-full text-sm border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-terracotta-300 text-gray-700"
                   />
                 </div>
               )}
@@ -271,10 +271,10 @@ export default function CreatePostModal({ onClose, onCreate }) {
                         value={location}
                         onChange={e => setLocation(e.target.value)}
                         placeholder="Dallas, Texas"
-                        className="flex-1 text-sm border-b border-gray-200 pb-1 focus:outline-none focus:border-amber-400 text-gray-700"
+                        className="flex-1 text-sm border-b border-gray-200 pb-1 focus:outline-none focus:border-terracotta-400 text-gray-700"
                         onKeyDown={e => e.key === 'Enter' && setShowLocationInput(false)}
                       />
-                      <button onClick={() => setShowLocationInput(false)} className="text-xs font-semibold text-amber-500">Done</button>
+                      <button onClick={() => setShowLocationInput(false)} className="text-xs font-semibold text-terracotta-500">Done</button>
                       {location && <button onClick={() => { setLocation(''); setShowLocationInput(false); }} className="text-xs text-gray-400">Clear</button>}
                     </div>
                   </div>
@@ -297,7 +297,7 @@ export default function CreatePostModal({ onClose, onCreate }) {
                   key={t.id}
                   onClick={() => { setPostType(t.id); setShowTypePicker(false); }}
                   className={`w-full flex items-center gap-4 px-4 py-4 rounded-2xl border-2 transition-all ${
-                    postType === t.id ? 'border-amber-400 bg-amber-50' : 'border-gray-100 bg-gray-50'
+                    postType === t.id ? 'border-terracotta-400 bg-terracotta-50' : 'border-gray-100 bg-gray-50'
                   }`}
                 >
                   <span className="text-2xl">{t.emoji}</span>
@@ -306,7 +306,7 @@ export default function CreatePostModal({ onClose, onCreate }) {
                     <p className="text-xs text-gray-500 mt-0.5">{t.desc}</p>
                   </div>
                   {postType === t.id && (
-                    <div className="ml-auto w-5 h-5 rounded-full bg-amber-400 flex items-center justify-center">
+                    <div className="ml-auto w-5 h-5 rounded-full bg-terracotta-400 flex items-center justify-center">
                       <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
                         <polyline points="20 6 9 17 4 12"/>
                       </svg>

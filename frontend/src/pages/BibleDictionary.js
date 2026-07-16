@@ -54,12 +54,12 @@ export default function BibleDictionary() {
         </div>
 
         <div className="relative">
-          <Search size={16} color="#f59e0b" strokeWidth={2.2} className="absolute left-4 top-1/2 -translate-y-1/2" />
+          <Search size={16} color="#C0603F" strokeWidth={2.2} className="absolute left-4 top-1/2 -translate-y-1/2" />
           <input
             value={query}
             onChange={e => setQuery(e.target.value)}
             placeholder="Search... (e.g. grace, Moses, covenant)"
-            className="w-full bg-white rounded-2xl pl-11 pr-4 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+            className="w-full bg-white rounded-2xl pl-11 pr-4 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-terracotta-400"
             autoFocus
           />
         </div>
@@ -80,7 +80,7 @@ export default function BibleDictionary() {
                 <button
                   key={w}
                   onClick={() => searchChip(w)}
-                  className="px-4 py-1.5 rounded-full text-sm font-medium bg-amber-100 text-amber-700"
+                  className="px-4 py-1.5 rounded-full text-sm font-medium bg-terracotta-100 text-terracotta-700"
                 >
                   {w}
                 </button>
@@ -98,7 +98,7 @@ export default function BibleDictionary() {
             <div className="px-4 mb-3">
               <h1 className="font-serif text-3xl text-gray-900 capitalize">{results.word}</h1>
               {results.root && (
-                <span className="inline-block mt-2 text-xs font-medium bg-amber-100 text-amber-700 rounded-full px-3 py-1">
+                <span className="inline-block mt-2 text-xs font-medium bg-terracotta-100 text-terracotta-700 rounded-full px-3 py-1">
                   {results.root.lang} · {results.root.word} · {results.root.transliteration}
                 </span>
               )}
@@ -109,7 +109,7 @@ export default function BibleDictionary() {
               <div className="bg-white rounded-2xl p-5 mx-4 mb-3">
                 <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider mb-2">Biblical Meaning</p>
                 {results.root && (
-                  <p className="font-serif italic text-lg text-amber-700 mb-2">"{results.root.meaning}"</p>
+                  <p className="font-serif italic text-lg text-terracotta-700 mb-2">"{results.root.meaning}"</p>
                 )}
                 {results.definition && (
                   <p className="text-sm text-gray-700 leading-relaxed">{results.definition}</p>
@@ -129,7 +129,7 @@ export default function BibleDictionary() {
                     transition={{ delay: i * 0.05 }}
                     className="mb-3 pb-3 border-b border-gray-100 last:border-0 last:mb-0 last:pb-0"
                   >
-                    <p className="text-amber-600 font-semibold text-sm mb-1">{v.reference}</p>
+                    <p className="text-terracotta-600 font-semibold text-sm mb-1">{v.reference}</p>
                     <p className="font-serif italic text-gray-700 text-sm leading-relaxed">{v.text}</p>
                   </motion.div>
                 ))}
@@ -145,7 +145,7 @@ export default function BibleDictionary() {
                     <button
                       key={w}
                       onClick={() => searchChip(w)}
-                      className="px-4 py-1.5 rounded-full text-sm font-medium bg-amber-100 text-amber-700 capitalize"
+                      className="px-4 py-1.5 rounded-full text-sm font-medium bg-terracotta-100 text-terracotta-700 capitalize"
                     >
                       {w}
                     </button>

@@ -93,7 +93,7 @@ export default function PrayerQueue({ onClose, onComplete }) {
   if (loading) {
     return (
       <div className="fixed inset-0 z-50 bg-gray-900 flex flex-col items-center justify-center">
-        <div className="w-10 h-10 border-4 border-amber-400 border-t-transparent rounded-full animate-spin mb-4" />
+        <div className="w-10 h-10 border-4 border-terracotta-400 border-t-transparent rounded-full animate-spin mb-4" />
         <p className="text-white/70 text-sm">Gathering prayers for you...</p>
       </div>
     );
@@ -147,7 +147,7 @@ export default function PrayerQueue({ onClose, onComplete }) {
           {/* Progress bar animates width */}
           <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
             <motion.div
-              className="h-full bg-amber-400 rounded-full"
+              className="h-full bg-terracotta-400 rounded-full"
               animate={{ width: `${progress}%` }}
               transition={{ duration: 0.4, ease: 'easeOut' }}
             />
@@ -213,7 +213,7 @@ export default function PrayerQueue({ onClose, onComplete }) {
               <div className="mt-3 flex flex-col items-center gap-1">
                 <div className="w-44 h-1.5 bg-white/15 rounded-full overflow-hidden">
                   <motion.div
-                    className="h-full bg-amber-400 rounded-full"
+                    className="h-full bg-terracotta-400 rounded-full"
                     animate={{ width: `${(elapsed / MIN_SECONDS) * 100}%` }}
                     transition={{ duration: 1, ease: 'linear' }}
                   />
@@ -233,7 +233,7 @@ export default function PrayerQueue({ onClose, onComplete }) {
               whileTap={ready && !finishing ? { scale: 0.97 } : {}}
               transition={{ type: 'spring', stiffness: 400, damping: 20 }}
               className={`w-full py-4 rounded-2xl font-bold text-base transition-all ${
-                ready && !finishing ? 'bg-amber-400 text-gray-900 shadow-lg' : 'bg-white/10 text-white/30 cursor-not-allowed'
+                ready && !finishing ? 'bg-terracotta-400 text-gray-900 shadow-lg' : 'bg-white/10 text-white/30 cursor-not-allowed'
               }`}
             >
               {finishing ? 'Saving...' : ready ? 'Finish Prayer' : `Finish Prayer (${countdown}s)`}
@@ -328,11 +328,11 @@ function QuotaCelebration({ result, count, onContinue }) {
             initial={{ opacity: 0, scale: 0, rotate: -20 }}
             animate={{ opacity: 1, scale: 1, rotate: 0 }}
             transition={{ type: 'spring', stiffness: 250, damping: 16, delay: 0.65 }}
-            className="mb-6 bg-amber-400/20 border border-amber-400/30 rounded-2xl p-4 mx-auto max-w-xs"
+            className="mb-6 bg-terracotta-400/20 border border-terracotta-400/30 rounded-2xl p-4 mx-auto max-w-xs"
           >
             <p className="text-4xl mb-2">🏆</p>
-            <p className="text-amber-300 font-bold text-sm">Prayer Warrior Badge Earned!</p>
-            <p className="text-amber-400/70 text-xs mt-0.5">First daily quota completed</p>
+            <p className="text-terracotta-300 font-bold text-sm">Prayer Warrior Badge Earned!</p>
+            <p className="text-terracotta-400/70 text-xs mt-0.5">First daily quota completed</p>
           </motion.div>
         )}
 
@@ -342,7 +342,7 @@ function QuotaCelebration({ result, count, onContinue }) {
           transition={{ delay: result?.badgeEarned ? 0.85 : 0.6, duration: 0.3 }}
           whileTap={{ scale: 0.96 }}
           onClick={onContinue}
-          className="bg-amber-400 text-gray-900 font-bold rounded-2xl px-10 py-4 text-base shadow-xl"
+          className="bg-terracotta-400 text-gray-900 font-bold rounded-2xl px-10 py-4 text-base shadow-xl"
         >
           Continue
         </motion.button>

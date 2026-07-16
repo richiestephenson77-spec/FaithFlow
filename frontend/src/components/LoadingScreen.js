@@ -1,6 +1,6 @@
 export default function LoadingScreen() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center prayer-gradient">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#C0603F]">
       <div className="text-white text-center">
         <div className="text-5xl mb-4">✝</div>
         <h1 className="text-2xl font-bold mb-2">FaithBridge</h1>

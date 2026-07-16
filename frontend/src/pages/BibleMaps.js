@@ -456,7 +456,7 @@ export default function BibleMaps() {
             >
               {currentEra.label}
             </h2>
-            <div className="mt-1.5 h-[2px] w-10" style={{ background: 'linear-gradient(90deg, #A8823C, transparent)' }} />
+            <div className="mt-1.5 h-[2px] w-10" style={{ background: '#A8823C' }} />
             <p className="text-sm leading-snug mt-2 line-clamp-2" style={{ color: '#5C6270' }}>{currentEra.description}</p>
 
             {/* Figure strip */}

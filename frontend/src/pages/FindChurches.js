@@ -109,7 +109,7 @@ export default function FindChurches({ embedded = false }) {
           <button
             onClick={requestLocation}
             className="mt-6 px-6 py-3 rounded-full text-white font-semibold text-sm"
-            style={{ background: '#f59e0b' }}
+            style={{ background: '#C0603F' }}
           >
             Enable Location
           </button>
@@ -150,7 +150,7 @@ export default function FindChurches({ embedded = false }) {
                 <button
                   onClick={() => location && fetchChurches(location.lat, location.lng, radius)}
                   className="mt-6 px-6 py-3 rounded-full text-white font-semibold text-sm"
-                  style={{ background: '#f59e0b' }}
+                  style={{ background: '#C0603F' }}
                 >
                   Try Again
                 </button>
@@ -165,7 +165,7 @@ export default function FindChurches({ embedded = false }) {
                 <button
                   onClick={() => handleRadiusChange(Math.min(radius * 2, 50000))}
                   className="mt-6 px-6 py-3 rounded-full text-white font-semibold text-sm"
-                  style={{ background: '#f59e0b' }}
+                  style={{ background: '#C0603F' }}
                 >
                   Increase Radius
                 </button>
@@ -201,8 +201,8 @@ function ChurchCard({ church, location, onClick }) {
         {church.photo ? (
           <img src={church.photo} alt="" className="w-full h-full object-cover" />
         ) : (
-          <div className="w-full h-full bg-amber-50 flex items-center justify-center">
-            <Church size={28} color="#f59e0b" strokeWidth={1.5} />
+          <div className="w-full h-full bg-terracotta-50 flex items-center justify-center">
+            <Church size={28} color="#C0603F" strokeWidth={1.5} />
           </div>
         )}
       </div>
@@ -211,7 +211,7 @@ function ChurchCard({ church, location, onClick }) {
         <div className="flex items-center gap-1.5 mt-1">
           {church.rating && (
             <span className="flex items-center gap-0.5 text-sm text-gray-600">
-              <Star size={12} fill="#f59e0b" color="#f59e0b" /> {church.rating}
+              <Star size={12} fill="#C0603F" color="#C0603F" /> {church.rating}
             </span>
           )}
           {church.isOpen != null && (

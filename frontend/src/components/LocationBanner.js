@@ -37,15 +37,15 @@ export default function LocationBanner({ onLocationGranted }) {
   }
 
   return (
-    <div className="bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 mb-4 flex items-center gap-3">
+    <div className="bg-terracotta-50 border border-terracotta-200 rounded-2xl px-4 py-3 mb-4 flex items-center gap-3">
       <span className="text-xl flex-shrink-0">📍</span>
-      <p className="text-xs text-amber-800 leading-snug flex-1">
+      <p className="text-xs text-terracotta-800 leading-snug flex-1">
         See prayers from people near you — <span className="font-semibold">Enable Location</span>
       </p>
       <WaterButton variant="primary" onClick={handleEnable} disabled={loading} className="flex-shrink-0 text-xs font-bold px-3 py-1.5" style={{ borderRadius: 12 }}>
         {loading ? '...' : 'Enable'}
       </WaterButton>
-      <button onClick={handleDismiss} className="flex-shrink-0 text-amber-400 hover:text-amber-600">
+      <button onClick={handleDismiss} className="flex-shrink-0 text-terracotta-400 hover:text-terracotta-600">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
         </svg>

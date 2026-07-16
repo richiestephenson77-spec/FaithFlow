@@ -6,7 +6,7 @@ import { BookOpen, Users, Hand } from 'lucide-react';
 const SLIDES = [
   {
     id: 'welcome',
-    bg: 'linear-gradient(160deg, #1a1a2e 0%, #2d1b4e 100%)',
+    bg: '#1a1a2e',
     icon: null,
     emoji: '✝️',
     title: 'Welcome to FaithBridge',
@@ -14,7 +14,7 @@ const SLIDES = [
   },
   {
     id: 'prayer',
-    bg: 'linear-gradient(160deg, #78350f 0%, #d97706 100%)',
+    bg: '#8A3F27',
     Icon: Hand,
     title: 'Pray For Others',
     subtitle: 'Join thousands of believers praying for each other daily',
@@ -22,21 +22,21 @@ const SLIDES = [
   },
   {
     id: 'community',
-    bg: 'linear-gradient(160deg, #2e1065 0%, #5b21b6 100%)',
+    bg: '#2e1065',
     Icon: Users,
     title: 'Find Your Community',
     subtitle: 'Connect with believers, join churches, share your faith journey',
   },
   {
     id: 'bible',
-    bg: 'linear-gradient(160deg, #052e16 0%, #15803d 100%)',
+    bg: '#052e16',
     Icon: BookOpen,
     title: "Explore God's Word",
     subtitle: 'Bible reader, dictionary, maps and more — everything you need',
   },
   {
     id: 'getstarted',
-    bg: 'linear-gradient(160deg, #0f172a 0%, #1e3a5f 100%)',
+    bg: '#0f172a',
     icon: null,
     emoji: null,
     title: "You're Ready!",
@@ -146,8 +146,8 @@ export default function Onboarding() {
                 style={{ width: 100, height: 100 }}
               >
                 {/* Glow rings */}
-                <div className="absolute rounded-full" style={{ width: 100, height: 100, background: 'rgba(245,158,11,0.12)', filter: 'blur(12px)' }} />
-                <div className="absolute rounded-full" style={{ width: 70, height: 70, background: 'rgba(245,158,11,0.18)', filter: 'blur(6px)' }} />
+                <div className="absolute rounded-full" style={{ width: 100, height: 100, background: 'rgba(192,96,63,0.12)', filter: 'blur(12px)' }} />
+                <div className="absolute rounded-full" style={{ width: 70, height: 70, background: 'rgba(192,96,63,0.18)', filter: 'blur(6px)' }} />
                 <span style={{ fontSize: 52 }}>✝️</span>
               </motion.div>
             )}
@@ -197,7 +197,7 @@ export default function Onboarding() {
               </div>
               <div className="mt-3 flex items-center gap-2">
                 <div className="flex-1 h-7 rounded-full" style={{ background: 'rgba(255,255,255,0.15)' }} />
-                <div className="w-16 h-7 rounded-full" style={{ background: 'rgba(245,158,11,0.6)' }} />
+                <div className="w-16 h-7 rounded-full" style={{ background: 'rgba(192,96,63,0.6)' }} />
               </div>
             </motion.div>
           )}
@@ -211,7 +211,7 @@ export default function Onboarding() {
               whileTap={{ scale: 0.96 }}
               onClick={complete}
               className="mt-10 font-bold text-base rounded-full px-10 py-4"
-              style={{ background: '#f59e0b', color: '#1a1a2e', boxShadow: '0 4px 24px rgba(245,158,11,0.4)' }}
+              style={{ background: '#C0603F', color: '#1a1a2e', boxShadow: '0 4px 24px rgba(192,96,63,0.4)' }}
             >
               Get Started
             </motion.button>

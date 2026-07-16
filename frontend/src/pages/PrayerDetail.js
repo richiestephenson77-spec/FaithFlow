@@ -157,7 +157,7 @@ export default function PrayerDetail() {
         {request.isAnswered && (
           <div className="bg-white rounded-2xl border border-emerald-100 shadow-sm overflow-hidden">
             {/* Thin top accent */}
-            <div className="h-0.5 bg-gradient-to-r from-emerald-400 to-teal-400" />
+            <div className="h-0.5 bg-emerald-400" />
             <div className="px-5 py-5">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-8 h-8 rounded-full bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600">

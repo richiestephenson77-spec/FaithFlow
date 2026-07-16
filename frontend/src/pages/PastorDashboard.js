@@ -4,7 +4,7 @@ import api from '../utils/api';
 import { WaterCard, WaterButton, WaterPill } from '../components/water';
 
 const STATUS_STYLES = {
-  PENDING:   'bg-amber-50 text-amber-600',
+  PENDING:   'bg-terracotta-50 text-terracotta-600',
   PRAYED:    'bg-faith-50 text-faith-600',
   RESPONDED: 'bg-emerald-50 text-emerald-700',
 };
@@ -97,7 +97,7 @@ function PrivatePrayerCard({ prayer }) {
       <p className="text-sm text-gray-600 leading-relaxed" style={{ fontFamily: 'Georgia, serif' }}>
         {prayer.body}
       </p>
-      <p className="text-xs text-amber-700 font-semibold mt-3">🙏 {prayer.totalPrayerCount || 0} people prayed</p>
+      <p className="text-xs text-terracotta-700 font-semibold mt-3">🙏 {prayer.totalPrayerCount || 0} people prayed</p>
     </div>
   );
 }

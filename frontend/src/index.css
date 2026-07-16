@@ -26,91 +26,32 @@ html, body { height: 100%; overflow: hidden; }
 @keyframes float2 { 0%,100% { transform: translateY(-2px); } 50% { transform: translateY(-9px); } }
 @keyframes float3 { 0%,100% { transform: translateY(-4px); } 50% { transform: translateY(-11px); } }
 
+/* Flat mono surfaces (formerly water-glass). White cards, hairline borders,
+   no gradients / shadows / specular highlights / hover glow. */
 .water-tile {
-  position: relative;
-  border-radius: 32px;
-  border: 0.5px solid rgba(255,255,255,0.7);
-  overflow: hidden;
-  transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1);
+  border-radius: 24px;
+  border: 1px solid #EFEFEF;
+  background: #FFFFFF;
 }
-.water-tile:hover, .water-tile:active {
-  transform: scale(1.03) translateY(-4px);
+.water-tile-blue,
+.water-tile-neutral {
+  background: #FFFFFF;
+  border: 1px solid #EFEFEF;
 }
-.water-tile::before {
-  content: '';
-  position: absolute;
-  top: -25%; left: -15%;
-  width: 60%; height: 60%;
-  background: radial-gradient(circle, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.3) 45%, transparent 70%);
-  pointer-events: none;
-}
-.water-tile-blue {
-  background: radial-gradient(circle at 32% 22%, rgba(255,255,255,0.97) 0%, rgba(232,248,252,0.75) 32%, rgba(196,232,244,0.55) 65%, rgba(155,210,230,0.5) 100%);
-  box-shadow:
-    0 2px 4px rgba(20,50,80,0.05),
-    0 22px 42px -8px rgba(20,60,95,0.22),
-    0 8px 18px -4px rgba(20,60,95,0.1),
-    inset 0 -10px 18px rgba(90,180,205,0.2),
-    inset 0 3px 3px rgba(255,255,255,0.95);
-}
+/* Confession Wall's purple hero is an allowed exception — flat solid violet */
 .water-tile-violet {
-  background: radial-gradient(circle at 32% 22%, rgba(230,215,245,0.97) 0%, rgba(195,165,225,0.8) 32%, rgba(160,125,205,0.6) 65%, rgba(130,95,185,0.55) 100%);
-  box-shadow:
-    0 2px 4px rgba(60,30,100,0.08),
-    0 22px 42px -8px rgba(60,30,100,0.22),
-    0 8px 18px -4px rgba(60,30,100,0.1),
-    inset 0 -10px 18px rgba(120,80,180,0.2),
-    inset 0 3px 3px rgba(255,255,255,0.7);
+  background: #8A5CD0;
+  border: 1px solid #8A5CD0;
 }
+/* Icon container: flat subtle terracotta tint, no orb gradient/gloss */
 .icon-orb {
   border-radius: 50%;
-  background: linear-gradient(160deg, #FBF0DC 0%, #F0DCAE 100%);
-  box-shadow: inset 0 1px 2px rgba(255,255,255,0.8), inset 0 -2px 3px rgba(168,130,60,0.2), 0 3px 8px rgba(30,80,110,0.15);
-  position: relative;
-}
-.icon-orb::before {
-  content: '';
-  position: absolute;
-  top: 12%; left: 18%;
-  width: 35%; height: 35%;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.7);
+  background: rgba(192,96,63,0.12);
 }
 
 .water-header {
-  position: relative;
-  overflow: hidden;
-  border-radius: 0 0 28px 28px;
-  border-bottom: 0.5px solid rgba(255,255,255,0.4);
-}
-.water-header::before {
-  content: '';
-  position: absolute;
-  top: -60%; left: -10%;
-  width: 40%; height: 220%;
-  background: radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.25) 45%, transparent 70%);
-  pointer-events: none;
-}
-
-.water-tile-neutral {
-  position: relative;
-  overflow: hidden;
-  background: radial-gradient(circle at 32% 15%, rgba(255,255,255,0.98) 0%, rgba(255,255,255,0.85) 40%, rgba(240,241,243,0.8) 100%);
-  box-shadow:
-    0 2px 4px rgba(20,20,30,0.05),
-    0 16px 32px -6px rgba(20,20,30,0.18),
-    0 6px 14px -4px rgba(20,20,30,0.1),
-    inset 0 -6px 12px rgba(200,205,212,0.35),
-    inset 0 2px 2px rgba(255,255,255,0.95);
-  border: 0.5px solid rgba(255,255,255,0.8);
-}
-.water-tile-neutral::before {
-  content: '';
-  position: absolute;
-  top: -40%; left: -10%;
-  width: 45%; height: 180%;
-  background: radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.2) 45%, transparent 70%);
-  pointer-events: none;
+  border-radius: 0 0 24px 24px;
+  border-bottom: 1px solid #EFEFEF;
 }
 
 .droplet-nav {
@@ -154,22 +95,9 @@ html, body { height: 100%; overflow: hidden; }
 .droplet-shape-5 { border-radius: 58% 42% 45% 55% / 50% 48% 52% 45%; }
 
 .water-tile-static {
-  position: relative;
-  border-radius: 24px;
-  border: 0.5px solid rgba(255,255,255,0.15);
-  overflow: hidden;
-  transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1);
-}
-.water-tile-static:hover, .water-tile-static:active {
-  transform: scale(1.02);
-}
-.water-tile-static::before {
-  content: '';
-  position: absolute;
-  top: -25%; left: -15%;
-  width: 60%; height: 60%;
-  background: radial-gradient(circle, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.25) 45%, transparent 70%);
-  pointer-events: none;
+  border-radius: 16px;
+  border: 1px solid #EFEFEF;
+  background: #FFFFFF;
 }
 .font-cinzel { font-family: 'Cinzel', serif; }
 .font-cinzel-decorative { font-family: 'Cinzel Decorative', serif; }
@@ -209,15 +137,6 @@ html, body { height: 100%; overflow: hidden; }
 body {
   background-color: #f8f7f4;
   color: #1a1a2e;
-}
-
-.prayer-gradient {
-  background: #C0603F;
-  color: #0A0F1E;
-}
-
-.gold-gradient {
-  background: linear-gradient(135deg, #f59e0b, #fbbf24);
 }
 
 /* Tailwind doesn't ship faith-* by default — define them as CSS vars */

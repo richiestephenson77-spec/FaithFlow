@@ -45,7 +45,7 @@ export default function BookPicker({ books, ntStart, currentBook, onSelect, onCl
                 value={query}
                 onChange={e => setQuery(e.target.value)}
                 placeholder="Search books..."
-                className="w-full bg-gray-50 rounded-2xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+                className="w-full bg-gray-50 rounded-2xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-terracotta-400"
               />
             </div>
           </div>
@@ -58,7 +58,7 @@ export default function BookPicker({ books, ntStart, currentBook, onSelect, onCl
                   {ot.map(b => (
                     <button key={b.id} onClick={() => onSelect(b)}
                       className={`text-sm py-2 px-3 rounded-xl text-left font-medium transition-colors ${
-                        b.id === currentBook.id ? 'bg-amber-100 text-amber-700' : 'text-gray-700 hover:bg-gray-50'
+                        b.id === currentBook.id ? 'bg-terracotta-100 text-terracotta-700' : 'text-gray-700 hover:bg-gray-50'
                       }`}>
                       {b.name}
                     </button>
@@ -73,7 +73,7 @@ export default function BookPicker({ books, ntStart, currentBook, onSelect, onCl
                   {nt.map(b => (
                     <button key={b.id} onClick={() => onSelect(b)}
                       className={`text-sm py-2 px-3 rounded-xl text-left font-medium transition-colors ${
-                        b.id === currentBook.id ? 'bg-amber-100 text-amber-700' : 'text-gray-700 hover:bg-gray-50'
+                        b.id === currentBook.id ? 'bg-terracotta-100 text-terracotta-700' : 'text-gray-700 hover:bg-gray-50'
                       }`}>
                       {b.name}
                     </button>

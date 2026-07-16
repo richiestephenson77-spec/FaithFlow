@@ -129,7 +129,7 @@ export default function Settings() {
         <div className="flex-1 min-w-0">
           <p className="text-base font-semibold text-gray-900 truncate">{user?.name || 'Your Name'}</p>
           <p className="text-sm text-gray-400 truncate">{user?.email || ''}</p>
-          <p className="text-xs text-amber-500 font-medium mt-0.5">View Profile →</p>
+          <p className="text-xs text-terracotta-500 font-medium mt-0.5">View Profile →</p>
         </div>
         <ChevronRight size={18} color="#d1d5db" strokeWidth={2} />
       </motion.div>
@@ -163,7 +163,7 @@ export default function Settings() {
 
         <Section label="App">
           <SettingsRow
-            Icon={Clock} iconBg="#F59E0B"
+            Icon={Clock} iconBg="#C0603F"
             label="Prayer Reminders" sublabel="Set daily prayer time reminders"
             onClick={() => navigate('reminders')}
           />

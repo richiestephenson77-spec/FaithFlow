@@ -1,7 +1,5 @@
 import axios from 'axios';
 
-console.log('API baseURL:', process.env.REACT_APP_API_URL || 'FALLBACK-USED');
-
 // Absolute fallback (not the relative '/api') so the native Capacitor app —
 // which has no web host to resolve a relative path against — always has a real
 // backend to reach. Vercel builds still use REACT_APP_API_URL when it's set.

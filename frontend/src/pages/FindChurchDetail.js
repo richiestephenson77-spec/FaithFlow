@@ -37,7 +37,7 @@ export default function FindChurchDetail() {
       <div className="bg-gray-50 min-h-full flex flex-col items-center justify-center px-8">
         <Church size={44} color="#e5e7eb" strokeWidth={1.5} />
         <p className="font-semibold text-gray-700 mt-4">{error || 'Church not found'}</p>
-        <button onClick={() => navigate(-1)} className="mt-6 px-6 py-3 rounded-full text-white font-semibold text-sm" style={{ background: '#f59e0b' }}>
+        <button onClick={() => navigate(-1)} className="mt-6 px-6 py-3 rounded-full text-white font-semibold text-sm" style={{ background: '#C0603F' }}>
           Go Back
         </button>
       </div>
@@ -61,7 +61,7 @@ export default function FindChurchDetail() {
             </div>
           )
         ) : (
-          <div className="w-full h-full flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #1A3A2A, #0D2018)' }}>
+          <div className="w-full h-full flex items-center justify-center" style={{ background: '#0D2018' }}>
             <Church size={48} color="rgba(255,255,255,0.4)" strokeWidth={1.5} />
           </div>
         )}
@@ -87,7 +87,7 @@ export default function FindChurchDetail() {
           {church.rating && (
             <span className="flex items-center gap-1 text-sm text-gray-600">
               {Array.from({ length: 5 }, (_, i) => (
-                <Star key={i} size={14} fill={i < Math.round(church.rating) ? '#f59e0b' : 'none'} color="#f59e0b" />
+                <Star key={i} size={14} fill={i < Math.round(church.rating) ? '#C0603F' : 'none'} color="#C0603F" />
               ))}
               <span className="text-xs text-gray-400 ml-1">({church.totalRatings || 0} reviews)</span>
             </span>
@@ -112,21 +112,21 @@ export default function FindChurchDetail() {
             onClick={() => window.open(`https://maps.google.com/?q=${church.lat},${church.lng}`)}
             className="w-full flex items-start gap-2.5 mt-4 text-left"
           >
-            <MapPin size={16} color="#f59e0b" strokeWidth={1.8} className="mt-0.5 flex-shrink-0" />
+            <MapPin size={16} color="#C0603F" strokeWidth={1.8} className="mt-0.5 flex-shrink-0" />
             <span className="text-sm text-gray-700">{church.address}</span>
           </button>
         )}
 
         {church.phone && (
           <button onClick={() => window.open(`tel:${church.phone}`)} className="w-full flex items-center gap-2.5 mt-3 text-left">
-            <Phone size={16} color="#f59e0b" strokeWidth={1.8} className="flex-shrink-0" />
+            <Phone size={16} color="#C0603F" strokeWidth={1.8} className="flex-shrink-0" />
             <span className="text-sm text-gray-700">{church.phone}</span>
           </button>
         )}
 
         {church.website && (
           <button onClick={() => window.open(church.website, '_blank')} className="w-full flex items-center gap-2.5 mt-3 text-left">
-            <Globe size={16} color="#f59e0b" strokeWidth={1.8} className="flex-shrink-0" />
+            <Globe size={16} color="#C0603F" strokeWidth={1.8} className="flex-shrink-0" />
             <span className="text-sm text-gray-700 truncate">{church.website}</span>
           </button>
         )}
@@ -157,7 +157,7 @@ export default function FindChurchDetail() {
         {/* Hours */}
         <div className="mt-6">
           <div className="flex items-center gap-2 mb-2">
-            <Clock size={16} color="#f59e0b" strokeWidth={1.8} />
+            <Clock size={16} color="#C0603F" strokeWidth={1.8} />
             <p className="text-sm font-semibold text-gray-900">Service Times</p>
           </div>
 
@@ -171,9 +171,9 @@ export default function FindChurchDetail() {
                     initial={{ opacity: 0, y: 6 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.04, duration: 0.2 }}
-                    className={`flex items-center justify-between text-sm px-3 py-1.5 rounded-lg ${isToday ? 'bg-amber-50' : ''}`}
+                    className={`flex items-center justify-between text-sm px-3 py-1.5 rounded-lg ${isToday ? 'bg-terracotta-50' : ''}`}
                   >
-                    <span className={isToday ? 'text-amber-700 font-medium' : 'text-gray-600'}>{line}</span>
+                    <span className={isToday ? 'text-terracotta-700 font-medium' : 'text-gray-600'}>{line}</span>
                   </motion.div>
                 );
               })}

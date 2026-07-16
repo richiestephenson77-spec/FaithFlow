@@ -53,7 +53,7 @@ export default function ChurchPage() {
   return (
     <div className="pb-4">
       {/* Cover */}
-      <div className="relative h-40 bg-gradient-to-br from-faith-800 to-faith-600">
+      <div className="relative h-40 bg-faith-700">
         {church.coverPhoto && (
           <img src={church.coverPhoto} alt="" className="w-full h-full object-cover" />
         )}

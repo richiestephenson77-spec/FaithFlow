@@ -17,12 +17,12 @@ function getTimeAgo(dateStr) {
 }
 
 const TYPE_META = {
-  PRAYER_STARTED:          { Icon: Sparkles,      color: '#f59e0b', bg: '#fffbeb' },
+  PRAYER_STARTED:          { Icon: Sparkles,      color: '#C0603F', bg: '#fffbeb' },
   PRAYER_ANSWERED:         { Icon: Sparkles,      color: '#10b981', bg: '#f0fdf4' },
   NEW_FOLLOWER:            { Icon: UserPlus,      color: '#6366f1', bg: '#eef2ff' },
   POST_LIKE:               { Icon: Heart,         color: '#ef4444', bg: '#fef2f2' },
   POST_COMMENT:            { Icon: MessageCircle, color: '#3b82f6', bg: '#eff6ff' },
-  PRAYER_PARTNER_MATCHED:  { Icon: Users,         color: '#f59e0b', bg: '#fffbeb' },
+  PRAYER_PARTNER_MATCHED:  { Icon: Users,         color: '#C0603F', bg: '#fffbeb' },
 };
 
 function NotificationCard({ n, onFollowBack }) {

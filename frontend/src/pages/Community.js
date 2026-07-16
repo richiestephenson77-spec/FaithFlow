@@ -9,12 +9,12 @@ const POST_TYPES = ['UPDATE', 'TESTIMONY', 'VERSE'];
 const TYPE_LABELS = { UPDATE: 'Update', TESTIMONY: 'Testimony', VERSE: 'Scripture' };
 const TYPE_STYLES = {
   UPDATE:    'bg-blue-50 text-blue-600 border border-blue-100',
-  TESTIMONY: 'bg-amber-50 text-amber-600 border border-amber-100',
+  TESTIMONY: 'bg-terracotta-50 text-terracotta-600 border border-terracotta-100',
   VERSE:     'bg-emerald-50 text-emerald-600 border border-emerald-100',
 };
 const TYPE_DOT = {
   UPDATE: 'bg-blue-500',
-  TESTIMONY: 'bg-amber-500',
+  TESTIMONY: 'bg-terracotta-500',
   VERSE: 'bg-emerald-500',
 };
 

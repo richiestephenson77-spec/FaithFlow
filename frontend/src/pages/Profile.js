@@ -176,12 +176,12 @@ export default function Profile() {
           >
             <div
               className="rounded-full p-[3px] flex-shrink-0"
-              style={{ background: 'linear-gradient(135deg, #f59e0b, #a855f7)' }}
+              style={{ background: '#C0603F' }}
             >
               <div className="w-[80px] h-[80px] rounded-full overflow-hidden bg-gray-100 ring-2 ring-white">
                 {(previewProfile || profile.profilePhoto)
                   ? <img src={previewProfile || profile.profilePhoto} alt="profile" className="w-full h-full object-cover" />
-                  : <div className="w-full h-full flex items-center justify-center bg-amber-50 text-amber-600 font-bold text-2xl">
+                  : <div className="w-full h-full flex items-center justify-center bg-terracotta-50 text-terracotta-600 font-bold text-2xl">
                       {profile.name?.[0]?.toUpperCase()}
                     </div>
                 }
@@ -231,7 +231,7 @@ export default function Profile() {
         >
           <p className="text-base font-bold text-gray-900">{profile.name}</p>
           {profile.churchName && (
-            <p className="text-sm text-amber-500 font-medium mt-0.5">{profile.churchName}</p>
+            <p className="text-sm text-terracotta-500 font-medium mt-0.5">{profile.churchName}</p>
           )}
           {profile.location && (
             <p className="text-xs text-gray-400 mt-0.5">{profile.location}</p>
@@ -267,7 +267,7 @@ export default function Profile() {
             <button
               onClick={handleFollow}
               className={`w-full py-2 rounded-xl text-sm font-semibold transition-colors ${
-                following ? 'bg-gray-100 text-gray-700' : 'bg-amber-400 text-white'
+                following ? 'bg-gray-100 text-gray-700' : 'bg-terracotta-400 text-white'
               }`}
             >
               {following ? 'Following' : 'Follow'}
@@ -287,9 +287,9 @@ export default function Profile() {
             className="grid grid-cols-3 gap-2 mb-3"
           >
             {[
-              { icon: <Flame size={16} color="#f59e0b" strokeWidth={1.8} />, value: stats.streak ?? 0, label: 'Streak' },
-              { icon: <Award size={16} color="#f59e0b" strokeWidth={1.8} />, value: stats.longestStreak ?? 0, label: 'Best' },
-              { icon: <HandHeart size={16} color="#f59e0b" strokeWidth={1.8} />, value: stats.totalSessions ?? 0, label: 'Prayers' },
+              { icon: <Flame size={16} color="#C0603F" strokeWidth={1.8} />, value: stats.streak ?? 0, label: 'Streak' },
+              { icon: <Award size={16} color="#C0603F" strokeWidth={1.8} />, value: stats.longestStreak ?? 0, label: 'Best' },
+              { icon: <HandHeart size={16} color="#C0603F" strokeWidth={1.8} />, value: stats.totalSessions ?? 0, label: 'Prayers' },
             ].map(({ icon, value, label }) => (
               <motion.div
                 key={label}
@@ -306,14 +306,14 @@ export default function Profile() {
           {/* 2 stat cards */}
           <div className="grid grid-cols-2 gap-2">
             <div className="bg-gray-50 rounded-2xl p-4 flex items-center gap-3">
-              <Clock size={18} color="#f59e0b" strokeWidth={1.8} />
+              <Clock size={18} color="#C0603F" strokeWidth={1.8} />
               <div>
                 <p className="text-sm font-bold text-gray-900">{formatDuration(stats.totalPrayerSeconds)}</p>
                 <p className="text-xs text-gray-400">Prayer Time</p>
               </div>
             </div>
             <div className="bg-gray-50 rounded-2xl p-4 flex items-center gap-3">
-              <Users size={18} color="#f59e0b" strokeWidth={1.8} />
+              <Users size={18} color="#C0603F" strokeWidth={1.8} />
               <div>
                 <p className="text-sm font-bold text-gray-900">{stats.totalPeoplePrayedFor ?? 0}</p>
                 <p className="text-xs text-gray-400">Prayed For</p>
@@ -337,21 +337,21 @@ export default function Profile() {
               position: 'relative', zIndex: 1,
               width: 52, height: 52,
               background: profile.prayerWarriorBadge ? '#fffbeb' : '#f3f4f6',
-              border: `2px solid ${profile.prayerWarriorBadge ? '#fcd34d' : '#e5e7eb'}`,
+              border: `2px solid ${profile.prayerWarriorBadge ? '#E9B9A6' : '#e5e7eb'}`,
             }}
           >
             <Trophy
               size={24}
               strokeWidth={1.8}
-              color={profile.prayerWarriorBadge ? '#f59e0b' : '#d1d5db'}
+              color={profile.prayerWarriorBadge ? '#C0603F' : '#d1d5db'}
             />
           </div>
 
           <div className="flex-1 min-w-0" style={{ position: 'relative', zIndex: 1 }}>
-            <p className={`text-sm font-bold ${profile.prayerWarriorBadge ? 'text-amber-800' : 'text-gray-400'}`}>
+            <p className={`text-sm font-bold ${profile.prayerWarriorBadge ? 'text-terracotta-800' : 'text-gray-400'}`}>
               Prayer Warrior
             </p>
-            <p className={`text-xs mt-0.5 ${profile.prayerWarriorBadge ? 'text-amber-600' : 'text-gray-400'}`}>
+            <p className={`text-xs mt-0.5 ${profile.prayerWarriorBadge ? 'text-terracotta-600' : 'text-gray-400'}`}>
               {profile.prayerWarriorBadge ? 'Level 1 · Seeker' : 'Complete daily quota to unlock'}
             </p>
             {/* Progress bar */}
@@ -360,7 +360,7 @@ export default function Profile() {
                 className="h-full rounded-full transition-all duration-700"
                 style={{
                   width: profile.prayerWarriorBadge ? '100%' : `${Math.min(((stats?.totalSessions ?? 0) / 10) * 100, 90)}%`,
-                  background: profile.prayerWarriorBadge ? '#f59e0b' : '#d1d5db',
+                  background: profile.prayerWarriorBadge ? '#C0603F' : '#d1d5db',
                 }}
               />
             </div>
@@ -484,12 +484,12 @@ export default function Profile() {
             <div className="px-4 py-5">
               {/* Badge */}
               <div className="flex flex-col items-center mb-6">
-                <div className="w-20 h-20 rounded-full bg-amber-400 flex items-center justify-center shadow-xl mb-2"
+                <div className="w-20 h-20 rounded-full bg-terracotta-400 flex items-center justify-center shadow-xl mb-2"
                   style={{ boxShadow: '0 0 24px rgba(245,200,66,0.6)' }}>
                   <span className="text-4xl">🏆</span>
                 </div>
-                <p className="font-extrabold text-amber-700 text-lg">Prayer Warrior</p>
-                <p className="text-amber-500 text-xs">Level 1</p>
+                <p className="font-extrabold text-terracotta-700 text-lg">Prayer Warrior</p>
+                <p className="text-terracotta-500 text-xs">Level 1</p>
                 {profile.prayerWarriorEarnedAt && (
                   <p className="text-gray-400 text-xs mt-1">
                     Since {new Date(profile.prayerWarriorEarnedAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}

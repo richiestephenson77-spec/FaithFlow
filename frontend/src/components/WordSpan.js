@@ -29,7 +29,7 @@ export default function WordSpan({ rawWord, verseRef, onLongPress }) {
       onTouchEnd={handleEnd}
       onTouchMove={handleEnd}
       onContextMenu={(e) => fired.current && e.preventDefault()}
-      className="cursor-pointer hover:bg-amber-50 rounded px-0.5 transition-colors"
+      className="cursor-pointer hover:bg-terracotta-50 rounded px-0.5 transition-colors"
     >
       {rawWord}{' '}
     </span>

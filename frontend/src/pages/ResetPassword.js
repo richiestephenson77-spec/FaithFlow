@@ -33,7 +33,7 @@ export default function ResetPassword() {
 
   if (!token) {
     return (
-      <div className="min-h-screen flex flex-col prayer-gradient items-center justify-center px-6">
+      <div className="min-h-screen flex flex-col bg-[#C0603F] items-center justify-center px-6">
         <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl text-center">
           <div className="text-5xl mb-4">⚠️</div>
           <h2 className="text-xl font-bold text-gray-800 mb-2">Invalid Link</h2>
@@ -45,7 +45,7 @@ export default function ResetPassword() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col prayer-gradient">
+    <div className="min-h-screen flex flex-col bg-[#C0603F]">
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-12">
         <div className="text-white text-center mb-10">
           <Logo size="lg" light={true} />
@@ -93,7 +93,7 @@ export default function ResetPassword() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full prayer-gradient text-white rounded-xl py-3 font-semibold text-sm disabled:opacity-60"
+                  className="w-full bg-[#C0603F] text-white rounded-xl py-3 font-semibold text-sm disabled:opacity-60"
                 >
                   {loading ? 'Updating...' : 'Update Password'}
                 </button>
