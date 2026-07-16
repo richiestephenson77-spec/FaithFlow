@@ -19,8 +19,9 @@ const navItems = [
 // The branded global header (logo + avatar + search + bell) appears ONLY on
 // Home. Every other page has its own in-page title/back button.
 const SHOW_HEADER_ON = ['/'];
-// Individual chat threads (/messages/:id) go immersive — the /messages list keeps its frame
-const HIDE_NAV_ON = ['/messages/'];
+// Immersive drill-ins (chat thread /messages/:id, prayer /pray/:id) hide the nav.
+// The list pages (/messages, /prayer) keep their frame.
+const HIDE_NAV_ON = ['/messages/', '/pray/'];
 // Confession wall + detail and Bible Maps hide the bottom nav (immersive, back-arrow to leave)
 const HIDE_NAV_EXACT = ['/confessions', '/bible-maps'];
 

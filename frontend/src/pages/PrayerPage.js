@@ -48,14 +48,15 @@ function SkeletonCard() {
   );
 }
 
-function PrayerCard({ request, currentUserId, onPray, onUserClick, onMarkAnswered, onViewTestimony, showDistance }) {
+function PrayerCard({ request, currentUserId, onOpen, onPray, onUserClick, onMarkAnswered, onViewTestimony, showDistance }) {
   const timeAgo = getTimeAgo(request.createdAt);
   // Use backend-provided isOwner — user.id is null for anonymized prayers
   const isOwner = request.isOwner ?? (request.user?.id === currentUserId);
   const catLabel = request.category && request.category !== 'GENERAL' ? CATEGORY_LABELS[request.category] : null;
+  const stop = (fn) => (e) => { e.stopPropagation(); fn && fn(); };
 
   return (
-    <div className={`bg-white rounded-2xl p-4 shadow-sm border fade-in ${
+    <div onClick={onOpen} className={`bg-white rounded-2xl p-4 shadow-sm border fade-in cursor-pointer active:scale-[0.99] transition-transform ${
       request.isUrgent ? 'border-red-200 ring-1 ring-red-100' :
       request.isAnswered ? 'border-emerald-100' : 'border-gray-100'}`}>
       {(request.isUrgent || request.isAnswered || catLabel) && (
@@ -66,7 +67,7 @@ function PrayerCard({ request, currentUserId, onPray, onUserClick, onMarkAnswere
         </div>
       )}
       <div className="flex items-start gap-3">
-        <button onClick={!request.isAnonymous ? onUserClick : undefined} className="flex-shrink-0">
+        <button onClick={!request.isAnonymous ? stop(onUserClick) : undefined} className="flex-shrink-0">
           {request.isAnonymous ? (
             <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
           ) : <Avatar user={request.user} size="md" />}
@@ -77,7 +78,7 @@ function PrayerCard({ request, currentUserId, onPray, onUserClick, onMarkAnswere
               {request.isAnonymous ? (
                 <div className="flex items-center gap-1 mt-0.5"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#6b7280" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><p className="text-xs font-semibold text-gray-500">{request.displayLocation || 'Anonymous Believer'}</p></div>
               ) : (
-                <button onClick={onUserClick} className="font-semibold text-gray-900 text-sm leading-tight text-left hover:underline">{request.user?.name}</button>
+                <button onClick={stop(onUserClick)} className="font-semibold text-gray-900 text-sm leading-tight text-left hover:underline">{request.user?.name}</button>
               )}
               {!request.isAnonymous && request.user?.churchName && <p className="text-xs text-faith-500 mt-0.5">{request.user.churchName}</p>}
             </div>
@@ -96,7 +97,7 @@ function PrayerCard({ request, currentUserId, onPray, onUserClick, onMarkAnswere
           </div>
           <p className="text-sm text-gray-500 leading-relaxed line-clamp-3">{request.body}</p>
           {request.isAnswered && request.testimonyMessage && (
-            <button onClick={onViewTestimony} className="mt-2 text-xs font-semibold text-emerald-600 hover:underline">View Testimony →</button>
+            <button onClick={stop(onViewTestimony)} className="mt-2 text-xs font-semibold text-emerald-600 hover:underline">View Testimony →</button>
           )}
           <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-50">
             <div className="flex items-center gap-1.5">
@@ -106,13 +107,13 @@ function PrayerCard({ request, currentUserId, onPray, onUserClick, onMarkAnswere
             </div>
             <div className="flex items-center gap-2">
               {isOwner && !request.isAnswered && (
-                <button onClick={onMarkAnswered} className="text-xs font-semibold text-emerald-600 border border-emerald-200 bg-emerald-50 rounded-xl px-3 py-1.5">✓ Answered</button>
+                <button onClick={stop(onMarkAnswered)} className="text-xs font-semibold text-emerald-600 border border-emerald-200 bg-emerald-50 rounded-xl px-3 py-1.5">✓ Answered</button>
               )}
               {!request.isAnswered && (
                 isOwner ? (
                   <button disabled className="text-xs font-bold rounded-xl px-4 py-2 bg-gray-100 text-gray-400 cursor-not-allowed">Pray Now</button>
                 ) : (
-                  <button onClick={onPray} className="text-xs font-bold px-4 py-2 rounded-xl text-white" style={{ background: '#C0603F' }}>Pray Now</button>
+                  <button onClick={stop(onPray)} className="text-xs font-bold px-4 py-2 rounded-xl text-white" style={{ background: '#C0603F' }}>Pray Now</button>
                 )
               )}
             </div>
@@ -293,8 +294,20 @@ export default function PrayerPage() {
   const filteredTop3 = activeCategory === 'ALL' ? top3 : top3.filter(p => p.category === activeCategory);
   const filteredRest = activeCategory === 'ALL' ? restPrayers : restPrayers.filter(p => p.category === activeCategory);
 
+  // Open the immersive prayer flow, carrying the current (filtered) queue + quota
+  function openImmersive(request) {
+    const q = [...filteredTop3, ...filteredRest];
+    navigate(`/pray/${request.id}`, { state: { queue: q, quota } });
+  }
+  function startImmersive() {
+    const q = [...filteredTop3, ...filteredRest];
+    if (q.length === 0) return;
+    navigate(`/pray/${q[0].id}`, { state: { queue: q, quota } });
+  }
+
   const cardProps = (request) => ({
     key: request.id, request, currentUserId: user?.id,
+    onOpen: () => openImmersive(request),
     onPray: () => startPraying(request),
     onUserClick: () => navigate(`/profile/${request.user?.id}`),
     onMarkAnswered: () => setTestimonyRequest(request),
@@ -357,6 +370,17 @@ export default function PrayerPage() {
           </div>
           {quota?.isComplete && <p className="text-xs font-medium mt-2" style={{ color: '#6B7680' }}>Goal complete for today</p>}
         </motion.div>
+
+        {/* Start praying — opens the immersive drill-in flow with the current list */}
+        <motion.button
+          initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25, duration: 0.35, ease: 'easeOut' }}
+          whileTap={{ scale: 0.98 }}
+          onClick={startImmersive}
+          className="w-full mt-2.5 flex items-center justify-center gap-2 text-white font-semibold text-sm"
+          style={{ background: '#C0603F', borderRadius: 14, height: 46 }}
+        >
+          <Play size={15} strokeWidth={2} /> Start praying
+        </motion.button>
 
         {/* Today's Grace + Need a verse — compact side-by-side rows */}
         <motion.div

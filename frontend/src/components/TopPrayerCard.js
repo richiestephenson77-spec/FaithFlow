@@ -14,14 +14,16 @@ function getTimeAgo(dateStr) {
   return `${Math.floor(h / 24)}d ago`;
 }
 
-export default function TopPrayerCard({ request, currentUserId, onPray, onUserClick, onMarkAnswered, onViewTestimony, rank, showDistance }) {
+export default function TopPrayerCard({ request, currentUserId, onOpen, onPray, onUserClick, onMarkAnswered, onViewTestimony, rank, showDistance }) {
   // Use backend-provided isOwner — user.id is null when prayer is anonymized
   const isOwner = request.isOwner ?? (request.user?.id === currentUserId);
   const borderColor = BORDER[rank] || '#e5e7eb';
+  const stop = (fn) => (e) => { e.stopPropagation(); fn && fn(); };
 
   return (
     <div
-      className="bg-white rounded-2xl p-4 relative"
+      onClick={onOpen}
+      className="bg-white rounded-2xl p-4 relative cursor-pointer active:scale-[0.99] transition-transform"
       style={{ border: '1px solid #EFEFEF' }}
     >
       {/* Rank badge — bounces in */}
@@ -42,7 +44,7 @@ export default function TopPrayerCard({ request, currentUserId, onPray, onUserCl
       )}
 
       <div className="flex items-start gap-3 mt-1">
-        <button onClick={!request.isAnonymous ? onUserClick : undefined} className="flex-shrink-0">
+        <button onClick={!request.isAnonymous ? stop(onUserClick) : undefined} className="flex-shrink-0">
           {request.isAnonymous ? (
             <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -64,7 +66,7 @@ export default function TopPrayerCard({ request, currentUserId, onPray, onUserCl
                   <p className="text-xs font-semibold text-gray-500">{request.displayLocation || 'Anonymous Believer'}</p>
                 </div>
               ) : (
-                <button onClick={onUserClick} className="font-semibold text-gray-900 text-sm leading-tight text-left hover:underline">
+                <button onClick={stop(onUserClick)} className="font-semibold text-gray-900 text-sm leading-tight text-left hover:underline">
                   {request.user?.name}
                 </button>
               )}
@@ -97,7 +99,7 @@ export default function TopPrayerCard({ request, currentUserId, onPray, onUserCl
             <div />
             <div className="flex items-center gap-2">
               {isOwner && !request.isAnswered && (
-                <button onClick={onMarkAnswered}
+                <button onClick={stop(onMarkAnswered)}
                   className="text-xs font-semibold text-emerald-600 border border-emerald-200 bg-emerald-50 rounded-xl px-3 py-1.5">
                   Answered
                 </button>
@@ -106,7 +108,7 @@ export default function TopPrayerCard({ request, currentUserId, onPray, onUserCl
                 isOwner ? (
                   <button disabled className="text-xs font-bold rounded-xl px-4 py-2 bg-gray-100 text-gray-400 cursor-not-allowed">Pray Now</button>
                 ) : (
-                  <button onClick={onPray} className="text-xs font-bold px-4 py-2 rounded-xl text-white" style={{ background: '#C0603F' }}>Pray Now</button>
+                  <button onClick={stop(onPray)} className="text-xs font-bold px-4 py-2 rounded-xl text-white" style={{ background: '#C0603F' }}>Pray Now</button>
                 )
               )}
             </div>
