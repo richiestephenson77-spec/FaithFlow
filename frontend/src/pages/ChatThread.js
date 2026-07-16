@@ -273,7 +273,7 @@ export default function ChatThread() {
     if (el) {
       el.scrollIntoView({ behavior: 'smooth', block: 'center' });
       el.style.transition = 'background 0.3s';
-      el.style.background = 'rgba(192,96,63,0.12)';
+      el.style.background = 'rgba(44,64,85,0.12)';
       setTimeout(() => { el.style.background = 'transparent'; }, 900);
     }
   }
@@ -455,7 +455,7 @@ export default function ChatThread() {
                 <button
                   onClick={() => scrollToMessage(m.replyTo.id)}
                   className={`max-w-[78%] mb-0.5 px-3 py-1 rounded-t-xl text-left ${isMe ? 'self-end' : 'self-start'}`}
-                  style={{ background: 'rgba(22,52,73,0.06)', borderLeft: '2px solid #C0603F' }}
+                  style={{ background: 'rgba(22,52,73,0.06)', borderLeft: '2px solid #2C4055' }}
                 >
                   <span className="text-[11px] text-gray-500 line-clamp-1">
                     {m.replyTo.senderId === user?.id ? 'You' : (other?.name || 'Them')}: {snippetFor(m.replyTo)}
@@ -476,7 +476,7 @@ export default function ChatThread() {
                     m.isDeleted
                       ? 'bg-gray-100 text-gray-400 italic rounded-br-sm rounded-bl-sm'
                       : isMe
-                        ? 'bg-[#C0603F] text-white rounded-br-sm'
+                        ? 'bg-[#2C4055] text-white rounded-br-sm'
                         : 'bg-white border border-gray-100 text-gray-800 shadow-sm rounded-bl-sm'
                   }`}
                   style={{ WebkitTouchCallout: 'none' }}
@@ -566,9 +566,9 @@ export default function ChatThread() {
       {/* Reply preview strip above composer */}
       {replyTo && (
         <div className="px-4 pt-2 flex-shrink-0" style={{ background: 'rgba(238,243,245,0.95)' }}>
-          <div className="flex items-center gap-2 rounded-xl px-3 py-2" style={{ background: 'rgba(22,52,73,0.06)', borderLeft: '2px solid #C0603F' }}>
+          <div className="flex items-center gap-2 rounded-xl px-3 py-2" style={{ background: 'rgba(22,52,73,0.06)', borderLeft: '2px solid #2C4055' }}>
             <div className="flex-1 min-w-0">
-              <p className="text-[11px] font-semibold" style={{ color: '#C0603F' }}>
+              <p className="text-[11px] font-semibold" style={{ color: '#2C4055' }}>
                 Replying to {replyTo.senderId === user?.id ? 'yourself' : (other?.name || 'them')}
               </p>
               <p className="text-xs text-gray-500 truncate">{snippetFor(replyTo)}</p>
@@ -599,7 +599,7 @@ export default function ChatThread() {
                 onClick={openPrayerPicker}
                 className="w-full flex items-center gap-3 px-4 py-3 text-sm text-gray-700 active:bg-gray-50 border-t border-gray-100"
               >
-                <span className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: 'rgba(192,96,63,0.12)' }}>🙏</span>
+                <span className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: 'rgba(44,64,85,0.12)' }}>🙏</span>
                 Share a Prayer Request
               </button>
             </div>
@@ -698,7 +698,7 @@ export default function ChatThread() {
                     >
                       <div className="flex items-center gap-1.5 mb-1">
                         <span aria-hidden>🙏</span>
-                        <span className="text-[10px] font-bold uppercase tracking-wide" style={{ color: '#C0603F' }}>{p.category || 'Prayer'}</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wide" style={{ color: '#2C4055' }}>{p.category || 'Prayer'}</span>
                       </div>
                       <p className="text-sm font-semibold text-gray-900 line-clamp-1">{p.title}</p>
                       {p.body && <p className="text-xs text-gray-500 line-clamp-2 mt-0.5">{p.body}</p>}

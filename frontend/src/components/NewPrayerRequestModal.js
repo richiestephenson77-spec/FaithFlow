@@ -96,7 +96,7 @@ function PastorPicker({ selectedPastors, onToggle }) {
                 {p.pastorChurch && <p className="text-xs text-gray-400 truncate">{p.pastorChurch}</p>}
               </div>
               {selectedIds.has(p.id) && (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C0603F" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2C4055" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="20 6 9 17 4 12"/>
                 </svg>
               )}
@@ -241,7 +241,7 @@ export default function NewPrayerRequestModal({ onClose, onCreate, initialBody =
             onClick={handleSubmit}
             disabled={submitDisabled}
             className="text-white text-sm font-medium px-5 py-2 rounded-full transition-colors"
-            style={{ background: submitDisabled ? '#E9B9A6' : '#C0603F' }}
+            style={{ background: submitDisabled ? '#E9B9A6' : '#2C4055' }}
           >
             {loading ? 'Posting…' : 'Post'}
           </button>
@@ -360,7 +360,7 @@ export default function NewPrayerRequestModal({ onClose, onCreate, initialBody =
               type="button"
               onClick={() => setIsUrgent(v => !v)}
               className="relative w-12 h-6 rounded-full transition-colors flex-shrink-0"
-              style={{ background: isUrgent ? '#C0603F' : '#E5E7EB' }}
+              style={{ background: isUrgent ? '#2C4055' : '#E5E7EB' }}
             >
               <span
                 className="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform"

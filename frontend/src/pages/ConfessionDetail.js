@@ -7,7 +7,7 @@ import Avatar from '../components/Avatar';
 import { useAuth } from '../contexts/AuthContext';
 
 const BG = '#EEF3F5';
-const ACCENT = '#C0603F';
+const ACCENT = '#2C4055';
 
 function getTimeAgo(d) {
   const diff = Date.now() - new Date(d);
@@ -230,7 +230,7 @@ export default function ConfessionDetail() {
                       <>
                         <p className="text-sm font-medium" style={{ color: '#163449' }}>{cm.commenter.name}</p>
                         {cm.commenter.prayerWarriorBadge && (
-                          <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(192,96,63,0.12)', color: ACCENT }}>🏆</span>
+                          <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(44,64,85,0.12)', color: ACCENT }}>🏆</span>
                         )}
                       </>
                     )}

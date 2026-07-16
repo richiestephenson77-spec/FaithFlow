@@ -7,7 +7,7 @@ function getStreakMessage(streak) {
   return { title: '🔥 Streak Increased!', sub: 'Every prayer matters.' };
 }
 
-const COLORS = ['#C0603F', '#3b82f6', '#10b981', '#ef4444', '#8b5cf6', '#ffffff'];
+const COLORS = ['#2C4055', '#3b82f6', '#10b981', '#ef4444', '#8b5cf6', '#ffffff'];
 
 function Confetti() {
   const canvasRef = useRef(null);
@@ -62,7 +62,7 @@ export default function StreakCelebration({ streak, onDone }) {
   const isRecord = streak.isRecord;
 
   return (
-    <div className="min-h-screen bg-[#C0603F] flex flex-col items-center justify-center px-6 relative overflow-hidden">
+    <div className="min-h-screen bg-[#2C4055] flex flex-col items-center justify-center px-6 relative overflow-hidden">
       <Confetti />
 
       <div className="relative z-10 text-center text-white">

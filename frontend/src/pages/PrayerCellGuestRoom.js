@@ -137,7 +137,7 @@ export default function PrayerCellGuestRoom() {
                 {status === 'connected' && <HostSoundWave />}
                 <div
                   className="w-20 h-20 rounded-full overflow-hidden relative z-10"
-                  style={{ boxShadow: '0 0 0 3px #C0603F' }}
+                  style={{ boxShadow: '0 0 0 3px #2C4055' }}
                 >
                   <Avatar user={host} size="lg" />
                 </div>
@@ -147,7 +147,7 @@ export default function PrayerCellGuestRoom() {
 
               {host.isVerifiedPastor && (
                 <span className="mt-1 text-xs px-2.5 py-0.5 rounded-full font-medium"
-                  style={{ background: 'rgba(192,96,63,0.2)', color: '#C0603F' }}>
+                  style={{ background: 'rgba(44,64,85,0.2)', color: '#2C4055' }}>
                   ✝️ Pastor
                 </span>
               )}
@@ -155,7 +155,7 @@ export default function PrayerCellGuestRoom() {
               <div className="flex items-center gap-2 mt-4">
                 {status === 'connecting' ? (
                   <>
-                    <Loader size={14} color="#C0603F" className="animate-spin" />
+                    <Loader size={14} color="#2C4055" className="animate-spin" />
                     <p className="text-terracotta-400 text-sm">Connecting...</p>
                   </>
                 ) : (
@@ -173,7 +173,7 @@ export default function PrayerCellGuestRoom() {
                       <circle cx="50" cy="50" r="44" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="4" />
                       <circle
                         cx="50" cy="50" r="44" fill="none"
-                        stroke="#C0603F" strokeWidth="4"
+                        stroke="#2C4055" strokeWidth="4"
                         strokeDasharray={circumference}
                         strokeDashoffset={circumference * (1 - progress)}
                         strokeLinecap="round"
@@ -203,7 +203,7 @@ export default function PrayerCellGuestRoom() {
                 whileTap={{ scale: 0.97 }}
                 onClick={handleLeave}
                 className="mt-8 w-full py-3.5 rounded-full text-white font-semibold text-sm"
-                style={{ background: '#C0603F' }}
+                style={{ background: '#2C4055' }}
               >
                 Leave Room
               </motion.button>
@@ -225,7 +225,7 @@ export default function PrayerCellGuestRoom() {
                 whileTap={{ scale: 0.97 }}
                 onClick={handleLeave}
                 className="mt-8 px-8 py-3.5 rounded-full text-white font-semibold text-sm"
-                style={{ background: '#C0603F' }}
+                style={{ background: '#2C4055' }}
               >
                 Back to Prayer Cells
               </motion.button>

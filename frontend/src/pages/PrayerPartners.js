@@ -8,7 +8,7 @@ import Avatar from '../components/Avatar';
 
 const BG = '#FAFAFA';
 const CARD_BG = '#FFFFFF';
-const GOLD = '#C0603F';
+const GOLD = '#2C4055';
 const GOLD_BG = 'rgba(201,147,47,0.12)';
 
 const TIPS = [

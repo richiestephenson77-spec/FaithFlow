@@ -163,7 +163,7 @@ export default function Settings() {
 
         <Section label="App">
           <SettingsRow
-            Icon={Clock} iconBg="#C0603F"
+            Icon={Clock} iconBg="#2C4055"
             label="Prayer Reminders" sublabel="Set daily prayer time reminders"
             onClick={() => navigate('reminders')}
           />

@@ -54,7 +54,7 @@ export default function BibleDictionary() {
         </div>
 
         <div className="relative">
-          <Search size={16} color="#C0603F" strokeWidth={2.2} className="absolute left-4 top-1/2 -translate-y-1/2" />
+          <Search size={16} color="#2C4055" strokeWidth={2.2} className="absolute left-4 top-1/2 -translate-y-1/2" />
           <input
             value={query}
             onChange={e => setQuery(e.target.value)}

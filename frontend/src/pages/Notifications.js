@@ -17,12 +17,12 @@ function getTimeAgo(dateStr) {
 }
 
 const TYPE_META = {
-  PRAYER_STARTED:          { Icon: Sparkles,      color: '#C0603F', bg: '#fffbeb' },
+  PRAYER_STARTED:          { Icon: Sparkles,      color: '#2C4055', bg: '#fffbeb' },
   PRAYER_ANSWERED:         { Icon: Sparkles,      color: '#10b981', bg: '#f0fdf4' },
   NEW_FOLLOWER:            { Icon: UserPlus,      color: '#6366f1', bg: '#eef2ff' },
   POST_LIKE:               { Icon: Heart,         color: '#ef4444', bg: '#fef2f2' },
   POST_COMMENT:            { Icon: MessageCircle, color: '#3b82f6', bg: '#eff6ff' },
-  PRAYER_PARTNER_MATCHED:  { Icon: Users,         color: '#C0603F', bg: '#fffbeb' },
+  PRAYER_PARTNER_MATCHED:  { Icon: Users,         color: '#2C4055', bg: '#fffbeb' },
 };
 
 function NotificationCard({ n, onFollowBack }) {
@@ -61,7 +61,7 @@ function NotificationCard({ n, onFollowBack }) {
       style={{ background: !n.isRead ? 'rgba(251,191,36,0.06)' : 'transparent' }}
     >
       {!n.isRead && (
-        <div className="absolute left-0 top-4 bottom-4 w-[3px] rounded-r-full" style={{ background: '#C0603F' }} />
+        <div className="absolute left-0 top-4 bottom-4 w-[3px] rounded-r-full" style={{ background: '#2C4055' }} />
       )}
 
       <div className="flex-shrink-0 relative">

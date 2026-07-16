@@ -123,7 +123,7 @@ export default function PostOptionsSheet({ post, onClose, onUpdated, onDeleted, 
                   onClick={handleEdit}
                   disabled={saving || !editContent.trim()}
                   className="flex-1 py-3 rounded-xl text-sm font-semibold text-white transition-colors"
-                  style={{ background: editContent.trim() ? '#C0603F' : '#d1d5db' }}
+                  style={{ background: editContent.trim() ? '#2C4055' : '#d1d5db' }}
                 >
                   {saving ? 'Saving…' : 'Save'}
                 </button>
@@ -146,7 +146,7 @@ export default function PostOptionsSheet({ post, onClose, onUpdated, onDeleted, 
                   onClick={handleArchive}
                   disabled={saving}
                   className="flex-1 py-3 rounded-xl text-sm font-semibold text-white"
-                  style={{ background: '#C0603F' }}
+                  style={{ background: '#2C4055' }}
                 >
                   {saving ? 'Archiving…' : 'Archive'}
                 </button>

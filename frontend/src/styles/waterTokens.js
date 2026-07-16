@@ -11,9 +11,9 @@ export const WATER_NEUTRAL = FLAT_CARD;
 
 // Terracotta accent surface (used by primary buttons)
 export const WATER_GOLD = {
-  background: '#C0603F',
+  background: '#2C4055',
   boxShadow: 'none',
-  border: '1px solid #C0603F',
+  border: '1px solid #2C4055',
 };
 
 // Confession Wall's purple hero is an allowed exception — kept as a flat violet.

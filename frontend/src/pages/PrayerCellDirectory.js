@@ -6,7 +6,7 @@ import api from '../utils/api';
 import Avatar from '../components/Avatar';
 import { useSocket } from '../contexts/SocketContext';
 
-const GOLD = '#C0603F';
+const GOLD = '#2C4055';
 const LIVE_RED = '#ED4956';
 
 function timeAgo(date) {

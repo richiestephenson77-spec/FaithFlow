@@ -8,7 +8,7 @@ import { usePrayerCellAudio } from '../hooks/usePrayerCellAudio';
 import Avatar from '../components/Avatar';
 
 const BG = '#EEF3F5';
-const ACCENT = '#C0603F';
+const ACCENT = '#2C4055';
 const PRAYER_DURATION = 60;
 
 export default function PrayerCellHostRoom() {
@@ -148,7 +148,7 @@ export default function PrayerCellHostRoom() {
                   animate={{ scale: [1, 1.08, 1], opacity: [0.6, 1, 0.6] }}
                   transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
                   className="w-24 h-24 rounded-full flex items-center justify-center"
-                  style={{ background: 'rgba(192,96,63,0.1)', border: `2px solid rgba(192,96,63,0.3)` }}
+                  style={{ background: 'rgba(44,64,85,0.1)', border: `2px solid rgba(44,64,85,0.3)` }}
                 >
                   <Mic size={32} color={ACCENT} strokeWidth={1.5} />
                 </motion.div>

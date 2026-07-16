@@ -29,7 +29,7 @@ export default function ForgotPassword() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#C0603F]" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+    <div className="min-h-screen flex flex-col bg-[#2C4055]" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
       <div className="flex-1 flex flex-col items-center justify-center px-6 py-12">
         <div className="text-white text-center mb-10">
           <Logo size="lg" light={true} />
@@ -45,7 +45,7 @@ export default function ForgotPassword() {
               </p>
               <Link
                 to="/login"
-                className="w-full block bg-[#C0603F] text-white rounded-xl py-3 font-semibold text-sm text-center"
+                className="w-full block bg-[#2C4055] text-white rounded-xl py-3 font-semibold text-sm text-center"
               >
                 Back to Sign In
               </Link>
@@ -76,7 +76,7 @@ export default function ForgotPassword() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-[#C0603F] text-white rounded-xl py-3 font-semibold text-sm disabled:opacity-60"
+                  className="w-full bg-[#2C4055] text-white rounded-xl py-3 font-semibold text-sm disabled:opacity-60"
                 >
                   {loading ? 'Sending...' : 'Send Reset Link'}
                 </button>

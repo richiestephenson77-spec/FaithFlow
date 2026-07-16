@@ -7,7 +7,7 @@ import { WaterPill } from '../components/water';
 
 const CATEGORIES = ['All', 'Anxiety', 'Doubt', 'Relationships', 'Addiction', 'Grief', 'Sin', 'Loneliness', 'Other'];
 const BG = '#EEF3F5';
-const ACCENT = '#C0603F';
+const ACCENT = '#2C4055';
 
 // Confessions are anonymous. Whitelist the ONLY fields the client is allowed to
 // hold, so no author-identifying data (userId/user/author/name) can ever live on

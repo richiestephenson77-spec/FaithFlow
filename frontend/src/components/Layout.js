@@ -48,18 +48,6 @@ export default function Layout() {
 
   return (
     <div className="h-screen bg-gray-50 flex flex-col max-w-md mx-auto relative shadow-xl overflow-hidden" style={{ height: '100dvh' }}>
-      <svg width="0" height="0" style={{ position: 'absolute' }}>
-        <defs>
-          <filter id="droplet-warp-1" x="-30%" y="-30%" width="160%" height="160%">
-            <feTurbulence type="fractalNoise" baseFrequency="0.025 0.04" numOctaves="1" seed="3" result="noise" />
-            <feDisplacementMap in="SourceGraphic" in2="noise" scale="7" xChannelSelector="R" yChannelSelector="G" />
-          </filter>
-          <filter id="droplet-warp-2" x="-30%" y="-30%" width="160%" height="160%">
-            <feTurbulence type="fractalNoise" baseFrequency="0.03 0.02" numOctaves="1" seed="7" result="noise" />
-            <feDisplacementMap in="SourceGraphic" in2="noise" scale="6" xChannelSelector="R" yChannelSelector="G" />
-          </filter>
-        </defs>
-      </svg>
       {showHeader && (
         <header
           className="water-header water-tile-blue px-4 pb-2.5 flex items-center justify-between z-30"
@@ -69,7 +57,7 @@ export default function Layout() {
             {user?.profilePhoto ? (
               <img src={user.profilePhoto} alt={user.name} className="w-9 h-9 rounded-full object-cover" />
             ) : (
-              <div className="w-9 h-9 rounded-full flex items-center justify-center" style={{ background: '#C0603F' }}>
+              <div className="w-9 h-9 rounded-full flex items-center justify-center" style={{ background: '#2C4055' }}>
                 <span className="text-white font-bold text-base">{user?.name?.charAt(0).toUpperCase() || '?'}</span>
               </div>
             )}
@@ -101,9 +89,9 @@ export default function Layout() {
           // Header only renders on Home; every other page needs the top inset
           // here so its own top content doesn't sit under the status bar/notch.
           paddingTop: showHeader ? undefined : 'env(safe-area-inset-top)',
-          // Floating nav sits at safe-bottom + 1rem; clear it (and the
-          // home indicator) with matching bottom padding when it's shown.
-          paddingBottom: hideNav ? undefined : 'calc(6rem + env(safe-area-inset-bottom))',
+          // Nav sits at safe-bottom + 0.5rem with a 48px tap target; clear its
+          // top edge (and the home indicator) with matching bottom padding.
+          paddingBottom: hideNav ? undefined : 'calc(4.5rem + env(safe-area-inset-bottom))',
         }}
       >
         <Outlet />
@@ -121,30 +109,25 @@ export default function Layout() {
 
       {!hideNav && (
         <div
-          className="fixed left-1/2 -translate-x-1/2 flex gap-3 z-30"
-          style={{ bottom: 'calc(1rem + env(safe-area-inset-bottom))' }}
+          className="fixed left-1/2 -translate-x-1/2 flex gap-2 z-30"
+          style={{ bottom: 'calc(0.5rem + env(safe-area-inset-bottom))' }}
         >
-          {navItems.map(({ to, label, Icon, end }, i) => (
-            <NavLink key={to} to={to} end={end} style={{ position: 'relative', zIndex: 1 }}>
+          {navItems.map(({ to, label, Icon, end }) => (
+            <NavLink key={to} to={to} end={end}>
               {({ isActive }) => (
                 <motion.div
                   whileTap={{ scale: 0.88 }}
                   transition={{ type: 'spring', stiffness: 500, damping: 25 }}
-                  className={`droplet-nav droplet-shape-${(i % 5) + 1}`}
-                  style={{ width: 58, height: 58, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}
+                  className="relative flex items-center justify-center"
+                  style={{ width: 48, height: 48 }}
                 >
                   <Icon
-                    size={22}
-                    strokeWidth={isActive ? 2.5 : 1.5}
-                    color={isActive ? '#163449' : 'rgba(22,52,73,0.55)'}
-                    style={{
-                      filter: `url(#droplet-warp-${(i % 2) + 1})`,
-                      position: 'relative',
-                      zIndex: 1,
-                    }}
+                    size={23}
+                    strokeWidth={isActive ? 2.5 : 2}
+                    color={isActive ? '#2C4055' : '#1A1A1A'}
                   />
                   {label === 'Chats' && unreadMessages > 0 && (
-                    <span className="absolute top-1 right-1 bg-red-500 text-white text-[9px] rounded-full w-4 h-4 flex items-center justify-center leading-none font-bold" style={{ zIndex: 3 }}>
+                    <span className="absolute top-1 right-1 bg-red-500 text-white text-[9px] rounded-full w-4 h-4 flex items-center justify-center leading-none font-bold">
                       {unreadMessages > 9 ? '9+' : unreadMessages}
                     </span>
                   )}

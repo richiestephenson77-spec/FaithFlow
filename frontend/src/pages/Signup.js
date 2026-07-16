@@ -81,7 +81,7 @@ export default function Signup() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-[#C0603F] text-white rounded-xl py-3 font-semibold text-sm disabled:opacity-60 mt-2"
+              className="w-full bg-[#2C4055] text-white rounded-xl py-3 font-semibold text-sm disabled:opacity-60 mt-2"
             >
               {step === 1 ? 'Continue' : loading ? 'Creating account...' : 'Join FaithBridge'}
             </button>

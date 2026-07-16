@@ -13,7 +13,6 @@ import TestimonyModal from '../components/TestimonyModal';
 import MyPrayerRequestsDrawer from '../components/MyPrayerRequestsDrawer';
 import TopPrayerCard from '../components/TopPrayerCard';
 import LocationBanner from '../components/LocationBanner';
-import PrayerQueue from './PrayerQueue';
 
 const FILTER_TABS = [
   { id: 'ALL',          label: 'All' },
@@ -92,7 +91,7 @@ function PrayerCard({ request, currentUserId, onOpen, onPray, onUserClick, onMar
             </div>
           </div>
           <div className="flex items-center gap-2 mt-2 mb-1">
-            <h4 className="font-bold text-gray-900 text-sm">{request.title}</h4>
+            <h4 className="font-bold text-gray-900 text-sm" style={{ fontFamily: "'Fraunces', serif" }}>{request.title}</h4>
             {showDistance && request.distanceKm != null && <span className="flex items-center gap-0.5 text-[10px] text-gray-400 whitespace-nowrap"><MapPin size={10} strokeWidth={2} />{request.distanceKm} km</span>}
           </div>
           <p className="text-sm text-gray-500 leading-relaxed line-clamp-3">{request.body}</p>
@@ -113,7 +112,7 @@ function PrayerCard({ request, currentUserId, onOpen, onPray, onUserClick, onMar
                 isOwner ? (
                   <button disabled className="text-xs font-bold rounded-xl px-4 py-2 bg-gray-100 text-gray-400 cursor-not-allowed">Pray Now</button>
                 ) : (
-                  <button onClick={stop(onPray)} className="text-xs font-bold px-4 py-2 rounded-xl text-white" style={{ background: '#C0603F' }}>Pray Now</button>
+                  <button onClick={stop(onPray)} className="text-xs font-bold px-4 py-2 rounded-xl text-white" style={{ background: '#2C4055' }}>Pray Now</button>
                 )
               )}
             </div>
@@ -132,7 +131,6 @@ export default function PrayerPage() {
 
   const [quota, setQuota] = useState(null);
   const [streak, setStreak] = useState(null);
-  const [showQueue, setShowQueue] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [target, setTarget] = useState('5');
   const [savingTarget, setSavingTarget] = useState(false);
@@ -199,12 +197,27 @@ export default function PrayerPage() {
     return () => clearTimeout(t);
   }, [radius]); // eslint-disable-line
 
+  // Quota fetch, hardened: a bare .catch(() => {}) here previously left `quota` stuck at
+  // null forever on any transient failure (e.g. DB connection-pool exhaustion), which
+  // rendered as "0 / –" with no way to recover short of a full reload. Log the error and
+  // retry once after a short delay so a transient blip self-heals.
+  const loadQuota = useCallback(async (isRetry = false) => {
+    try {
+      const res = await api.get('/quota/today');
+      setQuota(res.data);
+      setTarget(String(res.data.target));
+    } catch (err) {
+      console.error('Failed to load quota' + (isRetry ? ' (retry)' : '') + ':', err?.response?.status, err?.message);
+      if (!isRetry) setTimeout(() => loadQuota(true), 1200);
+    }
+  }, []);
+
   useEffect(() => {
-    api.get('/quota/today').then(res => { setQuota(res.data); setTarget(String(res.data.target)); }).catch(() => {});
+    loadQuota();
     api.get('/users/me/dashboard').then(res => { setStreak(res.data.streak || 0); setGratitudeStreak(res.data.gratitudeStreak || 0); }).catch(() => {});
     api.get('/gratitude/today').then(res => setTodayGratitude(res.data)).catch(() => setTodayGratitude(null));
     api.get('/prayer-cells').then(res => setLiveCells(res.data || [])).catch(() => {});
-  }, []);
+  }, [loadQuota]);
 
   // Handle navigate-with-state from Feelings page
   useEffect(() => {
@@ -265,15 +278,6 @@ export default function PrayerPage() {
     return <PrayerSession session={activeSession.session} request={activeSession.request} onEnd={onSessionEnd} />;
   }
 
-  if (showQueue) {
-    return (
-      <PrayerQueue
-        onClose={() => setShowQueue(false)}
-        onComplete={() => api.get('/quota/today').then(res => setQuota(res.data)).catch(() => {})}
-      />
-    );
-  }
-
   async function handleSaveGratitude() {
     if (!gratitudeText.trim()) return;
     setSavingGratitude(true);
@@ -326,17 +330,17 @@ export default function PrayerPage() {
           initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, ease: 'easeOut' }}
           className="flex items-center gap-3 mb-2.5"
         >
-          <h2 className="text-xl font-bold leading-tight" style={{ color: '#163449' }}>
+          <h2 className="text-xl font-bold leading-tight" style={{ color: '#163449', fontFamily: "'Fraunces', serif" }}>
             Who will you pray for today?
           </h2>
           {streak !== null && streak > 0 && (
             <motion.span
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.15, duration: 0.3 }}
               className="flex items-center gap-1 px-2 py-1 rounded-full flex-shrink-0 self-start mt-0.5"
-              style={{ background: 'rgba(192,96,63,0.15)' }}
+              style={{ background: 'rgba(44,64,85,0.15)' }}
             >
-              <Flame size={11} strokeWidth={2} color="#C0603F" />
-              <span className="text-[11px] font-semibold" style={{ color: '#C0603F' }}>{streak}</span>
+              <Flame size={11} strokeWidth={2} color="#2C4055" />
+              <span className="text-[11px] font-semibold" style={{ color: '#2C4055' }}>{streak}</span>
             </motion.span>
           )}
         </motion.div>
@@ -349,7 +353,7 @@ export default function PrayerPage() {
         >
           <div className="flex items-center justify-between mb-2.5">
             <div className="flex items-center gap-2">
-              <Target size={15} strokeWidth={1.5} color="#C0603F" />
+              <Target size={15} strokeWidth={1.5} color="#2C4055" />
               <p className="text-xs font-medium" style={{ color: '#163449' }}>Daily Goal</p>
             </div>
             <div className="flex items-center gap-3">
@@ -365,7 +369,7 @@ export default function PrayerPage() {
               animate={{ width: `${pct}%` }}
               transition={{ duration: 0.8, ease: 'easeOut', delay: 0.3 }}
               className="h-full rounded-full"
-              style={{ background: '#C0603F' }}
+              style={{ background: '#2C4055' }}
             />
           </div>
           {quota?.isComplete && <p className="text-xs font-medium mt-2" style={{ color: '#6B7680' }}>Goal complete for today</p>}
@@ -377,7 +381,7 @@ export default function PrayerPage() {
           whileTap={{ scale: 0.98 }}
           onClick={startImmersive}
           className="w-full mt-2.5 flex items-center justify-center gap-2 text-white font-semibold text-sm"
-          style={{ background: '#C0603F', borderRadius: 14, height: 46 }}
+          style={{ background: '#2C4055', borderRadius: 14, height: 46 }}
         >
           <Play size={15} strokeWidth={2} /> Start praying
         </motion.button>
@@ -392,7 +396,7 @@ export default function PrayerPage() {
             className="bg-white rounded-2xl flex-1 text-left px-3 py-2.5 flex items-center gap-2"
             style={{ border: '1px solid #EFEFEF' }}
           >
-            <Sparkles size={15} strokeWidth={1.8} color="#C0603F" className="flex-shrink-0" />
+            <Sparkles size={15} strokeWidth={1.8} color="#2C4055" className="flex-shrink-0" />
             <span className="font-semibold text-xs" style={{ color: '#163449' }}>Today's Grace</span>
             {gratitudeStreak > 0 && (
               <span className="flex items-center gap-0.5 text-[10px] ml-auto" style={{ color: '#6B7680' }}>
@@ -406,7 +410,7 @@ export default function PrayerPage() {
             className="bg-white rounded-2xl flex-1 text-left px-3 py-2.5 flex items-center gap-2"
             style={{ border: '1px solid #EFEFEF' }}
           >
-            <HeartHandshake size={15} strokeWidth={1.8} color="#C0603F" className="flex-shrink-0" />
+            <HeartHandshake size={15} strokeWidth={1.8} color="#2C4055" className="flex-shrink-0" />
             <span className="font-semibold text-xs" style={{ color: '#163449' }}>Need a verse</span>
           </button>
         </motion.div>
@@ -416,14 +420,6 @@ export default function PrayerPage() {
       <div className="bg-gray-50 px-4 pt-4">
         {/* Action buttons */}
         <motion.div {...fadeUp} transition={{ delay: 0.05, duration: 0.3 }} className="flex gap-2 mb-3">
-          <button
-            onClick={() => setShowQueue(true)}
-            className="flex-1 flex items-center justify-center gap-2 text-sm font-semibold text-white rounded-xl"
-            style={{ height: 40, background: '#C0603F' }}
-          >
-            <Play size={14} strokeWidth={2} />
-            Start Prayers
-          </button>
           <button
             onClick={() => setShowNewRequest(true)}
             className="flex-1 flex items-center justify-center gap-2 text-sm font-semibold bg-white rounded-xl"
@@ -608,7 +604,7 @@ export default function PrayerPage() {
         ) : filteredTop3.length === 0 && filteredRest.length === 0 ? (
           <motion.div {...fadeIn} className="text-center py-16">
             <div className="bg-white" style={{ width: 64, height: 64, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', border: '1px solid #EFEFEF' }}>
-              <BookOpen size={26} strokeWidth={1.5} color="#C0603F" />
+              <BookOpen size={26} strokeWidth={1.5} color="#2C4055" />
             </div>
             <p className="font-semibold text-gray-700">{nearMe ? 'No prayers found nearby' : 'No prayer requests yet'}</p>
             <p className="text-sm text-gray-400 mt-1">{nearMe ? `Try increasing the radius beyond ${radius} km` : 'Be the first to share one!'}</p>
@@ -620,7 +616,7 @@ export default function PrayerPage() {
                 <motion.div {...fadeIn} className="flex items-start gap-2 mb-3">
                   <TrendingUp size={14} strokeWidth={1.8} className="text-gray-400 mt-0.5 flex-shrink-0" />
                   <div>
-                    <p className="font-bold text-gray-900 text-base">{nearMe ? 'Top Prayers Near You' : 'Top Prayers Worldwide'}</p>
+                    <p className="font-bold text-gray-900 text-base" style={{ fontFamily: "'Fraunces', serif" }}>{nearMe ? 'Top Prayers Near You' : 'Top Prayers Worldwide'}</p>
                     <p className="text-xs text-gray-400 mt-0.5">{nearMe ? `Within ${radius} km · sorted by most prayed` : 'Updated live · sorted by most prayed'}</p>
                   </div>
                 </motion.div>
@@ -740,7 +736,7 @@ export default function PrayerPage() {
                 onClick={handleSaveGratitude}
                 disabled={!gratitudeText.trim() || savingGratitude}
                 className="w-full mt-5 py-3.5 text-[15px] font-bold text-white rounded-xl disabled:opacity-45"
-                style={{ background: '#C0603F' }}
+                style={{ background: '#2C4055' }}
               >
                 {savingGratitude ? 'Saving…' : 'Save'}
               </button>
@@ -780,7 +776,7 @@ function QuotaSettingsSheet({ current, onSave, onClose, saving }) {
               className="flex-1 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-faith-400" />
             <button onClick={() => custom && onSave(custom)} disabled={saving || !custom}
               className="font-bold px-4 py-2.5 text-sm text-white rounded-xl disabled:opacity-45"
-              style={{ background: '#C0603F' }}>
+              style={{ background: '#2C4055' }}>
               {saving ? '...' : 'Set'}
             </button>
           </div>

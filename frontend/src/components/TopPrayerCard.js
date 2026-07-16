@@ -77,7 +77,7 @@ export default function TopPrayerCard({ request, currentUserId, onOpen, onPray, 
             <span className="text-[10px] text-gray-400 whitespace-nowrap mt-0.5 mr-8">{getTimeAgo(request.createdAt)}</span>
           </div>
 
-          <h4 className="font-bold text-gray-900 text-sm mt-2 mb-1">{request.title}</h4>
+          <h4 className="font-bold text-gray-900 text-sm mt-2 mb-1" style={{ fontFamily: "'Fraunces', serif" }}>{request.title}</h4>
           <p className="text-sm text-gray-500 leading-relaxed line-clamp-2">{request.body}</p>
 
           {/* Live count — re-animates when count changes */}
@@ -87,7 +87,7 @@ export default function TopPrayerCard({ request, currentUserId, onOpen, onPray, 
             animate={{ scale: 1 }}
             transition={{ duration: 0.3 }}
             className="text-xs font-semibold mt-2 flex items-center gap-1"
-            style={{ color: '#C0603F' }}
+            style={{ color: '#2C4055' }}
           >
             <Globe size={11} strokeWidth={2} /> {request.prayerCount} {request.prayerCount === 1 ? 'person' : 'people'} praying worldwide
           </motion.p>
@@ -108,7 +108,7 @@ export default function TopPrayerCard({ request, currentUserId, onOpen, onPray, 
                 isOwner ? (
                   <button disabled className="text-xs font-bold rounded-xl px-4 py-2 bg-gray-100 text-gray-400 cursor-not-allowed">Pray Now</button>
                 ) : (
-                  <button onClick={stop(onPray)} className="text-xs font-bold px-4 py-2 rounded-xl text-white" style={{ background: '#C0603F' }}>Pray Now</button>
+                  <button onClick={stop(onPray)} className="text-xs font-bold px-4 py-2 rounded-xl text-white" style={{ background: '#2C4055' }}>Pray Now</button>
                 )
               )}
             </div>

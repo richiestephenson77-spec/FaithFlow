@@ -14,7 +14,7 @@ const SLIDES = [
   },
   {
     id: 'prayer',
-    bg: '#8A3F27',
+    bg: '#1E2D3D',
     Icon: Hand,
     title: 'Pray For Others',
     subtitle: 'Join thousands of believers praying for each other daily',
@@ -146,8 +146,8 @@ export default function Onboarding() {
                 style={{ width: 100, height: 100 }}
               >
                 {/* Glow rings */}
-                <div className="absolute rounded-full" style={{ width: 100, height: 100, background: 'rgba(192,96,63,0.12)', filter: 'blur(12px)' }} />
-                <div className="absolute rounded-full" style={{ width: 70, height: 70, background: 'rgba(192,96,63,0.18)', filter: 'blur(6px)' }} />
+                <div className="absolute rounded-full" style={{ width: 100, height: 100, background: 'rgba(44,64,85,0.12)', filter: 'blur(12px)' }} />
+                <div className="absolute rounded-full" style={{ width: 70, height: 70, background: 'rgba(44,64,85,0.18)', filter: 'blur(6px)' }} />
                 <span style={{ fontSize: 52 }}>✝️</span>
               </motion.div>
             )}
@@ -197,7 +197,7 @@ export default function Onboarding() {
               </div>
               <div className="mt-3 flex items-center gap-2">
                 <div className="flex-1 h-7 rounded-full" style={{ background: 'rgba(255,255,255,0.15)' }} />
-                <div className="w-16 h-7 rounded-full" style={{ background: 'rgba(192,96,63,0.6)' }} />
+                <div className="w-16 h-7 rounded-full" style={{ background: 'rgba(44,64,85,0.6)' }} />
               </div>
             </motion.div>
           )}
@@ -211,7 +211,7 @@ export default function Onboarding() {
               whileTap={{ scale: 0.96 }}
               onClick={complete}
               className="mt-10 font-bold text-base rounded-full px-10 py-4"
-              style={{ background: '#C0603F', color: '#FFFFFF' }}
+              style={{ background: '#2C4055', color: '#FFFFFF' }}
             >
               Get Started
             </motion.button>

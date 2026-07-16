@@ -220,8 +220,8 @@ export default function Home() {
           <div className="flex items-center justify-between" style={{ position: 'relative', zIndex: 1 }}>
             <span className="font-bold text-base" style={{ color: '#163449' }}>Prayer Room</span>
             <div className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#C0603F] animate-pulse" />
-              <span className="text-[11px] font-semibold" style={{ color: '#C0603F' }}>
+              <span className="w-1.5 h-1.5 rounded-full bg-[#2C4055] animate-pulse" />
+              <span className="text-[11px] font-semibold" style={{ color: '#2C4055' }}>
                 {liveCount != null ? `${liveCount} praying now` : 'Open'}
               </span>
             </div>

@@ -5,7 +5,7 @@ import { ChevronLeft, ChevronUp, Globe } from 'lucide-react';
 import api from '../utils/api';
 import { useSocket } from '../contexts/SocketContext';
 
-const ACCENT = '#C0603F';
+const ACCENT = '#2C4055';
 const DASH_EMPTY = '#E5E3DE';
 
 function firstName(person) {
@@ -16,8 +16,8 @@ function Avatar72({ request }) {
   const person = request.user;
   if (request.isAnonymous) {
     return (
-      <div className="rounded-full flex items-center justify-center" style={{ width: 72, height: 72, background: 'rgba(192,96,63,0.12)' }}>
-        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#C0603F" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <div className="rounded-full flex items-center justify-center" style={{ width: 72, height: 72, background: 'rgba(44,64,85,0.12)' }}>
+        <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#2C4055" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
           <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
         </svg>
       </div>
@@ -141,7 +141,7 @@ export default function PrayerImmersive() {
       <div className="fixed inset-0 z-50 flex flex-col" style={{ background: '#FAFAF8' }}>
         {TopBar}
         <div className="flex-1 flex flex-col items-center justify-center text-center px-8">
-          <div className="rounded-full flex items-center justify-center mb-5" style={{ width: 72, height: 72, background: 'rgba(192,96,63,0.12)' }}>
+          <div className="rounded-full flex items-center justify-center mb-5" style={{ width: 72, height: 72, background: 'rgba(44,64,85,0.12)' }}>
             <span style={{ fontSize: 32 }}>🙏</span>
           </div>
           <p className="text-lg font-medium" style={{ color: '#1A1A1A' }}>You've prayed through today's list</p>
@@ -230,7 +230,7 @@ export default function PrayerImmersive() {
                   style={{
                     borderRadius: 14,
                     padding: '15px 0',
-                    background: hasPrayed ? 'rgba(192,96,63,0.12)' : ACCENT,
+                    background: hasPrayed ? 'rgba(44,64,85,0.12)' : ACCENT,
                     color: hasPrayed ? ACCENT : '#FFFFFF',
                   }}
                 >
