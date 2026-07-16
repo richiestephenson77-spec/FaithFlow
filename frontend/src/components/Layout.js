@@ -16,11 +16,13 @@ const navItems = [
   { to: '/profile', label: 'Profile', Icon: User },
 ];
 
-const HIDE_HEADER_ON = ['/profile'];
+// Bible Maps is fully immersive (no header, no nav — floating back button instead)
+const HIDE_HEADER_ON = ['/profile', '/bible-maps'];
 // Individual chat threads (/messages/:id) go immersive — the /messages list keeps its frame
 const HIDE_NAV_ON = ['/messages/'];
-// Confession wall + detail hide the nav (immersive, back-arrow to leave) but KEEP the header
-const HIDE_NAV_EXACT = ['/confessions'];
+// Confession wall + detail hide the nav (immersive, back-arrow to leave) but KEEP the header.
+// Bible Maps hides the nav too (its own hideHeader entry above hides the header).
+const HIDE_NAV_EXACT = ['/confessions', '/bible-maps'];
 
 export default function Layout() {
   const { notifications, unreadCount, unreadMessages } = useSocket();

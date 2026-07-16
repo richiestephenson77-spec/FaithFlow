@@ -147,9 +147,20 @@ export default function BibleMaps() {
 
   if (!MAPBOX_TOKEN) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-8" style={{ background: '#F6F1E4' }}>
-        <button onClick={() => navigate(-1)} className="absolute top-5 left-4 p-1">
-          <ChevronLeft size={22} color="#232B38" strokeWidth={2} />
+      <div className="fixed inset-0 z-40 flex flex-col items-center justify-center px-8" style={{ background: '#F6F1E4' }}>
+        <button
+          onClick={() => navigate(-1)}
+          className="rounded-full flex items-center justify-center"
+          style={{
+            position: 'absolute',
+            top: 'calc(env(safe-area-inset-top) + 12px)',
+            left: 12,
+            width: 36, height: 36,
+            background: 'rgba(255,255,255,0.9)',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+          }}
+        >
+          <ChevronLeft size={20} color="#163449" strokeWidth={2} />
         </button>
         <p className="font-semibold text-center" style={{ color: '#232B38' }}>Bible Maps needs setup</p>
         <p className="text-sm text-center mt-2 leading-relaxed" style={{ color: '#5C6270' }}>
@@ -161,7 +172,7 @@ export default function BibleMaps() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: '#F6F1E4' }}>
+    <div className="fixed inset-0 z-40 flex flex-col" style={{ background: '#F6F1E4' }}>
       {/* Map area */}
       <div className="relative" style={{ height: '68vh' }}>
         <Map
@@ -241,15 +252,29 @@ export default function BibleMaps() {
           <span className="text-[10px] text-right self-end" style={{ color: 'rgba(92,98,112,0.5)' }}>© Mapbox</span>
         </div>
 
-        {/* Header */}
-        <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 pt-5 z-10">
-          <button
-            onClick={() => navigate(-1)}
-            className="w-9 h-9 rounded-full backdrop-blur flex items-center justify-center border"
-            style={{ background: 'rgba(252,250,243,0.9)', borderColor: '#DED2B0' }}
-          >
-            <ChevronLeft size={20} color="#232B38" strokeWidth={2} />
-          </button>
+        {/* Floating back button — standalone, respects safe area */}
+        <button
+          onClick={() => navigate(-1)}
+          className="rounded-full flex items-center justify-center"
+          style={{
+            position: 'absolute',
+            top: 'calc(env(safe-area-inset-top) + 12px)',
+            left: 12,
+            width: 36, height: 36,
+            background: 'rgba(255,255,255,0.9)',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+            zIndex: 20,
+          }}
+        >
+          <ChevronLeft size={20} color="#163449" strokeWidth={2} />
+        </button>
+
+        {/* Header — title/era pills; spacer keeps them clear of the floating back button */}
+        <div
+          className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 z-10"
+          style={{ paddingTop: 'calc(env(safe-area-inset-top) + 20px)' }}
+        >
+          <div style={{ width: 36, flexShrink: 0 }} />
           <span
             className="backdrop-blur rounded-full px-4 py-2 text-sm font-medium border"
             style={{
@@ -275,7 +300,10 @@ export default function BibleMaps() {
         </div>
 
         {/* Zoom controls */}
-        <div className="absolute top-20 right-4 flex flex-col gap-2 z-10">
+        <div
+          className="absolute right-4 flex flex-col gap-2 z-10"
+          style={{ top: 'calc(env(safe-area-inset-top) + 64px)' }}
+        >
           <button
             onClick={zoomIn}
             className="w-10 h-10 rounded-full backdrop-blur border flex items-center justify-center text-xl font-light"
@@ -398,10 +426,13 @@ export default function BibleMaps() {
         </AnimatePresence>
       </div>
 
-      {/* Timeline panel */}
+      {/* Timeline panel — clears the home indicator now that the global nav is hidden here.
+          paddingBottom is additive with the base 1rem (pb-4) via calc(): an inline style always
+          wins the cascade over a class, so a bare env()-only value here would zero out pb-4 on
+          non-notch devices instead of adding to it. */}
       <div
-        className="flex-1 rounded-t-3xl px-5 pt-3 pb-4 -mt-4 relative z-10 border-t"
-        style={{ background: '#FCFAF3', borderColor: '#DED2B0' }}
+        className="flex-1 rounded-t-3xl px-5 pt-3 -mt-4 relative z-10 border-t overflow-y-auto"
+        style={{ background: '#FCFAF3', borderColor: '#DED2B0', paddingBottom: 'calc(1rem + env(safe-area-inset-bottom))' }}
       >
         <AnimatePresence mode="wait">
           <motion.div
