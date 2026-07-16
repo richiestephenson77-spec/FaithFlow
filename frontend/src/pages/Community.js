@@ -184,7 +184,7 @@ function NewPostModal({ onClose, onCreate }) {
                 <div key={i} className="relative flex-shrink-0">
                   {p.type === 'VIDEO'
                     ? <video src={p.url} className="w-24 h-24 rounded-xl object-cover" muted />
-                    : <img src={p.url} alt="" className="w-24 h-24 rounded-xl object-cover" />
+                    : <img loading="lazy" decoding="async" src={p.url} alt="" className="w-24 h-24 rounded-xl object-cover" />
                   }
                   <button onClick={() => {
                     setPreviews(prev => prev.filter((_, j) => j !== i));
@@ -289,7 +289,7 @@ function PostCard({ post, onLike, onUserClick }) {
             <video ref={videoRef} src={current.url} muted loop playsInline
               className="w-full max-h-96 object-cover" />
           ) : (
-            <img src={current.url} alt="" className="w-full max-h-96 object-cover" />
+            <img loading="lazy" decoding="async" src={current.url} alt="" className="w-full max-h-96 object-cover" />
           )}
           {media.length > 1 && (
             <>

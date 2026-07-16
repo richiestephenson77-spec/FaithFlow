@@ -51,6 +51,7 @@ import PrayerCellGuestRoom from './pages/PrayerCellGuestRoom';
 import Layout from './components/Layout';
 import LoadingScreen from './components/LoadingScreen';
 import ErrorBoundary from './components/ErrorBoundary';
+import { ToastProvider } from './contexts/ToastContext';
 
 function PrivateRoute({ children }) {
   const { user, loading } = useAuth();
@@ -150,7 +151,9 @@ export default function App() {
         <PageViewTracker />
         {/* Top-level safety net — catches shell/provider errors too */}
         <ErrorBoundary>
-          <AppRoutes />
+          <ToastProvider>
+            <AppRoutes />
+          </ToastProvider>
         </ErrorBoundary>
       </BrowserRouter>
     </AuthProvider>

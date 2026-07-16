@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight, Mic, Award, BadgeCheck } from 'lucide-react'
 import api from '../utils/api';
 import Avatar from '../components/Avatar';
 import { useSocket } from '../contexts/SocketContext';
+import { useToast } from '../contexts/ToastContext';
 
 const GOLD = '#2C4055';
 const LIVE_RED = '#ED4956';
@@ -42,6 +43,7 @@ function LiveAvatar({ user }) {
 export default function PrayerCellDirectory() {
   const navigate = useNavigate();
   const { socket } = useSocket();
+  const showToast = useToast();
   const [activeCells, setActiveCells] = useState([]);
   const [recentCells, setRecentCells] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -79,8 +81,11 @@ export default function PrayerCellDirectory() {
     setStarting(true);
     try {
       const res = await api.post('/prayer-cells/start');
+      showToast('Prayer cell started');
       navigate(`/prayer-cells/${res.data.id}/host`);
-    } catch {}
+    } catch (err) {
+      showToast(err.friendlyMessage || 'Could not start prayer cell', 'error');
+    }
     setStarting(false);
   }
 
@@ -104,7 +109,7 @@ export default function PrayerCellDirectory() {
         transition={{ duration: 0.3 }}
         className="px-4 pt-5 pb-4 flex items-center gap-3"
       >
-        <button onClick={() => navigate(-1)} className="p-1 -ml-1 flex-shrink-0">
+        <button onClick={() => navigate(-1)} aria-label="Back" className="p-1 -ml-1 flex-shrink-0">
           <ChevronLeft size={22} color="#262626" strokeWidth={2} />
         </button>
         <div>

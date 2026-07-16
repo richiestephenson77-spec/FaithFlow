@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronUp, Globe } from 'lucide-react';
 import api from '../utils/api';
 import { useSocket } from '../contexts/SocketContext';
 import { hapticMedium, hapticSuccess } from '../utils/haptics';
+import { useToast } from '../contexts/ToastContext';
 
 const ACCENT = '#2C4055';
 const DASH_EMPTY = '#E5E3DE';
@@ -25,7 +26,7 @@ function Avatar72({ request }) {
     );
   }
   if (person?.profilePhoto) {
-    return <img src={person.profilePhoto} alt={person.name} className="rounded-full object-cover" style={{ width: 72, height: 72 }} />;
+    return <img loading="lazy" decoding="async" src={person.profilePhoto} alt={person.name} className="rounded-full object-cover" style={{ width: 72, height: 72 }} />;
   }
   const initials = person?.name?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || '?';
   return (
@@ -47,6 +48,7 @@ export default function PrayerImmersive() {
   const navigate = useNavigate();
   const location = useLocation();
   const { socket } = useSocket();
+  const showToast = useToast();
 
   const stateQueue = location.state?.queue;
   const [queue, setQueue] = useState(Array.isArray(stateQueue) ? stateQueue : null);
@@ -111,6 +113,7 @@ export default function PrayerImmersive() {
       await api.post(`/prayers/session/${startRes.data.id}/end`);
       const q = await api.post('/quota/complete-prayer', { prayerRequestId: current.id });
       hapticSuccess();
+      showToast('Prayer recorded');
       setPrayedIds(prev => new Set(prev).add(current.id));
       if (q.data && q.data.target != null) setQuota(prevQ => ({ ...(prevQ || {}), completed: q.data.completed, target: q.data.target, isComplete: q.data.isComplete }));
       // Optimistically bump the worldwide count (socket may also update it)

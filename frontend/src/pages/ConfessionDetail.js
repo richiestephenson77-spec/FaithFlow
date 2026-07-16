@@ -141,7 +141,7 @@ export default function ConfessionDetail() {
     <div className="h-full flex flex-col" style={{ background: BG }}>
       {/* Header */}
       <div className="flex items-center gap-3 px-4 pt-5 pb-3" style={{ borderBottom: '1px solid rgba(22,52,73,0.08)' }}>
-        <button onClick={() => navigate(-1)} className="p-1 -ml-1">
+        <button onClick={() => navigate(-1)} aria-label="Back" className="p-1 -ml-1">
           <ChevronLeft size={22} color="#163449" strokeWidth={2} />
         </button>
         <h2 className="text-base font-semibold" style={{ color: '#163449' }}>Confession</h2>

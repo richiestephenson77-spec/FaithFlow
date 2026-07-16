@@ -52,7 +52,7 @@ export default function FindChurchDetail() {
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }} className="relative h-[220px] overflow-hidden">
         {church.photos && church.photos.length > 0 ? (
           church.photos.length === 1 ? (
-            <img src={church.photos[0]} alt={church.name} className="w-full h-full object-cover" />
+            <img loading="lazy" decoding="async" src={church.photos[0]} alt={church.name} className="w-full h-full object-cover" />
           ) : (
             <div className="flex h-full overflow-x-auto no-scrollbar snap-x">
               {church.photos.map((p, i) => (
@@ -68,6 +68,7 @@ export default function FindChurchDetail() {
 
         <button
           onClick={() => navigate(-1)}
+          aria-label="Back"
           className="absolute top-4 left-4 w-9 h-9 rounded-full bg-black/40 flex items-center justify-center"
         >
           <ChevronLeft size={20} color="white" strokeWidth={2} />

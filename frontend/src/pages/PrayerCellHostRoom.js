@@ -6,6 +6,7 @@ import api from '../utils/api';
 import { useSocket } from '../contexts/SocketContext';
 import { usePrayerCellAudio } from '../hooks/usePrayerCellAudio';
 import Avatar from '../components/Avatar';
+import { useToast } from '../contexts/ToastContext';
 
 const BG = '#EEF3F5';
 const ACCENT = '#2C4055';
@@ -15,6 +16,7 @@ export default function PrayerCellHostRoom() {
   const { cellId } = useParams();
   const navigate = useNavigate();
   const { socket } = useSocket();
+  const showToast = useToast();
   const { getLocalStream, makeOffer, handleAnswer, handleIce, endCall, toggleMute } = usePrayerCellAudio();
 
   const [phase, setPhase] = useState('waiting'); // waiting | praying | complete
@@ -103,6 +105,7 @@ export default function PrayerCellHostRoom() {
     try { await api.post(`/prayer-cells/${cellId}/end`); } catch {}
     if (socket) socket.emit('cell:ended', { cellId });
     endCall();
+    showToast('Prayer cell ended');
     navigate('/prayer-cells', { replace: true });
   }
 

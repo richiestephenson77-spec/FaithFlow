@@ -15,6 +15,7 @@ import TopPrayerCard from '../components/TopPrayerCard';
 import LocationBanner from '../components/LocationBanner';
 import { hapticMedium, hapticSuccess } from '../utils/haptics';
 import PullToRefresh from '../components/PullToRefresh';
+import { useToast } from '../contexts/ToastContext';
 
 const FILTER_TABS = [
   { id: 'ALL',          label: 'All' },
@@ -129,6 +130,7 @@ export default function PrayerPage() {
   const { user } = useAuth();
   const { socket } = useSocket();
   const navigate = useNavigate();
+  const showToast = useToast();
   const location = useLocation();
 
   const [quota, setQuota] = useState(null);
@@ -287,13 +289,16 @@ export default function PrayerPage() {
     try {
       const res = await api.post('/gratitude', { content: gratitudeText, mood: gratitudeMood, isPublic: gratitudePublic });
       hapticSuccess();
+      showToast('Gratitude saved');
       setTodayGratitude(res.data.entry);
       setGratitudeStreak(res.data.streak || gratitudeStreak);
       setShowGratitudeSheet(false);
       setGratitudeText('');
       setGratitudeMood(null);
       setGratitudePublic(false);
-    } catch {}
+    } catch (err) {
+      showToast(err.friendlyMessage || 'Could not save gratitude', 'error');
+    }
     setSavingGratitude(false);
   }
 
@@ -684,7 +689,7 @@ export default function PrayerPage() {
                   <Sparkles size={16} strokeWidth={1.5} color="#262626" />
                   <span className="font-bold text-[17px] text-gray-900">Today's Grace</span>
                 </div>
-                <button onClick={() => setShowGratitudeSheet(false)}>
+                <button onClick={() => setShowGratitudeSheet(false)} aria-label="Close">
                   <X size={20} strokeWidth={1.8} color="#8E8E8E" />
                 </button>
               </div>

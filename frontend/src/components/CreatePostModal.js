@@ -111,7 +111,7 @@ export default function CreatePostModal({ onClose, onCreate }) {
             {mediaPreview ? (
               mediaType === 'VIDEO'
                 ? <video src={mediaPreview} className="w-full max-h-80 object-contain" controls />
-                : <img src={mediaPreview} alt="preview" className="w-full max-h-80 object-contain" />
+                : <img loading="lazy" decoding="async" src={mediaPreview} alt="preview" className="w-full max-h-80 object-contain" />
             ) : (
               <div className="text-center px-8">
                 <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
@@ -177,7 +177,7 @@ export default function CreatePostModal({ onClose, onCreate }) {
                 <div className="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 bg-gray-100">
                   {mediaType === 'VIDEO'
                     ? <video src={mediaPreview} className="w-full h-full object-cover" />
-                    : <img src={mediaPreview} alt="" className="w-full h-full object-cover" />}
+                    : <img loading="lazy" decoding="async" src={mediaPreview} alt="" className="w-full h-full object-cover" />}
                 </div>
               )}
               {!mediaPreview && <Avatar user={user} size="md" />}

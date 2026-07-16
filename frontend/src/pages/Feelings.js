@@ -16,7 +16,7 @@ export default function Feelings() {
     <div className="min-h-full bg-gray-50">
       {/* Header */}
       <div className="bg-white border-b border-gray-100 px-4 py-3 flex items-center gap-3 sticky top-0 z-20">
-        <button onClick={() => navigate(-1)} className="w-9 h-9 flex items-center justify-center">
+        <button onClick={() => navigate(-1)} aria-label="Back" className="w-9 h-9 flex items-center justify-center">
           <ArrowLeft size={20} strokeWidth={1.8} color="#262626" />
         </button>
         <div className="flex-1">
@@ -26,7 +26,7 @@ export default function Feelings() {
           )}
         </div>
         {selected && (
-          <button onClick={() => setSelected(null)} className="w-9 h-9 flex items-center justify-center">
+          <button onClick={() => setSelected(null)} aria-label="Clear selection" className="w-9 h-9 flex items-center justify-center">
             <X size={18} strokeWidth={1.8} color="#8E8E8E" />
           </button>
         )}

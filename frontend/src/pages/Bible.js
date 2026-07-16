@@ -499,6 +499,7 @@ export default function Bible() {
                 <h3 className="text-xl font-bold text-gray-900 capitalize">{wordPopup.word}</h3>
                 <button
                   onClick={() => { setWordPopup(null); setWordData(null); }}
+                  aria-label="Close"
                   className="w-7 h-7 bg-gray-100 rounded-full flex items-center justify-center"
                 >
                   <X size={14} className="text-gray-500" />

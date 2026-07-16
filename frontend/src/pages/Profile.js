@@ -8,6 +8,7 @@ import { track } from '../utils/analytics';
 import { useAuth } from '../contexts/AuthContext';
 import PostGrid from '../components/PostGrid';
 import FollowListModal from '../components/FollowListModal';
+import { useToast } from '../contexts/ToastContext';
 
 const VIS_OPTS = {
   PUBLIC:      { label: 'Public',      Icon: Globe,  bg: 'bg-gray-100',   text: 'text-gray-500' },
@@ -46,6 +47,7 @@ export default function Profile() {
   const { id } = useParams();
   const { user: me, updateUser } = useAuth();
   const navigate = useNavigate();
+  const showToast = useToast();
   const isOwnProfile = !id || id === me?.id;
   const profileId = id || me?.id;
 
@@ -108,14 +110,20 @@ export default function Profile() {
         ...p,
         _count: { ...p._count, followers: p._count.followers + (res.data.following ? 1 : -1) },
       }));
-    } catch {}
+      showToast(res.data.following ? `Following ${profile?.name?.split(' ')[0] || ''}`.trim() : 'Unfollowed');
+    } catch (err) {
+      showToast(err.friendlyMessage || 'Could not update follow', 'error');
+    }
   }
 
   async function deletePrayer(prayer) {
     try {
       await api.delete(`/prayers/${prayer.id}`);
       setProfile(p => ({ ...p, prayerRequests: p.prayerRequests.filter(r => r.id !== prayer.id) }));
-    } catch {}
+      showToast('Prayer request deleted');
+    } catch (err) {
+      showToast(err.friendlyMessage || 'Could not delete request', 'error');
+    }
     setDeletingPrayer(null);
   }
 
@@ -131,7 +139,10 @@ export default function Profile() {
       updateUser(res.data);
       setEditing(false);
       setPreviewProfile(null);
-    } catch {}
+      showToast('Profile updated');
+    } catch (err) {
+      showToast(err.friendlyMessage || 'Could not save profile', 'error');
+    }
     setSaving(false);
   }
 

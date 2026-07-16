@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Users, ChevronLeft, Zap, Clock, Award, HandHeart } from 'lucide-react';
 import api from '../utils/api';
 import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
 import Avatar from '../components/Avatar';
 
 const BG = '#FAFAFA';
@@ -402,6 +403,7 @@ function MatchCelebration({ partnerName, onDismiss }) {
 export default function PrayerPartners() {
   const navigate = useNavigate();
   const { user: me } = useAuth();
+  const showToast = useToast();
   const [status, setStatus] = useState(null);
   const [partner, setPartner] = useState(null);
   const [partnership, setPartnership] = useState(null);
@@ -461,10 +463,13 @@ export default function PrayerPartners() {
         }
         setStatus('MATCHED');
         setShowCelebration(true);
+        showToast('You’ve been matched with a prayer partner');
       } else {
         setStatus('WAITING');
       }
-    } catch {}
+    } catch (err) {
+      showToast(err.friendlyMessage || 'Could not find a match right now', 'error');
+    }
     setJoining(false);
   }
 
@@ -474,7 +479,10 @@ export default function PrayerPartners() {
       setStatus('NONE');
       setPartner(null);
       setPartnership(null);
-    } catch {}
+      showToast('You left the partnership');
+    } catch (err) {
+      showToast(err.friendlyMessage || 'Could not leave partnership', 'error');
+    }
   }
 
   async function handleCancel() {
@@ -488,7 +496,7 @@ export default function PrayerPartners() {
     <div className="h-full flex flex-col" style={{ background: BG }}>
       {/* Header */}
       <div className="flex items-center gap-3 px-4 pt-5 pb-3 bg-white" style={{ borderBottom: '1px solid #EFEFEF' }}>
-        <button onClick={() => navigate(-1)} className="p-1 -ml-1">
+        <button onClick={() => navigate(-1)} aria-label="Back" className="p-1 -ml-1">
           <ChevronLeft size={22} color="#262626" strokeWidth={2} />
         </button>
         <h2 className="text-base font-semibold" style={{ color: '#262626' }}>Prayer Partners</h2>

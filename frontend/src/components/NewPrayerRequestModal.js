@@ -4,6 +4,7 @@ import { X, Globe, Lock, Shield, Search, ArrowRight } from 'lucide-react';
 import api from '../utils/api';
 import { track } from '../utils/analytics';
 import { hapticSuccess } from '../utils/haptics';
+import { useToast } from '../contexts/ToastContext';
 import Avatar from './Avatar';
 
 const CATEGORIES = [
@@ -62,7 +63,7 @@ function PastorPicker({ selectedPastors, onToggle }) {
           {selectedPastors.map(p => (
             <div key={p.id} className="flex items-center gap-1.5 bg-terracotta-50 border border-terracotta-200 rounded-full px-3 py-1">
               <span className="text-xs font-semibold text-terracotta-700">{p.name}</span>
-              <button onClick={() => onToggle(p)} className="text-terracotta-400">
+              <button onClick={() => onToggle(p)} aria-label={`Remove ${p.name}`} className="text-terracotta-400">
                 <X size={10} strokeWidth={2.5} />
               </button>
             </div>
@@ -116,6 +117,7 @@ function PastorPicker({ selectedPastors, onToggle }) {
 }
 
 export default function NewPrayerRequestModal({ onClose, onCreate, initialBody = '' }) {
+  const showToast = useToast();
   const [title, setTitle] = useState('');
   const [body, setBody] = useState(initialBody);
   const [category, setCategory] = useState('GENERAL');
@@ -187,9 +189,11 @@ export default function NewPrayerRequestModal({ onClose, onCreate, initialBody =
       api.delete('/prayers/draft').catch(() => {});
       track('prayer_request_created', { category, visibility, isUrgent });
       hapticSuccess();
+      showToast('Prayer request posted');
       onCreate(res.data);
     } catch (err) {
       setError(err.response?.data?.error || 'Failed to post request');
+      showToast(err.friendlyMessage || err.response?.data?.error || 'Failed to post request', 'error');
       setLoading(false);
     }
   }
@@ -218,6 +222,7 @@ export default function NewPrayerRequestModal({ onClose, onCreate, initialBody =
         <div className="sticky top-0 bg-white px-4 pt-4 pb-3 border-b border-gray-100 flex items-center justify-between z-10">
           <button
             onClick={onClose}
+            aria-label="Close"
             className="w-9 h-9 flex items-center justify-center rounded-full bg-gray-100"
           >
             <X size={18} color="#9ca3af" strokeWidth={2} />

@@ -20,6 +20,16 @@ api.interceptors.response.use(
       localStorage.removeItem('token');
       window.location.href = '/login';
     }
+    // No response = network failure (offline, DNS, timeout). Swap axios's raw
+    // "Network Error" for a friendly message so callers that surface err.message
+    // don't show internals. A `isOffline` flag lets callers special-case it.
+    if (!err.response) {
+      err.isOffline = typeof navigator !== 'undefined' && !navigator.onLine;
+      err.friendlyMessage = err.isOffline
+        ? "You're offline — check your connection and try again."
+        : "Couldn't reach the server. Please try again.";
+      err.message = err.friendlyMessage;
+    }
     return Promise.reject(err);
   }
 );

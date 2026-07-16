@@ -51,7 +51,7 @@ export default function PostDetailModal({ post: initialPost, onClose }) {
                 className="w-full max-h-72 object-contain"
               />
             ) : (
-              <img src={current?.url} alt="" className="w-full max-h-72 object-contain" />
+              <img loading="lazy" decoding="async" src={current?.url} alt="" className="w-full max-h-72 object-contain" />
             )}
             {media.length > 1 && (
               <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1">

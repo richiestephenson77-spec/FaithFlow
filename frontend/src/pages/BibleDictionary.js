@@ -44,7 +44,7 @@ export default function BibleDictionary() {
       {/* Header */}
       <div className="px-4 pt-5 pb-4">
         <div className="flex items-center gap-3 mb-4">
-          <button onClick={() => navigate(-1)} className="p-1 -ml-1">
+          <button onClick={() => navigate(-1)} aria-label="Back" className="p-1 -ml-1">
             <ChevronLeft size={22} color="#111827" strokeWidth={2} />
           </button>
           <div>

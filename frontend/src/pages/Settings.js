@@ -107,6 +107,7 @@ export default function Settings() {
       <div className="bg-gray-50 px-4 pt-4 pb-3 flex items-center gap-2">
         <button
           onClick={() => navigate(-1)}
+          aria-label="Back"
           className="w-9 h-9 flex items-center justify-center rounded-full hover:bg-gray-100"
         >
           <ChevronLeft size={22} color="#4B5563" strokeWidth={2} />

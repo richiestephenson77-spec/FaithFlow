@@ -8,6 +8,7 @@ import { useSocket } from '../contexts/SocketContext';
 import { WaterButton, WaterInput } from '../components/water';
 import Skeleton from '../components/Skeleton';
 import { hapticMedium, hapticLight } from '../utils/haptics';
+import { useToast } from '../contexts/ToastContext';
 import CallOverlay from '../components/CallOverlay';
 
 function getTimeStr(d) {
@@ -111,6 +112,7 @@ export default function ChatThread() {
   const { user } = useAuth();
   const { socket } = useSocket();
   const navigate = useNavigate();
+  const showToast = useToast();
   const [messages, setMessages] = useState([]);
   const [loadingMessages, setLoadingMessages] = useState(true);
   const [other, setOther] = useState(null);
@@ -269,8 +271,10 @@ export default function ChatThread() {
       : m));
     try {
       await api.patch(`/messages/${messageId}/unsend`);
+      showToast('Message unsent');
     } catch {
       loadMessages(); // recover server truth on failure
+      showToast('Could not unsend message', 'error');
     }
   }
 
@@ -502,7 +506,7 @@ export default function ChatThread() {
                     : m.sharedPrayerRequestId
                       ? <SharedPrayerCard request={m.sharedPrayerRequest} isMe={isMe} onOpen={() => m.sharedPrayerRequest && navigate(`/prayer/${m.sharedPrayerRequest.id}`)} />
                       : m.imageUrl
-                        ? <img src={m.imageUrl} alt="" onClick={e => { e.stopPropagation(); window.open(m.imageUrl, '_blank', 'noopener'); }} className="rounded-xl block" style={{ maxHeight: 260, maxWidth: '100%', objectFit: 'cover' }} />
+                        ? <img loading="lazy" decoding="async" src={m.imageUrl} alt="" onClick={e => { e.stopPropagation(); window.open(m.imageUrl, '_blank', 'noopener'); }} className="rounded-xl block" style={{ maxHeight: 260, maxWidth: '100%', objectFit: 'cover' }} />
                         : m.audioUrl
                           ? <VoiceBubble src={m.audioUrl} duration={m.audioDuration || 0} isMe={isMe} />
                           : m.content}

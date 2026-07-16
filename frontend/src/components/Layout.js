@@ -9,6 +9,7 @@ import Logo from './Logo';
 import CreatePostModal from './CreatePostModal';
 import ErrorBoundary from './ErrorBoundary';
 import { hapticLight } from '../utils/haptics';
+import useOnlineStatus from '../hooks/useOnlineStatus';
 
 const navItems = [
   { to: '/', label: 'Home', Icon: Home, end: true },
@@ -77,14 +78,31 @@ export default function Layout() {
   const isConfessionDetail = location.pathname.startsWith('/confessions/') && location.pathname.length > '/confessions/'.length;
   const fullHeightPage = hideNavThread || isConfessionDetail || location.pathname === '/bible-maps';
 
+  const online = useOnlineStatus();
+
   return (
     <div className="h-screen bg-gray-50 flex flex-col max-w-md mx-auto relative shadow-xl overflow-hidden" style={{ height: '100dvh' }}>
+      {/* Slim, non-blocking offline banner — auto-hides on reconnect. */}
+      <AnimatePresence>
+        {!online && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2 }}
+            className="absolute left-0 right-0 z-50 flex items-center justify-center pointer-events-none"
+            style={{ top: 0, paddingTop: 'calc(env(safe-area-inset-top) + 4px)', paddingBottom: 4, background: 'rgba(44,64,85,0.94)' }}
+          >
+            <span style={{ fontSize: 12, fontWeight: 500, color: '#FFFFFF', letterSpacing: 0.2 }}>You're offline</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
       {showHeader && (
         <header
           className="water-header water-tile-blue px-4 pb-2.5 flex items-center justify-between z-30"
           style={{ paddingTop: 'calc(0.625rem + env(safe-area-inset-top))' }}
         >
-          <button onClick={() => setShowCreatePost(true)} className="flex-shrink-0" style={{ position: 'relative', zIndex: 1 }}>
+          <button onClick={() => setShowCreatePost(true)} aria-label="Create post" className="flex-shrink-0" style={{ position: 'relative', zIndex: 1 }}>
             {user?.profilePhoto ? (
               <img src={user.profilePhoto} alt={user.name} className="w-9 h-9 rounded-full object-cover" />
             ) : (
@@ -95,10 +113,10 @@ export default function Layout() {
           </button>
           <Logo size="sm" light={false} style={{ position: 'relative', zIndex: 1 }} />
           <div className="flex items-center gap-3 justify-end w-16" style={{ position: 'relative', zIndex: 1 }}>
-            <button onClick={() => navigate('/search')} className="w-9 h-9 flex items-center justify-center">
+            <button onClick={() => navigate('/search')} aria-label="Search" className="w-9 h-9 flex items-center justify-center">
               <Search size={22} strokeWidth={1.5} color="#262626" />
             </button>
-            <button onClick={() => navigate('/notifications')} className="relative w-9 h-9 flex items-center justify-center">
+            <button onClick={() => navigate('/notifications')} aria-label="Notifications" className="relative w-9 h-9 flex items-center justify-center">
               <Bell size={22} strokeWidth={1.5} color="#262626" />
               {unreadCount > 0 && (
                 <span className="absolute top-0 right-0 bg-red-500 text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center leading-none font-bold">
@@ -149,7 +167,7 @@ export default function Layout() {
           style={{ bottom: 'calc(0.5rem + env(safe-area-inset-bottom))' }}
         >
           {navItems.map(({ to, label, Icon, end }) => (
-            <NavLink key={to} to={to} end={end} onClick={hapticLight}>
+            <NavLink key={to} to={to} end={end} onClick={hapticLight} aria-label={label}>
               {({ isActive }) => (
                 <motion.div
                   whileTap={{ scale: 0.88 }}

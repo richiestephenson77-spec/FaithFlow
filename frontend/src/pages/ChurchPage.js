@@ -55,7 +55,7 @@ export default function ChurchPage() {
       {/* Cover */}
       <div className="relative h-40 bg-faith-700">
         {church.coverPhoto && (
-          <img src={church.coverPhoto} alt="" className="w-full h-full object-cover" />
+          <img loading="lazy" decoding="async" src={church.coverPhoto} alt="" className="w-full h-full object-cover" />
         )}
         <div className="absolute inset-0 bg-black/30" />
         <button onClick={() => navigate(-1)}
@@ -75,7 +75,7 @@ export default function ChurchPage() {
         <div className="flex items-end gap-3 mb-3">
           <div className="w-16 h-16 rounded-2xl overflow-hidden border-4 border-white shadow-lg flex-shrink-0">
             {church.logo
-              ? <img src={church.logo} alt="" className="w-full h-full object-cover" />
+              ? <img loading="lazy" decoding="async" src={church.logo} alt="" className="w-full h-full object-cover" />
               : <div className="w-full h-full water-tile-blue flex items-center justify-center text-3xl" style={{ color: '#163449' }}>⛪</div>
             }
           </div>
@@ -143,7 +143,7 @@ export default function ChurchPage() {
                   </p>
                 )}
                 {post.imageUrl && (
-                  <img src={post.imageUrl} alt="" className="mt-3 w-full rounded-xl object-cover max-h-48" />
+                  <img loading="lazy" decoding="async" src={post.imageUrl} alt="" className="mt-3 w-full rounded-xl object-cover max-h-48" />
                 )}
               </div>
             ))}

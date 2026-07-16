@@ -50,6 +50,7 @@ export default function PostGrid({ posts: initialPosts, currentUserId, onPostsCh
                       alt=""
                       className="w-full h-full object-cover"
                       loading="lazy"
+                      decoding="async"
                     />
                   )
                 ) : (

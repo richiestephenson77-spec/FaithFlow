@@ -150,6 +150,7 @@ export default function BibleMaps() {
       <div className="fixed inset-0 z-40 flex flex-col items-center justify-center px-8" style={{ background: '#F6F1E4' }}>
         <button
           onClick={() => navigate(-1)}
+          aria-label="Back"
           className="rounded-full flex items-center justify-center"
           style={{
             position: 'absolute',
@@ -255,6 +256,7 @@ export default function BibleMaps() {
         {/* Floating back button — standalone, respects safe area */}
         <button
           onClick={() => navigate(-1)}
+          aria-label="Back"
           className="rounded-full flex items-center justify-center"
           style={{
             position: 'absolute',
@@ -306,11 +308,13 @@ export default function BibleMaps() {
         >
           <button
             onClick={zoomIn}
+            aria-label="Zoom in"
             className="w-10 h-10 rounded-full backdrop-blur border flex items-center justify-center text-xl font-light"
             style={{ background: 'rgba(252,250,243,0.9)', borderColor: '#DED2B0', color: '#232B38' }}
           >+</button>
           <button
             onClick={zoomOut}
+            aria-label="Zoom out"
             className="w-10 h-10 rounded-full backdrop-blur border flex items-center justify-center text-xl font-light"
             style={{ background: 'rgba(252,250,243,0.9)', borderColor: '#DED2B0', color: '#232B38' }}
           >−</button>
@@ -335,6 +339,7 @@ export default function BibleMaps() {
                 </div>
                 <button
                   onClick={() => setSelectedLocation(null)}
+                  aria-label="Close"
                   className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0"
                   style={{ background: 'rgba(35,43,56,0.06)' }}
                 >
@@ -397,6 +402,7 @@ export default function BibleMaps() {
                 </div>
                 <button
                   onClick={() => setSelectedFigure(null)}
+                  aria-label="Close"
                   className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ml-2"
                   style={{ background: 'rgba(35,43,56,0.06)' }}
                 >

@@ -7,6 +7,8 @@ export default function Avatar({ user, size = 'md' }) {
       <img
         src={user.profilePhoto}
         alt={user.name}
+        loading="lazy"
+        decoding="async"
         className={`${sizes[size]} rounded-full object-cover flex-shrink-0`}
       />
     );

@@ -70,7 +70,7 @@ function PostCard({ post, onLike, onUserClick, currentUserId, onOptions }) {
           {post.media.slice(0, 4).map((m, i) => (
             <div key={m.id} className={`relative ${post.media.length === 1 ? 'h-56' : 'h-36'} bg-gray-100`}>
               {m.type === 'IMAGE'
-                ? <img src={m.url} alt="" className="w-full h-full object-cover" />
+                ? <img loading="lazy" decoding="async" src={m.url} alt="" className="w-full h-full object-cover" />
                 : <video src={m.url} className="w-full h-full object-cover" controls />
               }
               {i === 3 && post.media.length > 4 && (

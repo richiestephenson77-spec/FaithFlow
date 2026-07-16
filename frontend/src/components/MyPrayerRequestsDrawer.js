@@ -4,6 +4,7 @@ import api from '../utils/api';
 import Avatar from './Avatar';
 import TestimonyModal from './TestimonyModal';
 import { WaterButton } from './water';
+import { useToast } from '../contexts/ToastContext';
 
 const VISIBILITY_OPTIONS = [
   { id: 'PUBLIC',      label: 'Public',      Icon: Globe,  bg: 'bg-gray-100', text: 'text-gray-600' },
@@ -32,6 +33,7 @@ function getTimeAgo(dateStr) {
 }
 
 export default function MyPrayerRequestsDrawer({ onClose }) {
+  const showToast = useToast();
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState(null);       // request with open action menu
@@ -64,7 +66,10 @@ export default function MyPrayerRequestsDrawer({ onClose }) {
       const res = await api.put(`/prayers/${editing.id}`, editForm);
       setRequests(prev => prev.map(r => r.id === editing.id ? res.data : r));
       setEditing(null);
-    } catch {}
+      showToast('Prayer request updated');
+    } catch (err) {
+      showToast(err.friendlyMessage || 'Could not update request', 'error');
+    }
     setSaving(false);
   }
 
@@ -98,7 +103,10 @@ export default function MyPrayerRequestsDrawer({ onClose }) {
       await api.delete(`/prayers/${deleting.id}`);
       setRequests(prev => prev.filter(r => r.id !== deleting.id));
       setDeleting(null);
-    } catch {}
+      showToast('Prayer request deleted');
+    } catch (err) {
+      showToast(err.friendlyMessage || 'Could not delete request', 'error');
+    }
   }
 
   return (

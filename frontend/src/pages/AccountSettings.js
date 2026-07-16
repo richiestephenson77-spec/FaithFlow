@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
 import api from '../utils/api';
 
 function Section({ title, children }) {
@@ -27,6 +28,7 @@ function Field({ label, ...props }) {
 export default function AccountSettings() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const showToast = useToast();
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -58,8 +60,10 @@ export default function AccountSettings() {
     try {
       await api.patch('/users/account', { name, email });
       setInfoMsg('Saved!');
+      showToast('Settings saved');
     } catch (err) {
       setInfoErr(err.response?.data?.error || 'Failed to save');
+      showToast(err.friendlyMessage || err.response?.data?.error || 'Failed to save', 'error');
     } finally {
       setSaving(false);
     }
@@ -78,8 +82,10 @@ export default function AccountSettings() {
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
+      showToast('Password updated');
     } catch (err) {
       setPwErr(err.response?.data?.error || 'Failed to update password');
+      showToast(err.friendlyMessage || err.response?.data?.error || 'Failed to update password', 'error');
     } finally {
       setSavingPw(false);
     }

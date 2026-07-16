@@ -127,14 +127,14 @@ function ChurchCard({ church, onClick }) {
     <button onClick={onClick} className="w-full bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden text-left active:scale-[0.98] transition-transform">
       <div className="relative h-20">
         {church.coverPhoto
-          ? <img src={church.coverPhoto} alt="" className="w-full h-full object-cover" />
+          ? <img loading="lazy" decoding="async" src={church.coverPhoto} alt="" className="w-full h-full object-cover" />
           : <div className="w-full h-full water-tile-blue" />
         }
       </div>
       <div className="px-4 pb-4 pt-2 flex items-end gap-3 -mt-6 relative">
         <div className="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 bg-white border-2 border-white shadow-md">
           {church.logo
-            ? <img src={church.logo} alt="" className="w-full h-full object-cover" />
+            ? <img loading="lazy" decoding="async" src={church.logo} alt="" className="w-full h-full object-cover" />
             : <div className="w-full h-full water-tile-blue flex items-center justify-center text-lg" style={{ color: '#163449' }}>⛪</div>
           }
         </div>

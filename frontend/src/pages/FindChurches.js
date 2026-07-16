@@ -89,7 +89,7 @@ export default function FindChurches({ embedded = false }) {
     <div className={embedded ? '' : 'bg-gray-50 min-h-full'}>
       {!embedded && (
         <div className="px-4 pt-5 pb-4 flex items-center gap-3 bg-white border-b border-gray-100">
-          <button onClick={() => navigate(-1)} className="p-1 -ml-1">
+          <button onClick={() => navigate(-1)} aria-label="Back" className="p-1 -ml-1">
             <ChevronLeft size={22} color="#111827" strokeWidth={2} />
           </button>
           <div>
@@ -199,7 +199,7 @@ function ChurchCard({ church, location, onClick }) {
     >
       <div className="w-[100px] flex-shrink-0">
         {church.photo ? (
-          <img src={church.photo} alt="" className="w-full h-full object-cover" />
+          <img loading="lazy" decoding="async" src={church.photo} alt="" className="w-full h-full object-cover" />
         ) : (
           <div className="w-full h-full bg-terracotta-50 flex items-center justify-center">
             <Church size={28} color="#2C4055" strokeWidth={1.5} />

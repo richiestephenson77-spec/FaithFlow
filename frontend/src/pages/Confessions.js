@@ -136,7 +136,7 @@ export default function Confessions() {
         transition={{ duration: 0.3 }}
         className="px-5 pt-5 pb-4 flex items-center gap-3"
       >
-        <button onClick={() => navigate(-1)} className="p-1 -ml-1 flex-shrink-0">
+        <button onClick={() => navigate(-1)} aria-label="Back" className="p-1 -ml-1 flex-shrink-0">
           <ChevronLeft size={22} color="#163449" strokeWidth={2} />
         </button>
         <div>
