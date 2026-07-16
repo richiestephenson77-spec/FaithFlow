@@ -164,7 +164,7 @@ export default function Layout() {
       {!hideNav && (
         <div
           className="fixed left-1/2 -translate-x-1/2 flex gap-2 z-30"
-          style={{ bottom: 'calc(0.5rem + env(safe-area-inset-bottom))' }}
+          style={{ bottom: 'calc(0.125rem + env(safe-area-inset-bottom))' }}
         >
           {navItems.map(({ to, label, Icon, end }) => (
             <NavLink key={to} to={to} end={end} onClick={hapticLight} aria-label={label}>
@@ -173,10 +173,10 @@ export default function Layout() {
                   whileTap={{ scale: 0.88 }}
                   transition={{ type: 'spring', stiffness: 500, damping: 25 }}
                   className="relative flex items-center justify-center"
-                  style={{ width: 48, height: 48 }}
+                  style={{ width: 52, height: 52 }}
                 >
                   <Icon
-                    size={23}
+                    size={26}
                     strokeWidth={isActive ? 2.5 : 2}
                     color={isActive ? '#2C4055' : '#1A1A1A'}
                   />
