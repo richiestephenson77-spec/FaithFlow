@@ -465,12 +465,12 @@ export default function PrayerPage() {
           <div className="flex gap-2 mb-2">
             <button
               onClick={() => { setNearMe(false); loadFeed(false, { nearMe: false }); }}
-              className="flex-1 flex items-center justify-center gap-1.5 rounded-full text-xs font-semibold"
+              className="flex-1 flex items-center justify-center gap-1.5 rounded-full text-sm transition-colors"
               style={{
                 height: 34,
-                background: !nearMe ? '#163449' : '#FFFFFF',
-                color: !nearMe ? '#FFFFFF' : '#6B7680',
-                border: !nearMe ? '1px solid #163449' : '1px solid #EFEFEF',
+                background: !nearMe ? 'rgba(0,0,0,0.04)' : 'transparent',
+                color: !nearMe ? '#163449' : '#8E8E8E',
+                fontWeight: !nearMe ? 500 : 400,
               }}
             >
               <Globe size={13} strokeWidth={1.8} /> Worldwide
@@ -480,12 +480,12 @@ export default function PrayerPage() {
                 if (!userCoords) { setShowLocationBanner(true); return; }
                 setNearMe(true); loadFeed(false, { nearMe: true, radius, coords: userCoords });
               }}
-              className="flex-1 flex items-center justify-center gap-1.5 rounded-full text-xs font-semibold"
+              className="flex-1 flex items-center justify-center gap-1.5 rounded-full text-sm transition-colors"
               style={{
                 height: 34,
-                background: nearMe ? '#163449' : '#FFFFFF',
-                color: nearMe ? '#FFFFFF' : '#6B7680',
-                border: nearMe ? '1px solid #163449' : '1px solid #EFEFEF',
+                background: nearMe ? 'rgba(0,0,0,0.04)' : 'transparent',
+                color: nearMe ? '#163449' : '#8E8E8E',
+                fontWeight: nearMe ? 500 : 400,
               }}
             >
               <MapPin size={13} strokeWidth={1.8} /> Near Me
@@ -557,11 +557,11 @@ export default function PrayerPage() {
             <button
               key={tab.id}
               onClick={() => setActiveCategory(tab.id)}
-              className="flex-shrink-0 px-3.5 py-1.5 rounded-full text-xs font-medium whitespace-nowrap"
+              className="flex-shrink-0 px-4 py-1.5 rounded-full text-sm whitespace-nowrap transition-colors"
               style={{
-                background: activeCategory === tab.id ? '#163449' : '#FFFFFF',
-                color: activeCategory === tab.id ? '#FFFFFF' : '#6B7680',
-                border: activeCategory === tab.id ? '1px solid #163449' : '1px solid #EFEFEF',
+                background: activeCategory === tab.id ? 'rgba(0,0,0,0.04)' : 'transparent',
+                color: activeCategory === tab.id ? '#163449' : '#8E8E8E',
+                fontWeight: activeCategory === tab.id ? 500 : 400,
               }}
             >
               {tab.label}

@@ -146,14 +146,18 @@ export default function Confessions() {
       {/* Feed / Mine tabs */}
       <div className="flex gap-2 px-4 pb-4">
         {[{ id: 'feed', label: 'Wall' }, { id: 'mine', label: 'My Confessions' }].map(t => (
-          <WaterPill
+          <button
             key={t.id}
-            active={tab === t.id}
             onClick={() => setTab(t.id)}
-            className="flex-1 py-2 text-sm font-semibold text-center"
+            className="flex-1 py-2 rounded-full text-sm text-center transition-colors"
+            style={{
+              background: tab === t.id ? 'rgba(0,0,0,0.04)' : 'transparent',
+              color: tab === t.id ? '#163449' : '#8E8E8E',
+              fontWeight: tab === t.id ? 500 : 400,
+            }}
           >
             {t.label}
-          </WaterPill>
+          </button>
         ))}
       </div>
 
@@ -161,9 +165,18 @@ export default function Confessions() {
       {tab === 'feed' && (
         <div className="flex gap-2 overflow-x-auto px-4 pb-4 no-scrollbar">
           {CATEGORIES.map(cat => (
-            <WaterPill key={cat} active={activeCategory === cat} onClick={() => setActiveCategory(cat)}>
+            <button
+              key={cat}
+              onClick={() => setActiveCategory(cat)}
+              className="flex-shrink-0 px-4 py-1.5 rounded-full text-sm whitespace-nowrap transition-colors"
+              style={{
+                background: activeCategory === cat ? 'rgba(0,0,0,0.04)' : 'transparent',
+                color: activeCategory === cat ? '#163449' : '#8E8E8E',
+                fontWeight: activeCategory === cat ? 500 : 400,
+              }}
+            >
               {cat}
-            </WaterPill>
+            </button>
           ))}
         </div>
       )}
