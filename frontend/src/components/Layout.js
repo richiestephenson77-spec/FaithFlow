@@ -16,12 +16,12 @@ const navItems = [
   { to: '/profile', label: 'Profile', Icon: User },
 ];
 
-// Bible Maps is fully immersive (no header, no nav — floating back button instead)
-const HIDE_HEADER_ON = ['/profile', '/bible-maps'];
+// The branded global header (logo + avatar + search + bell) appears ONLY on
+// Home. Every other page has its own in-page title/back button.
+const SHOW_HEADER_ON = ['/'];
 // Individual chat threads (/messages/:id) go immersive — the /messages list keeps its frame
 const HIDE_NAV_ON = ['/messages/'];
-// Confession wall + detail hide the nav (immersive, back-arrow to leave) but KEEP the header.
-// Bible Maps hides the nav too (its own hideHeader entry above hides the header).
+// Confession wall + detail and Bible Maps hide the bottom nav (immersive, back-arrow to leave)
 const HIDE_NAV_EXACT = ['/confessions', '/bible-maps'];
 
 export default function Layout() {
@@ -43,8 +43,7 @@ export default function Layout() {
   const hideNavThread = HIDE_NAV_ON.some(p => location.pathname.startsWith(p) && location.pathname.length > p.length);
   const hideNavConfession = HIDE_NAV_EXACT.some(p => location.pathname.startsWith(p));
   const hideNav = hideNavThread || hideNavConfession;
-  // Threads have their own header, so hide the global one there; confessions keep it.
-  const hideHeader = HIDE_HEADER_ON.some(p => location.pathname.startsWith(p)) || hideNavThread;
+  const showHeader = SHOW_HEADER_ON.includes(location.pathname);
 
   return (
     <div className="h-screen bg-gray-50 flex flex-col max-w-md mx-auto relative shadow-xl overflow-hidden" style={{ height: '100dvh' }}>
@@ -60,7 +59,7 @@ export default function Layout() {
           </filter>
         </defs>
       </svg>
-      {!hideHeader && (
+      {showHeader && (
         <header
           className="water-header water-tile-blue px-4 pb-2.5 flex items-center justify-between z-30"
           style={{ paddingTop: 'calc(0.625rem + env(safe-area-inset-top))' }}
@@ -98,9 +97,9 @@ export default function Layout() {
         style={{
           overscrollBehavior: 'contain',
           WebkitOverflowScrolling: 'touch',
-          // No global header here (profile / chat thread) — the page's own
-          // top content would otherwise sit under the status bar/notch.
-          paddingTop: hideHeader ? 'env(safe-area-inset-top)' : undefined,
+          // Header only renders on Home; every other page needs the top inset
+          // here so its own top content doesn't sit under the status bar/notch.
+          paddingTop: showHeader ? undefined : 'env(safe-area-inset-top)',
           // Floating nav sits at safe-bottom + 1rem; clear it (and the
           // home indicator) with matching bottom padding when it's shown.
           paddingBottom: hideNav ? undefined : 'calc(6rem + env(safe-area-inset-bottom))',
