@@ -211,7 +211,7 @@ export default function Onboarding() {
               whileTap={{ scale: 0.96 }}
               onClick={complete}
               className="mt-10 font-bold text-base rounded-full px-10 py-4"
-              style={{ background: '#C0603F', color: '#1a1a2e', boxShadow: '0 4px 24px rgba(192,96,63,0.4)' }}
+              style={{ background: '#C0603F', color: '#FFFFFF' }}
             >
               Get Started
             </motion.button>
