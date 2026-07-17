@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bell, Heart, MessageCircle, UserPlus, Sparkles, Users } from 'lucide-react';
+import { Bell, Heart, MessageCircle, UserPlus, Sparkles, Users, HandHeart, Flame } from 'lucide-react';
 import api from '../utils/api';
 import { useSocket } from '../contexts/SocketContext';
 import Avatar from '../components/Avatar';
@@ -19,12 +19,29 @@ function getTimeAgo(dateStr) {
 
 const TYPE_META = {
   PRAYER_STARTED:          { Icon: Sparkles,      color: '#2C4055', bg: '#fffbeb' },
+  SOMEONE_PRAYED:          { Icon: HandHeart,     color: '#2C4055', bg: 'rgba(44,64,85,0.08)' },
   PRAYER_ANSWERED:         { Icon: Sparkles,      color: '#10b981', bg: '#f0fdf4' },
   NEW_FOLLOWER:            { Icon: UserPlus,      color: '#6366f1', bg: '#eef2ff' },
   POST_LIKE:               { Icon: Heart,         color: '#ef4444', bg: '#fef2f2' },
   POST_COMMENT:            { Icon: MessageCircle, color: '#3b82f6', bg: '#eff6ff' },
+  CONFESSION_COMMENT:      { Icon: MessageCircle, color: '#8A5CD0', bg: '#f5f0fc' },
+  STREAK_AT_RISK:          { Icon: Flame,         color: '#E86A4B', bg: '#fdf0ec' },
+  PARTNER_SHARED_PRAYER:   { Icon: Users,         color: '#2C4055', bg: 'rgba(44,64,85,0.08)' },
   PRAYER_PARTNER_MATCHED:  { Icon: Users,         color: '#2C4055', bg: '#fffbeb' },
 };
+
+// Tap-through destination per notification type. refId carries the entity id.
+function routeFor(n) {
+  switch (n.type) {
+    case 'PRAYER_PARTNER_MATCHED': return '/prayer-partners';
+    case 'SOMEONE_PRAYED':
+    case 'PARTNER_SHARED_PRAYER':  return n.refId ? `/prayer/${n.refId}` : '/prayer';
+    case 'PRAYER_ANSWERED':        return '/answered';
+    case 'CONFESSION_COMMENT':     return n.refId ? `/confessions/${n.refId}` : '/confessions';
+    case 'STREAK_AT_RISK':         return '/prayer';
+    default:                       return n.sender?.id ? `/profile/${n.sender.id}` : null;
+  }
+}
 
 function NotificationCard({ n, onFollowBack }) {
   const navigate = useNavigate();
@@ -55,8 +72,8 @@ function NotificationCard({ n, onFollowBack }) {
       animate={{ opacity: 1, x: 0 }}
       transition={{ type: 'spring', stiffness: 300, damping: 28 }}
       onClick={() => {
-        if (n.type === 'PRAYER_PARTNER_MATCHED') navigate('/prayer-partners');
-        else if (senderId) navigate(`/profile/${senderId}`);
+        const route = routeFor(n);
+        if (route) navigate(route);
       }}
       className="relative flex items-start gap-3 px-4 py-3.5 cursor-pointer active:bg-gray-100/60 transition-colors"
       style={{ background: !n.isRead ? 'rgba(251,191,36,0.06)' : 'transparent' }}
@@ -119,8 +136,8 @@ function Section({ title, items, onFollowBack }) {
   );
 }
 
-const PRAYER_TYPES = new Set(['PRAYER_STARTED', 'PRAYER_ANSWERED', 'LEVEL_UP']);
-const PEOPLE_TYPES = new Set(['NEW_FOLLOWER', 'POST_LIKE', 'POST_COMMENT']);
+const PRAYER_TYPES = new Set(['PRAYER_STARTED', 'SOMEONE_PRAYED', 'PRAYER_ANSWERED', 'PARTNER_SHARED_PRAYER', 'STREAK_AT_RISK', 'LEVEL_UP']);
+const PEOPLE_TYPES = new Set(['NEW_FOLLOWER', 'POST_LIKE', 'POST_COMMENT', 'CONFESSION_COMMENT']);
 
 export default function Notifications() {
   const [notifications, setNotifications] = useState([]);

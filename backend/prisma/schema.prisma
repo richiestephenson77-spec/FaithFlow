@@ -67,6 +67,10 @@ model User {
   notifyNewFollower    Boolean @default(true)
   notifyPostLike       Boolean @default(true)
   notifyPostComment    Boolean @default(true)
+  notifyPrayerAnswered    Boolean @default(true)
+  notifyConfessionComment Boolean @default(true)
+  notifyStreakReminder    Boolean @default(true)
+  notifyPartnerActivity   Boolean @default(true)
 
   prayerReminderEnabled Boolean @default(false)
   prayerReminderTime    String?
@@ -372,6 +376,11 @@ enum NotificationType {
   CHURCH_POST
   NEW_MESSAGE
   PRAYER_PARTNER_MATCHED
+  SOMEONE_PRAYED
+  PRAYER_ANSWERED
+  CONFESSION_COMMENT
+  STREAK_AT_RISK
+  PARTNER_SHARED_PRAYER
 }
 
 model Church {

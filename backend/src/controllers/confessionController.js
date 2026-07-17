@@ -1,5 +1,6 @@
 
 const prisma = require('../db');
+const { createNotification } = require('../utils/notify');
 
 async function getConfessions(req, res) {
   const { category } = req.query;
@@ -189,6 +190,23 @@ async function addComment(req, res) {
         data: { confessionId: id, userId: req.user.id, content: content.trim(), isAnonymous: Boolean(isAnonymous) },
       }),
     ]);
+
+    // Notify the confession author — but NEVER expose the commenter's identity.
+    // fromUser stays null and the message is generic to preserve anonymity.
+    try {
+      const author = await prisma.confessionAuthor.findUnique({
+        where: { confessionId: id }, select: { userId: true },
+      });
+      if (author && author.userId !== req.user.id) {
+        await createNotification(req.app.get('io'), {
+          userId: author.userId,
+          type: 'CONFESSION_COMMENT',
+          message: 'Someone commented on your confession',
+          fromUser: null,
+          refId: id,
+        });
+      }
+    } catch (e) { console.error('confession comment notify error:', e); }
 
     res.status(201).json({
       id: c.id,

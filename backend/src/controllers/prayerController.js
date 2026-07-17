@@ -1,5 +1,6 @@
 
 const { notifyUser } = require('../services/socketService');
+const { createNotification } = require('../utils/notify');
 
 const prisma = require('../db');
 
@@ -139,6 +140,27 @@ async function createRequest(req, res) {
       });
     }
 
+    // Notify the author's active prayer partner (public requests only)
+    if (safeVisibility === 'PUBLIC') {
+      try {
+        const partnerships = await prisma.prayerPartnership.findMany({
+          where: { status: 'ACTIVE', OR: [{ user1Id: req.user.id }, { user2Id: req.user.id }] },
+          select: { user1Id: true, user2Id: true },
+        });
+        const io = req.app.get('io');
+        const partnerIds = partnerships
+          .map(p => (p.user1Id === req.user.id ? p.user2Id : p.user1Id))
+          .filter(pid => pid && pid !== req.user.id);
+        await Promise.all([...new Set(partnerIds)].map(pid => createNotification(io, {
+          userId: pid,
+          type: 'PARTNER_SHARED_PRAYER',
+          message: `${request.user.name} shared a new prayer request`,
+          fromUser: req.user.id,
+          refId: request.id,
+        })));
+      } catch (e) { console.error('partner notify error:', e); }
+    }
+
     res.status(201).json({ ...request, currentlyPrayingCount: 0, totalPrayerCount: 0 });
   } catch (err) {
     console.error('createRequest error:', err);
@@ -171,18 +193,38 @@ async function startSession(req, res) {
         where: { id: req.user.id },
         select: { name: true },
       });
+      const io = req.app.get('io');
+      const title = prayerRequest.title;
 
-      await prisma.notification.create({
-        data: {
-          userId: prayerRequest.userId,
-          type: 'PRAYER_STARTED',
-          message: `${prayingUser.name} has started praying for you`,
-          fromUser: req.user.id,
-          refId: id,
-        },
+      // Batch: 3+ prayers within an hour collapse into one notification
+      const hourAgo = new Date(Date.now() - 3600000);
+      const recentCount = await prisma.prayerSession.count({
+        where: { prayerRequestId: id, userId: { not: prayerRequest.userId }, startedAt: { gte: hourAgo } },
       });
 
-      const io = req.app.get('io');
+      if (recentCount >= 3) {
+        const message = `${prayingUser.name} and ${recentCount - 1} others prayed for your request "${title}"`;
+        const existing = await prisma.notification.findFirst({
+          where: { userId: prayerRequest.userId, type: 'SOMEONE_PRAYED', refId: id, isRead: false, createdAt: { gte: hourAgo } },
+          orderBy: { createdAt: 'desc' },
+        });
+        if (existing) {
+          await prisma.notification.update({
+            where: { id: existing.id },
+            data: { message, fromUser: req.user.id, createdAt: new Date() },
+          });
+        } else {
+          await createNotification(io, { userId: prayerRequest.userId, type: 'SOMEONE_PRAYED', message, fromUser: req.user.id, refId: id });
+        }
+      } else {
+        await createNotification(io, {
+          userId: prayerRequest.userId, type: 'SOMEONE_PRAYED',
+          message: `${prayingUser.name} prayed for your request "${title}"`,
+          fromUser: req.user.id, refId: id,
+        });
+      }
+
+      // Keep the live "praying now" socket event for the requester's real-time UI
       notifyUser(io, prayerRequest.userId, 'prayerStarted', {
         message: `${prayingUser.name} has started praying for you`,
         prayerRequestId: id,
@@ -376,6 +418,22 @@ async function markAnswered(req, res) {
       },
       include: { user: { select: { id: true, name: true, profilePhoto: true, churchName: true } }, _count: { select: { sessions: true } } },
     });
+
+    // Notify everyone who prayed for this request (except the author)
+    const io = req.app.get('io');
+    const sessions = await prisma.prayerSession.findMany({
+      where: { prayerRequestId: id, userId: { not: req.user.id } },
+      select: { userId: true },
+    });
+    const prayerIds = [...new Set(sessions.map(s => s.userId).filter(Boolean))];
+    await Promise.all(prayerIds.map(uid => createNotification(io, {
+      userId: uid,
+      type: 'PRAYER_ANSWERED',
+      message: `A prayer you prayed for was answered: "${updated.title}"`,
+      fromUser: req.user.id,
+      refId: id,
+    })));
+
     res.json(updated);
   } catch {
     res.status(500).json({ error: 'Failed to mark as answered' });

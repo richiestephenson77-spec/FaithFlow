@@ -32,6 +32,10 @@ export default function NotificationSettings() {
     notifyNewFollower: true,
     notifyPostLike: true,
     notifyPostComment: true,
+    notifyPrayerAnswered: true,
+    notifyConfessionComment: true,
+    notifyStreakReminder: true,
+    notifyPartnerActivity: true,
   });
   const [loading, setLoading] = useState(true);
 
@@ -72,7 +76,19 @@ export default function NotificationSettings() {
             </div>
           ) : (
             <div className="space-y-5 divide-y divide-gray-100">
-              <Row label="Prayer Started" sublabel="When someone prays for your request" checked={prefs.notifyPrayerStarted} onChange={v => toggle('notifyPrayerStarted', v)} />
+              <Row label="Prayers for You" sublabel="When someone prays for your request" checked={prefs.notifyPrayerStarted} onChange={v => toggle('notifyPrayerStarted', v)} />
+              <div className="pt-4">
+                <Row label="Prayer Answered" sublabel="When a prayer you prayed for is answered" checked={prefs.notifyPrayerAnswered} onChange={v => toggle('notifyPrayerAnswered', v)} />
+              </div>
+              <div className="pt-4">
+                <Row label="Streak Reminder" sublabel="A nudge when your streak is at risk" checked={prefs.notifyStreakReminder} onChange={v => toggle('notifyStreakReminder', v)} />
+              </div>
+              <div className="pt-4">
+                <Row label="Prayer Partner" sublabel="When your partner shares a new request" checked={prefs.notifyPartnerActivity} onChange={v => toggle('notifyPartnerActivity', v)} />
+              </div>
+              <div className="pt-4">
+                <Row label="Confession Replies" sublabel="When someone comments on your confession" checked={prefs.notifyConfessionComment} onChange={v => toggle('notifyConfessionComment', v)} />
+              </div>
               <div className="pt-4">
                 <Row label="New Follower" sublabel="When someone follows you" checked={prefs.notifyNewFollower} onChange={v => toggle('notifyNewFollower', v)} />
               </div>

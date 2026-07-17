@@ -76,17 +76,27 @@ router.delete('/account', authenticate, async (req, res) => {
 
 // Notification preferences
 router.patch('/notification-settings', authenticate, async (req, res) => {
-  const { notifyPrayerStarted, notifyNewFollower, notifyPostLike, notifyPostComment } = req.body;
+  const {
+    notifyPrayerStarted, notifyNewFollower, notifyPostLike, notifyPostComment,
+    notifyPrayerAnswered, notifyConfessionComment, notifyStreakReminder, notifyPartnerActivity,
+  } = req.body;
   try {
     const data = {};
     if (notifyPrayerStarted !== undefined) data.notifyPrayerStarted = Boolean(notifyPrayerStarted);
     if (notifyNewFollower !== undefined) data.notifyNewFollower = Boolean(notifyNewFollower);
     if (notifyPostLike !== undefined) data.notifyPostLike = Boolean(notifyPostLike);
     if (notifyPostComment !== undefined) data.notifyPostComment = Boolean(notifyPostComment);
+    if (notifyPrayerAnswered !== undefined) data.notifyPrayerAnswered = Boolean(notifyPrayerAnswered);
+    if (notifyConfessionComment !== undefined) data.notifyConfessionComment = Boolean(notifyConfessionComment);
+    if (notifyStreakReminder !== undefined) data.notifyStreakReminder = Boolean(notifyStreakReminder);
+    if (notifyPartnerActivity !== undefined) data.notifyPartnerActivity = Boolean(notifyPartnerActivity);
     const updated = await prisma.user.update({
       where: { id: req.user.id },
       data,
-      select: { notifyPrayerStarted: true, notifyNewFollower: true, notifyPostLike: true, notifyPostComment: true },
+      select: {
+        notifyPrayerStarted: true, notifyNewFollower: true, notifyPostLike: true, notifyPostComment: true,
+        notifyPrayerAnswered: true, notifyConfessionComment: true, notifyStreakReminder: true, notifyPartnerActivity: true,
+      },
     });
     res.json(updated);
   } catch {
@@ -99,7 +109,10 @@ router.get('/notification-settings', authenticate, async (req, res) => {
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.user.id },
-      select: { notifyPrayerStarted: true, notifyNewFollower: true, notifyPostLike: true, notifyPostComment: true },
+      select: {
+        notifyPrayerStarted: true, notifyNewFollower: true, notifyPostLike: true, notifyPostComment: true,
+        notifyPrayerAnswered: true, notifyConfessionComment: true, notifyStreakReminder: true, notifyPartnerActivity: true,
+      },
     });
     res.json(user);
   } catch {
