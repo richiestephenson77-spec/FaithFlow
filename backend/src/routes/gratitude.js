@@ -19,6 +19,33 @@ router.get('/today', authenticate, async (req, res) => {
   } catch { res.status(500).json({ error: 'Failed to fetch today\'s entry' }); }
 });
 
+// GET /api/gratitude/public — public "Daily Grace" feed, newest first, paginated
+router.get('/public', authenticate, async (req, res) => {
+  const page = Math.max(1, parseInt(req.query.page) || 1);
+  const limit = Math.min(50, Math.max(1, parseInt(req.query.limit) || 20));
+  try {
+    const where = { isPublic: true };
+    const [rows, total] = await Promise.all([
+      prisma.gratitudeEntry.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+        include: { user: { select: { id: true, name: true, profilePhoto: true, churchName: true } } },
+      }),
+      prisma.gratitudeEntry.count({ where }),
+    ]);
+    const items = rows.map(g => ({
+      id: g.id,
+      content: g.content,
+      mood: g.mood,
+      createdAt: g.createdAt,
+      user: g.user,
+    }));
+    res.json({ items, page, hasMore: page * limit < total, total });
+  } catch { res.status(500).json({ error: 'Failed to fetch public gratitude' }); }
+});
+
 // POST /api/gratitude — create today's entry + update streak
 router.post('/', authenticate, async (req, res) => {
   const { content, mood, isPublic } = req.body;

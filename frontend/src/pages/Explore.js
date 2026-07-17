@@ -103,6 +103,7 @@ export default function Explore() {
             { label: 'Pray w/ Pastor',   Icon: Users,     route: '/pastors',      anim: 'float3 4.7s ease-in-out infinite' },
             { label: 'Bible Dictionary', Icon: BookMarked,route: '/bible-dictionary', anim: 'float2 4.4s ease-in-out infinite' },
             { label: 'Prayer Partners',  Icon: Handshake, route: '/prayer-partners',  anim: 'float1 5.1s ease-in-out infinite' },
+            { label: 'Answered',         Icon: Heart,     route: '/answered',        anim: 'float3 4.9s ease-in-out infinite' },
           ].map(({ label, Icon, route, anim }) => (
             <button
               key={label}
@@ -123,7 +124,6 @@ export default function Explore() {
           <p className="text-[11px] font-semibold uppercase tracking-wide mb-2" style={{ color: '#8E8E8E' }}>Coming Soon</p>
           <div className="flex gap-2">
             {[
-              { label: 'Answered Prayers', Icon: Heart },
               { label: 'Find Believers',   Icon: Search },
             ].map(({ label }) => (
               <div

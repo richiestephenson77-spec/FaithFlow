@@ -4,7 +4,7 @@ const { authenticate } = require('../middleware/auth');
 const prisma = require('../db');
 const {
   getFeed, createRequest, startSession, endSession, deleteRequest,
-  markAnswered, getAnsweredFeed, getRequest,
+  markAnswered, getAnsweredFeed, getPrayedForMe, getRequest,
   getMyRequests, editRequest, addUpdate,
 } = require('../controllers/prayerController');
 
@@ -45,6 +45,7 @@ router.get('/live-count', authenticate, async (req, res) => {
 
 router.get('/feed', authenticate, getFeed);
 router.get('/answered', authenticate, getAnsweredFeed);
+router.get('/prayed-for-me', authenticate, getPrayedForMe);
 router.get('/mine', authenticate, getMyRequests);
 router.post('/', authenticate, createRequest);
 router.get('/:id', authenticate, getRequest);

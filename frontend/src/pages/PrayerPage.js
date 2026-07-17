@@ -15,6 +15,7 @@ import TopPrayerCard from '../components/TopPrayerCard';
 import LocationBanner from '../components/LocationBanner';
 import { hapticMedium, hapticSuccess } from '../utils/haptics';
 import PullToRefresh from '../components/PullToRefresh';
+import PrayerReceipts from '../components/PrayerReceipts';
 import { useToast } from '../contexts/ToastContext';
 
 const FILTER_TABS = [
@@ -425,10 +426,23 @@ export default function PrayerPage() {
             <span className="font-semibold text-xs" style={{ color: '#163449' }}>Need a verse</span>
           </button>
         </motion.div>
+
+        {/* See answered prayers */}
+        <motion.button
+          initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.33, duration: 0.35, ease: 'easeOut' }}
+          onClick={() => navigate('/answered')}
+          className="w-full mt-2.5 flex items-center justify-center gap-1.5 text-xs font-semibold"
+          style={{ color: '#2C4055' }}
+        >
+          <Sparkles size={13} strokeWidth={1.8} /> See answered prayers
+        </motion.button>
       </div>
 
       {/* Feed */}
       <div className="bg-gray-50 px-4 pt-4">
+        {/* "Prayed for you" receipts — hides itself when there's no activity */}
+        <PrayerReceipts />
+
         {/* Action buttons */}
         <motion.div {...fadeUp} transition={{ delay: 0.05, duration: 0.3 }} className="flex gap-2 mb-3">
           <button

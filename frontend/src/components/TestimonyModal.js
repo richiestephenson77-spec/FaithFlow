@@ -5,14 +5,18 @@ import { WaterButton } from './water';
 export default function TestimonyModal({ request, onSave, onClose }) {
   const [what, setWhat] = useState('');
   const [how, setHow] = useState('');
+  const [sharePublicly, setSharePublicly] = useState(true);
   const [saving, setSaving] = useState(false);
 
   async function handleSave() {
     const text = [what.trim(), how.trim()].filter(Boolean).join('\n\n');
-    if (!text) return;
+    // Testimony is optional — marking answered is still allowed with no text.
     setSaving(true);
     try {
-      const res = await api.post(`/prayers/${request.id}/answered`, { testimonyMessage: text });
+      const res = await api.post(`/prayers/${request.id}/answered`, {
+        testimonyMessage: text || null,
+        isPublic: sharePublicly,
+      });
       onSave(res.data);
     } catch {}
     setSaving(false);
@@ -27,7 +31,7 @@ export default function TestimonyModal({ request, onSave, onClose }) {
           <h3 className="font-bold text-gray-900">Share Your Testimony</h3>
           <button
             onClick={handleSave}
-            disabled={saving || (!what.trim() && !how.trim())}
+            disabled={saving}
             className="text-faith-600 font-bold text-sm disabled:opacity-40"
           >
             {saving ? 'Saving...' : 'Save'}
@@ -69,7 +73,28 @@ export default function TestimonyModal({ request, onSave, onClose }) {
             />
           </div>
 
-          <WaterButton variant="primary" onClick={handleSave} disabled={saving || (!what.trim() && !how.trim())} className="w-full py-4 font-bold text-sm">
+          {/* Share publicly toggle — default ON */}
+          <button
+            type="button"
+            onClick={() => setSharePublicly(v => !v)}
+            className="w-full flex items-center justify-between rounded-2xl px-4 py-3 border border-gray-200"
+          >
+            <div className="text-left">
+              <p className="text-sm font-semibold text-gray-800">Share publicly</p>
+              <p className="text-xs text-gray-500 mt-0.5">Show on the Answered Prayers wall</p>
+            </div>
+            <span
+              className="relative inline-flex flex-shrink-0 rounded-full transition-colors"
+              style={{ width: 44, height: 26, background: sharePublicly ? '#2C4055' : '#D1D5DB' }}
+            >
+              <span
+                className="absolute top-0.5 rounded-full bg-white transition-all"
+                style={{ width: 22, height: 22, left: sharePublicly ? 20 : 2 }}
+              />
+            </span>
+          </button>
+
+          <WaterButton variant="primary" onClick={handleSave} disabled={saving} className="w-full py-4 font-bold text-sm">
             {saving ? 'Saving...' : '🙌 Save Testimony'}
           </WaterButton>
         </div>

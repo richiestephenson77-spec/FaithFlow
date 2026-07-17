@@ -33,6 +33,7 @@ import BibleMaps from './pages/BibleMaps';
 import PrayerDetail from './pages/PrayerDetail';
 import BibleBot from './pages/BibleBot';
 import PrayerPage from './pages/PrayerPage';
+import AnsweredPrayers from './pages/AnsweredPrayers';
 import PrayerImmersive from './pages/PrayerImmersive';
 import Messages from './pages/Messages';
 import ChatThread from './pages/ChatThread';
@@ -110,6 +111,7 @@ function AppRoutes() {
         <Route path="profile/:id" element={<Profile />} />
         <Route path="prayer" element={<PrayerPage />} />
         <Route path="pray/:id" element={<PrayerImmersive />} />
+        <Route path="answered" element={<AnsweredPrayers />} />
         <Route path="messages" element={<Messages />} />
         <Route path="messages/:conversationId" element={<ChatThread />} />
         <Route path="confessions" element={<Confessions />} />

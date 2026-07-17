@@ -359,7 +359,7 @@ async function addUpdate(req, res) {
 
 async function markAnswered(req, res) {
   const { id } = req.params;
-  const { testimonyMessage } = req.body;
+  const { testimonyMessage, isPublic } = req.body;
   try {
     const request = await prisma.prayerRequest.findUnique({ where: { id } });
     if (!request || request.userId !== req.user.id)
@@ -367,7 +367,13 @@ async function markAnswered(req, res) {
 
     const updated = await prisma.prayerRequest.update({
       where: { id },
-      data: { isAnswered: true, answeredAt: new Date(), testimonyMessage: testimonyMessage || null },
+      data: {
+        isAnswered: true,
+        answeredAt: new Date(),
+        testimonyMessage: testimonyMessage?.trim() || null,
+        // Default ON; only false when the author explicitly unticks "Share publicly"
+        answeredIsPublic: isPublic === false ? false : true,
+      },
       include: { user: { select: { id: true, name: true, profilePhoto: true, churchName: true } }, _count: { select: { sessions: true } } },
     });
     res.json(updated);
@@ -376,20 +382,106 @@ async function markAnswered(req, res) {
   }
 }
 
+// Public "Answered Prayers Wall" — only PUBLIC requests the author chose to share.
+// Never exposes PRIVATE / PASTOR_ONLY answered requests (those carry no author on
+// the feed anyway, but we exclude them entirely from the wall).
 async function getAnsweredFeed(req, res) {
+  const page = Math.max(1, parseInt(req.query.page) || 1);
+  const limit = Math.min(50, Math.max(1, parseInt(req.query.limit) || 20));
   try {
-    const requests = await prisma.prayerRequest.findMany({
-      where: { isAnswered: true },
-      orderBy: { answeredAt: 'desc' },
-      take: 5,
+    const where = { isAnswered: true, visibility: 'PUBLIC', answeredIsPublic: true };
+    const [rows, total] = await Promise.all([
+      prisma.prayerRequest.findMany({
+        where,
+        orderBy: { answeredAt: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+        include: {
+          user: { select: { id: true, name: true, profilePhoto: true, churchName: true } },
+          _count: { select: { sessions: true } },
+        },
+      }),
+      prisma.prayerRequest.count({ where }),
+    ]);
+    const items = rows.map(r => ({
+      id: r.id,
+      title: r.title,
+      body: r.body,
+      category: r.category,
+      testimonyMessage: r.testimonyMessage,
+      answeredAt: r.answeredAt,
+      createdAt: r.createdAt,
+      prayerCount: r._count.sessions,
+      user: r.user,
+    }));
+    res.json({ items, page, hasMore: page * limit < total, total });
+  } catch (err) {
+    console.error('getAnsweredFeed error:', err);
+    res.status(500).json({ error: 'Failed to get answered prayers' });
+  }
+}
+
+// "Prayed for you" receipts — who prayed for the requester's own requests,
+// most recent first, grouped by day. Only counts other people's prayers.
+async function getPrayedForMe(req, res) {
+  try {
+    const since = new Date(Date.now() - 30 * 86400000); // last 30 days
+    const sessions = await prisma.prayerSession.findMany({
+      where: {
+        startedAt: { gte: since },
+        userId: { not: req.user.id },
+        prayerRequest: { userId: req.user.id },
+      },
+      orderBy: { startedAt: 'desc' },
+      take: 200,
       include: {
-        user: { select: { id: true, name: true, profilePhoto: true, churchName: true } },
-        _count: { select: { sessions: true } },
+        user: { select: { id: true, name: true, profilePhoto: true } },
+        prayerRequest: { select: { id: true, title: true } },
       },
     });
-    res.json(requests);
-  } catch {
-    res.status(500).json({ error: 'Failed to get answered prayers' });
+
+    const total = sessions.length;
+
+    // Distinct most-recent prayers for the avatar stack / summary line
+    const seen = new Set();
+    const distinct = [];
+    for (const s of sessions) {
+      if (!s.user || seen.has(s.user.id)) continue;
+      seen.add(s.user.id);
+      distinct.push({ id: s.user.id, name: s.user.name, profilePhoto: s.user.profilePhoto });
+    }
+
+    // Today-only count for the "prayed for you today" headline
+    const startToday = new Date(); startToday.setHours(0, 0, 0, 0);
+    const todaySessions = sessions.filter(s => new Date(s.startedAt) >= startToday);
+    const todayDistinct = new Set(todaySessions.map(s => s.user?.id).filter(Boolean));
+
+    // Group entries by day for the detail list
+    const groupsMap = new Map();
+    for (const s of sessions) {
+      const day = new Date(s.startedAt).toISOString().slice(0, 10);
+      if (!groupsMap.has(day)) groupsMap.set(day, []);
+      groupsMap.get(day).push({
+        userId: s.user?.id || null,
+        name: s.user?.name || null,
+        profilePhoto: s.user?.profilePhoto || null,
+        requestId: s.prayerRequest?.id || null,
+        requestTitle: s.prayerRequest?.title || null,
+        prayedAt: s.startedAt,
+      });
+    }
+    const groups = Array.from(groupsMap.entries()).map(([day, entries]) => ({ day, entries }));
+
+    res.json({
+      total,
+      todayCount: todaySessions.length,
+      todayPeople: todayDistinct.size,
+      recentPeople: distinct.slice(0, 8),
+      groups,
+    });
+  } catch (err) {
+    console.error('getPrayedForMe error:', err);
+    res.status(500).json({ error: 'Failed to get prayer receipts' });
   }
 }
 
@@ -435,4 +527,4 @@ async function getRequest(req, res) {
   }
 }
 
-module.exports = { getFeed, createRequest, startSession, endSession, deleteRequest, markAnswered, getAnsweredFeed, getRequest, getMyRequests, editRequest, addUpdate };
+module.exports = { getFeed, createRequest, startSession, endSession, deleteRequest, markAnswered, getAnsweredFeed, getPrayedForMe, getRequest, getMyRequests, editRequest, addUpdate };
