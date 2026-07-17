@@ -16,6 +16,7 @@ import LocationBanner from '../components/LocationBanner';
 import { hapticMedium, hapticSuccess } from '../utils/haptics';
 import PullToRefresh from '../components/PullToRefresh';
 import PrayerReceipts from '../components/PrayerReceipts';
+import WeeklyRecap from '../components/WeeklyRecap';
 import { useToast } from '../contexts/ToastContext';
 
 const FILTER_TABS = [
@@ -136,6 +137,7 @@ export default function PrayerPage() {
 
   const [quota, setQuota] = useState(null);
   const [streak, setStreak] = useState(null);
+  const [graceDays, setGraceDays] = useState(0);
   const [showSettings, setShowSettings] = useState(false);
   const [target, setTarget] = useState('5');
   const [savingTarget, setSavingTarget] = useState(false);
@@ -219,7 +221,7 @@ export default function PrayerPage() {
 
   useEffect(() => {
     loadQuota();
-    api.get('/users/me/dashboard').then(res => { setStreak(res.data.streak || 0); setGratitudeStreak(res.data.gratitudeStreak || 0); }).catch(() => {});
+    api.get('/users/me/dashboard').then(res => { setStreak(res.data.streak || 0); setGratitudeStreak(res.data.gratitudeStreak || 0); setGraceDays(res.data.graceDaysAvailable || 0); }).catch(() => {});
     api.get('/gratitude/today').then(res => setTodayGratitude(res.data)).catch(() => setTodayGratitude(null));
     api.get('/prayer-cells').then(res => setLiveCells(res.data || [])).catch(() => {});
   }, [loadQuota]);
@@ -345,16 +347,29 @@ export default function PrayerPage() {
           <h2 className="text-xl font-bold leading-tight" style={{ color: '#163449', fontFamily: "'Fraunces', serif" }}>
             Who will you pray for today?
           </h2>
-          {streak !== null && streak > 0 && (
-            <motion.span
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.15, duration: 0.3 }}
-              className="flex items-center gap-1 px-2 py-1 rounded-full flex-shrink-0 self-start mt-0.5"
-              style={{ background: 'rgba(44,64,85,0.15)' }}
-            >
-              <Flame size={11} strokeWidth={2} color="#2C4055" />
-              <span className="text-[11px] font-semibold" style={{ color: '#2C4055' }}>{streak}</span>
-            </motion.span>
-          )}
+          <div className="flex items-center gap-1.5 flex-shrink-0 self-start mt-0.5">
+            {streak !== null && streak > 0 && (
+              <motion.span
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.15, duration: 0.3 }}
+                className="flex items-center gap-1 px-2 py-1 rounded-full"
+                style={{ background: 'rgba(44,64,85,0.15)' }}
+              >
+                <Flame size={11} strokeWidth={2} color="#2C4055" />
+                <span className="text-[11px] font-semibold" style={{ color: '#2C4055' }}>{streak}</span>
+              </motion.span>
+            )}
+            {graceDays > 0 && (
+              <motion.span
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2, duration: 0.3 }}
+                className="flex items-center gap-1 px-2 py-1 rounded-full"
+                style={{ background: 'rgba(44,64,85,0.08)' }}
+                title="Grace days — each can save your streak once"
+              >
+                <span className="text-[11px]">❄️</span>
+                <span className="text-[11px] font-semibold" style={{ color: '#2C4055' }}>{graceDays}</span>
+              </motion.span>
+            )}
+          </div>
         </motion.div>
 
         {/* Daily Goal — flat card */}
@@ -440,6 +455,9 @@ export default function PrayerPage() {
 
       {/* Feed */}
       <div className="bg-gray-50 px-4 pt-4">
+        {/* Weekly recap — shows Sundays / first open after, once per week */}
+        <WeeklyRecap />
+
         {/* "Prayed for you" receipts — hides itself when there's no activity */}
         <PrayerReceipts />
 

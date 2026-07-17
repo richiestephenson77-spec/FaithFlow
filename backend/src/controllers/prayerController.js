@@ -46,7 +46,15 @@ async function getFeed(req, res) {
     };
   }
 
-  const where = { isActive: true, isAnswered: false, ...visibilityFilter };
+  // Lifecycle: auto-hide requests with no activity for 30+ days (still visible
+  // to the author under My Requests). Answered ones are already excluded above.
+  const staleCutoff = new Date(Date.now() - 30 * 86400000);
+  const where = {
+    isActive: true,
+    isAnswered: false,
+    lastActivityAt: { gte: staleCutoff },
+    ...visibilityFilter,
+  };
 
   try {
     const all = await prisma.prayerRequest.findMany({
@@ -78,8 +86,14 @@ async function getFeed(req, res) {
       filtered = filtered.filter(r => r.category === category);
     }
 
-    // Sort by prayer count desc
-    filtered.sort((a, b) => b._count.sessions - a._count.sessions);
+    // Sort by a blend of prayer count and recent activity so fresh/bumped
+    // requests surface instead of ranking purely by prayer count.
+    const now = Date.now();
+    filtered.forEach(r => {
+      const days = (now - new Date(r.lastActivityAt || r.createdAt)) / 86400000;
+      r._score = r._count.sessions + Math.max(0, 14 - days); // freshness boost, decays over ~2 weeks
+    });
+    filtered.sort((a, b) => b._score - a._score);
 
     const format = (r, index) => {
       // Private/PastorOnly prayers are always anonymous in the feed — even to the poster
@@ -103,6 +117,8 @@ async function getFeed(req, res) {
         sessions: undefined,
         _count: undefined,
         _distanceKm: undefined,
+        _score: undefined,
+        lastActivityAt: undefined,
         user: userField,
       };
     };
@@ -187,6 +203,9 @@ async function startSession(req, res) {
       data: { userId: req.user.id, prayerRequestId: id },
     });
 
+    // Prayer counts as activity — keeps the request fresh in the feed
+    await prisma.prayerRequest.update({ where: { id }, data: { lastActivityAt: new Date() } });
+
     // Notify the requester (not if praying for own request)
     if (prayerRequest.userId !== req.user.id) {
       const prayingUser = await prisma.user.findUnique({
@@ -264,7 +283,7 @@ async function endSession(req, res) {
     // Streak logic
     const user = await prisma.user.findUnique({
       where: { id: req.user.id },
-      select: { prayerStreak: true, longestPrayerStreak: true, lastPrayerDate: true },
+      select: { prayerStreak: true, longestPrayerStreak: true, lastPrayerDate: true, graceDaysAvailable: true },
     });
 
     const todayStr = new Date().toISOString().split('T')[0];
@@ -274,6 +293,7 @@ async function endSession(req, res) {
 
     let newStreak = user.prayerStreak;
     let streakIncreased = false;
+    let graceUsed = false;
 
     if (!lastStr) {
       // Case A: first ever prayer
@@ -286,13 +306,21 @@ async function endSession(req, res) {
       const yesterday = new Date();
       yesterday.setDate(yesterday.getDate() - 1);
       const yesterdayStr = yesterday.toISOString().split('T')[0];
+      const twoDaysAgo = new Date();
+      twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
+      const twoDaysAgoStr = twoDaysAgo.toISOString().split('T')[0];
 
       if (lastStr === yesterdayStr) {
         // Case C: prayed yesterday — extend streak
         newStreak = user.prayerStreak + 1;
         streakIncreased = true;
+      } else if (lastStr === twoDaysAgoStr && user.graceDaysAvailable > 0) {
+        // Case C2: missed exactly one day but a grace day saves the streak
+        newStreak = user.prayerStreak + 1;
+        streakIncreased = true;
+        graceUsed = true;
       } else {
-        // Case D: missed one or more days — reset
+        // Case D: missed too many days — reset
         newStreak = 1;
         streakIncreased = true;
       }
@@ -301,14 +329,16 @@ async function endSession(req, res) {
     const newLongest = Math.max(newStreak, user.longestPrayerStreak);
     const isRecord = newStreak > user.longestPrayerStreak;
 
-    await prisma.user.update({
-      where: { id: req.user.id },
-      data: {
-        prayerStreak: newStreak,
-        longestPrayerStreak: newLongest,
-        lastPrayerDate: new Date(),
-      },
-    });
+    const userData = {
+      prayerStreak: newStreak,
+      longestPrayerStreak: newLongest,
+      lastPrayerDate: new Date(),
+    };
+    if (graceUsed) {
+      userData.graceDaysAvailable = { decrement: 1 };
+      userData.graceDayUsedAt = new Date();
+    }
+    await prisma.user.update({ where: { id: req.user.id }, data: userData });
 
     res.json({
       durationSeconds,
@@ -317,6 +347,8 @@ async function endSession(req, res) {
         longest: newLongest,
         increased: streakIncreased,
         isRecord,
+        graceUsed,
+        graceDaysAvailable: user.graceDaysAvailable - (graceUsed ? 1 : 0),
       },
     });
   } catch {
@@ -348,9 +380,54 @@ async function getMyRequests(req, res) {
         _count: { select: { sessions: true } },
       },
     });
-    res.json(requests.map(r => ({ ...r, totalPrayerCount: r._count.sessions, _count: undefined })));
+
+    const staleCutoff = new Date(Date.now() - 30 * 86400000);
+    // Compute-on-fetch bump nudge for stale, unanswered own requests (no cron).
+    // Dedup: one REQUEST_NEEDS_BUMP per request per 7 days.
+    const io = req.app.get('io');
+    const notifCutoff = new Date(Date.now() - 7 * 86400000);
+    for (const r of requests) {
+      const stale = !r.isAnswered && r.isActive && new Date(r.lastActivityAt) < staleCutoff;
+      if (!stale) continue;
+      const existing = await prisma.notification.findFirst({
+        where: { userId: req.user.id, type: 'REQUEST_NEEDS_BUMP', refId: r.id, createdAt: { gte: notifCutoff } },
+        select: { id: true },
+      });
+      if (!existing) {
+        await createNotification(io, {
+          userId: req.user.id, type: 'REQUEST_NEEDS_BUMP',
+          message: `Still need prayer for "${r.title}"? Tap to bump it.`,
+          refId: r.id,
+        });
+      }
+    }
+
+    res.json(requests.map(r => ({
+      ...r,
+      totalPrayerCount: r._count.sessions,
+      isStale: !r.isAnswered && r.isActive && new Date(r.lastActivityAt) < staleCutoff,
+      _count: undefined,
+    })));
   } catch {
     res.status(500).json({ error: 'Failed to get your prayer requests' });
+  }
+}
+
+// Bump a stale request back into the feed by refreshing its activity timestamp.
+async function bumpRequest(req, res) {
+  const { id } = req.params;
+  try {
+    const request = await prisma.prayerRequest.findUnique({ where: { id } });
+    if (!request || request.userId !== req.user.id)
+      return res.status(403).json({ error: 'Not authorized' });
+    const updated = await prisma.prayerRequest.update({
+      where: { id },
+      data: { lastActivityAt: new Date() },
+      include: { _count: { select: { sessions: true } } },
+    });
+    res.json({ ...updated, totalPrayerCount: updated._count.sessions, isStale: false, _count: undefined });
+  } catch {
+    res.status(500).json({ error: 'Failed to bump request' });
   }
 }
 
@@ -585,4 +662,4 @@ async function getRequest(req, res) {
   }
 }
 
-module.exports = { getFeed, createRequest, startSession, endSession, deleteRequest, markAnswered, getAnsweredFeed, getPrayedForMe, getRequest, getMyRequests, editRequest, addUpdate };
+module.exports = { getFeed, createRequest, startSession, endSession, deleteRequest, markAnswered, getAnsweredFeed, getPrayedForMe, getRequest, getMyRequests, bumpRequest, editRequest, addUpdate };

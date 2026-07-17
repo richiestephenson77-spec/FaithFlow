@@ -176,7 +176,7 @@ async function getDashboard(req, res) {
       }),
       prisma.prayerSession.findMany({ where: { userId: id }, distinct: ['prayerRequestId'] }),
       prisma.prayerSession.count({ where: { userId: id, durationSeconds: { gt: 0 } } }),
-      prisma.user.findUnique({ where: { id }, select: { prayerStreak: true, longestPrayerStreak: true } }),
+      prisma.user.findUnique({ where: { id }, select: { prayerStreak: true, longestPrayerStreak: true, graceDaysAvailable: true } }),
     ]);
 
     const todaySeconds = await getTodayPrayerTime(id);
@@ -188,6 +188,7 @@ async function getDashboard(req, res) {
       totalSessions,
       streak: user.prayerStreak,
       longestStreak: user.longestPrayerStreak,
+      graceDaysAvailable: user.graceDaysAvailable,
       todaySeconds,
     });
   } catch {

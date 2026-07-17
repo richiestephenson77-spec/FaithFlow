@@ -13,6 +13,45 @@ router.get('/search', authenticate, searchUsers);
 router.get('/suggested', authenticate, getSuggestedUsers);
 router.get('/me', authenticate, getMe);
 router.get('/me/dashboard', authenticate, getDashboard);
+
+// Weekly recap — last 7 days of activity for the recap card
+router.get('/me/recap', authenticate, async (req, res) => {
+  const me = req.user.id;
+  const since = new Date(Date.now() - 7 * 86400000);
+  try {
+    const [mySessions, gratitudeCount, user, prayedForMe] = await Promise.all([
+      prisma.prayerSession.findMany({
+        where: { userId: me, startedAt: { gte: since } },
+        select: { prayerRequest: { select: { userId: true, user: { select: { location: true } } } } },
+      }),
+      prisma.gratitudeEntry.count({ where: { userId: me, createdAt: { gte: since } } }),
+      prisma.user.findUnique({ where: { id: me }, select: { prayerStreak: true } }),
+      prisma.prayerSession.findMany({
+        where: { startedAt: { gte: since }, userId: { not: me }, prayerRequest: { userId: me } },
+        select: { userId: true },
+      }),
+    ]);
+
+    const uniquePeople = new Set(mySessions.map(s => s.prayerRequest?.userId).filter(Boolean));
+    // Author location is free-text (usually a city), so this approximates
+    // "countries reached" with distinct non-empty locations.
+    const places = new Set(mySessions.map(s => s.prayerRequest?.user?.location).filter(Boolean));
+    const peoplePrayedForMe = new Set(prayedForMe.map(s => s.userId).filter(Boolean));
+
+    res.json({
+      periodDays: 7,
+      prayersOffered: mySessions.length,
+      uniquePeoplePrayedFor: uniquePeople.size,
+      countriesReached: places.size,
+      gratitudeEntries: gratitudeCount,
+      currentStreak: user?.prayerStreak || 0,
+      peoplePrayedForYou: peoplePrayedForMe.size,
+    });
+  } catch (err) {
+    console.error('recap error:', err);
+    res.status(500).json({ error: 'Failed to build recap' });
+  }
+});
 router.put('/me', authenticate, (req, res, next) => {
   uploadProfile(req, res, (err) => {
     if (err) return res.status(400).json({ error: err.message });

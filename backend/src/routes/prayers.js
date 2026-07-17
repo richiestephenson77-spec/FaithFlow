@@ -5,7 +5,7 @@ const prisma = require('../db');
 const {
   getFeed, createRequest, startSession, endSession, deleteRequest,
   markAnswered, getAnsweredFeed, getPrayedForMe, getRequest,
-  getMyRequests, editRequest, addUpdate,
+  getMyRequests, bumpRequest, editRequest, addUpdate,
 } = require('../controllers/prayerController');
 
 // Draft endpoints — must be before /:id routes
@@ -52,6 +52,7 @@ router.get('/:id', authenticate, getRequest);
 router.put('/:id', authenticate, editRequest);
 router.post('/:id/start', authenticate, startSession);
 router.post('/:id/answered', authenticate, markAnswered);
+router.post('/:id/bump', authenticate, bumpRequest);
 router.post('/:id/update', authenticate, addUpdate);
 router.post('/session/:sessionId/end', authenticate, endSession);
 router.delete('/:id', authenticate, deleteRequest);

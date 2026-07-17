@@ -90,6 +90,17 @@ export default function MyPrayerRequestsDrawer({ onClose }) {
     setTestimony(null);
   }
 
+  async function bumpRequest(req) {
+    setSelected(null);
+    try {
+      await api.post(`/prayers/${req.id}/bump`);
+      setRequests(prev => prev.map(r => r.id === req.id ? { ...r, isStale: false } : r));
+      showToast('Bumped back into the feed');
+    } catch (err) {
+      showToast(err.friendlyMessage || 'Could not bump request', 'error');
+    }
+  }
+
   async function changePrivacy(req, visibility) {
     try {
       const res = await api.put(`/prayers/${req.id}`, { visibility });
@@ -169,6 +180,12 @@ export default function MyPrayerRequestsDrawer({ onClose }) {
                       <span className="text-xs text-faith-500 font-medium">Updated</span>
                     </>
                   )}
+                  {req.isStale && (
+                    <>
+                      <span className="text-xs text-gray-400">·</span>
+                      <span className="text-xs font-medium" style={{ color: '#B0562C' }}>Hidden — bump it</span>
+                    </>
+                  )}
                 </div>
               </button>
             ))
@@ -188,6 +205,9 @@ export default function MyPrayerRequestsDrawer({ onClose }) {
             </div>
             <div className="px-4 py-2 space-y-1">
               <ActionItem icon="✏️" label="Edit Prayer Request" onClick={() => openEdit(selected)} />
+              {selected.isStale && (
+                <ActionItem icon="🔄" label="Bump back into the feed" onClick={() => bumpRequest(selected)} />
+              )}
               {!selected.isAnswered && (
                 <ActionItem icon="🙌" label="Mark as Answered" onClick={() => { setTestimony(selected); setSelected(null); }} />
               )}

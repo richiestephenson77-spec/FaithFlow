@@ -81,6 +81,15 @@ export default function StreakCelebration({ streak, onDone }) {
         </p>
         <p className="text-white/60 text-sm mb-10">{sub}</p>
 
+        {streak.graceUsed && (
+          <div className="bg-white/10 border border-white/20 rounded-2xl px-4 py-3 mb-6 inline-block max-w-xs">
+            <p className="text-white/90 text-sm font-medium">❄️ We used a grace day to save your {streak.current}-day streak.</p>
+            <p className="text-white/60 text-xs mt-0.5">
+              You have {streak.graceDaysAvailable} grace {streak.graceDaysAvailable === 1 ? 'day' : 'days'} left.
+            </p>
+          </div>
+        )}
+
         {streak.longest > 1 && (
           <p className="text-white/50 text-xs mb-8">Best streak: {streak.longest} days</p>
         )}

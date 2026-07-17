@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bell, Heart, MessageCircle, UserPlus, Sparkles, Users, HandHeart, Flame } from 'lucide-react';
+import { Bell, Heart, MessageCircle, UserPlus, Sparkles, Users, HandHeart, Flame, RefreshCw } from 'lucide-react';
 import api from '../utils/api';
 import { useSocket } from '../contexts/SocketContext';
 import Avatar from '../components/Avatar';
@@ -27,6 +27,7 @@ const TYPE_META = {
   CONFESSION_COMMENT:      { Icon: MessageCircle, color: '#8A5CD0', bg: '#f5f0fc' },
   STREAK_AT_RISK:          { Icon: Flame,         color: '#E86A4B', bg: '#fdf0ec' },
   PARTNER_SHARED_PRAYER:   { Icon: Users,         color: '#2C4055', bg: 'rgba(44,64,85,0.08)' },
+  REQUEST_NEEDS_BUMP:      { Icon: RefreshCw,     color: '#2C4055', bg: 'rgba(44,64,85,0.08)' },
   PRAYER_PARTNER_MATCHED:  { Icon: Users,         color: '#2C4055', bg: '#fffbeb' },
 };
 
@@ -71,7 +72,13 @@ function NotificationCard({ n, onFollowBack }) {
       initial={{ opacity: 0, x: n.isRead ? 0 : -14 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ type: 'spring', stiffness: 300, damping: 28 }}
-      onClick={() => {
+      onClick={async () => {
+        // Tapping the bump nudge refreshes the request's activity and returns it to the feed
+        if (n.type === 'REQUEST_NEEDS_BUMP' && n.refId) {
+          try { await api.post(`/prayers/${n.refId}/bump`); } catch {}
+          navigate('/prayer');
+          return;
+        }
         const route = routeFor(n);
         if (route) navigate(route);
       }}
@@ -136,7 +143,7 @@ function Section({ title, items, onFollowBack }) {
   );
 }
 
-const PRAYER_TYPES = new Set(['PRAYER_STARTED', 'SOMEONE_PRAYED', 'PRAYER_ANSWERED', 'PARTNER_SHARED_PRAYER', 'STREAK_AT_RISK', 'LEVEL_UP']);
+const PRAYER_TYPES = new Set(['PRAYER_STARTED', 'SOMEONE_PRAYED', 'PRAYER_ANSWERED', 'PARTNER_SHARED_PRAYER', 'STREAK_AT_RISK', 'REQUEST_NEEDS_BUMP', 'LEVEL_UP']);
 const PEOPLE_TYPES = new Set(['NEW_FOLLOWER', 'POST_LIKE', 'POST_COMMENT', 'CONFESSION_COMMENT']);
 
 export default function Notifications() {

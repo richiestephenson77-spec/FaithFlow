@@ -115,7 +115,7 @@ async function completePrayer(req, res) {
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.user.id },
-      select: { dailyPrayerQuota: true, prayerWarriorBadge: true, totalPeoplesPrayedFor: true },
+      select: { dailyPrayerQuota: true, prayerWarriorBadge: true, totalPeoplesPrayedFor: true, graceDaysAvailable: true },
     });
 
     const date = todayStr();
@@ -136,6 +136,18 @@ async function completePrayer(req, res) {
       updates.prayerWarriorEarnedAt = new Date();
       badgeEarned = true;
     }
+
+    // Streak freeze: earn 1 grace day per Prayer Warrior level gained (max 3
+    // held). A "level" is every PEOPLE_PER_LEVEL unique prayers offered.
+    const PEOPLE_PER_LEVEL = 25;
+    const oldTotal = user.totalPeoplesPrayedFor;
+    const newTotal = oldTotal + 1;
+    let graceEarned = false;
+    if (Math.floor(newTotal / PEOPLE_PER_LEVEL) > Math.floor(oldTotal / PEOPLE_PER_LEVEL) && user.graceDaysAvailable < 3) {
+      updates.graceDaysAvailable = { increment: 1 };
+      graceEarned = true;
+    }
+
     await prisma.user.update({ where: { id: req.user.id }, data: updates });
 
     res.json({
@@ -143,6 +155,8 @@ async function completePrayer(req, res) {
       target: log.target,
       isComplete: nowComplete,
       badgeEarned,
+      graceEarned,
+      graceDaysAvailable: user.graceDaysAvailable + (graceEarned ? 1 : 0),
     });
   } catch (err) {
     console.error('completePrayer error:', err);
