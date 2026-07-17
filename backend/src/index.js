@@ -22,6 +22,7 @@ const findChurchesRoutes = require('./routes/findChurches');
 const bibleRoutes = require('./routes/bible');
 const prayerPartnersRoutes = require('./routes/prayerPartners');
 const gratitudeRoutes = require('./routes/gratitude');
+const searchRoutes = require('./routes/search');
 
 const app = express();
 const server = http.createServer(app);
@@ -100,6 +101,7 @@ app.use('/api/find-churches', findChurchesRoutes);
 app.use('/api/bible', bibleRoutes);
 app.use('/api/prayer-partners', prayerPartnersRoutes);
 app.use('/api/gratitude', gratitudeRoutes);
+app.use('/api/search', searchRoutes);
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 
