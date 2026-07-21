@@ -107,7 +107,9 @@ function PrayerCard({ request, currentUserId, onOpen, onPray, onUserClick, onMar
             <div className="flex items-center gap-1.5">
               {request.currentlyPrayingCount > 0
                 ? <span className="text-xs text-emerald-600 font-semibold bg-emerald-50 px-2 py-1 rounded-full">{request.currentlyPrayingCount} praying now</span>
-                : <span className="text-xs text-gray-400 flex items-center gap-1"><Users size={11} strokeWidth={1.5} /> {request.totalPrayerCount || 0} prayed</span>}
+                : (request.totalPrayerCount || 0) === 0
+                  ? <span className="text-xs font-semibold" style={{ color: '#2C4055' }}>Be the first to pray for this</span>
+                  : <span className="text-xs text-gray-400 flex items-center gap-1"><Users size={11} strokeWidth={1.5} /> {request.totalPrayerCount} prayed</span>}
             </div>
             <div className="flex items-center gap-2">
               {isOwner && !request.isAnswered && (
@@ -674,9 +676,10 @@ export default function PrayerPage() {
             )}
             {filteredRest.length > 0 && (
               <>
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">
-                  {nearMe ? `Near You · ${radius} km radius` : 'All Prayer Requests'}
-                </p>
+                <div className="mb-3">
+                  <p className="font-bold text-gray-900 text-base" style={{ fontFamily: "'Fraunces', serif" }}>Needs prayer most</p>
+                  <p className="text-xs text-gray-400 mt-0.5">Urgent first, then the least prayed for</p>
+                </div>
                 <motion.div className="space-y-3" {...staggerContainerFast} initial="initial" animate="animate">
                   {filteredRest.map(request => (
                     <motion.div key={request.id} variants={staggerItem}>

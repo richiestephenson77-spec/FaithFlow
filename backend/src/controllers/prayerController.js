@@ -86,16 +86,36 @@ async function getFeed(req, res) {
       filtered = filtered.filter(r => r.category === category);
     }
 
-    // Sort by a blend of prayer count and recent activity so fresh/bumped
-    // requests surface instead of ranking purely by prayer count.
+    // Two separate rankings from the same fetched set, doing opposite jobs:
+    //   top3 = the leaderboard (social proof — celebrate the most prayed-for)
+    //   rest = the need-based feed (surface who needs prayer most)
     const now = Date.now();
-    filtered.forEach(r => {
-      const days = (now - new Date(r.lastActivityAt || r.createdAt)) / 86400000;
-      r._score = r._count.sessions + Math.max(0, 14 - days); // freshness boost, decays over ~2 weeks
-    });
-    filtered.sort((a, b) => b._score - a._score);
+    const activityMs = r => new Date(r.lastActivityAt || r.createdAt).getTime();
 
-    const format = (r, index) => {
+    // Leaderboard: prayer count desc, with a mild freshness tiebreak so a stale
+    // giant doesn't sit at the top forever. Unchanged from before.
+    const leaderboardScore = r =>
+      r._count.sessions + Math.max(0, 14 - (now - activityMs(r)) / 86400000);
+    const top3Raw = [...filtered]
+      .sort((a, b) => leaderboardScore(b) - leaderboardScore(a))
+      .slice(0, 3);
+    const top3Ids = new Set(top3Raw.map(r => r.id));
+
+    // Need-based feed: ordinal priority (NOT an additive score, so urgency can
+    // never be outweighed by prayer count):
+    //   a) urgent first
+    //   b) then fewest prayers first (the person nobody prayed for surfaces)
+    //   c) then freshest as the tiebreak
+    // top3 ids are excluded so nothing appears in both lists.
+    const restRaw = filtered
+      .filter(r => !top3Ids.has(r.id))
+      .sort((a, b) => {
+        if (a.isUrgent !== b.isUrgent) return a.isUrgent ? -1 : 1;
+        if (a._count.sessions !== b._count.sessions) return a._count.sessions - b._count.sessions;
+        return activityMs(b) - activityMs(a);
+      });
+
+    const format = (r, index, isTop3) => {
       // Private/PastorOnly prayers are always anonymous in the feed — even to the poster
       const shouldAnonymize = r.visibility !== 'PUBLIC';
       const displayLocation = r.user?.location ? `From ${r.user.location}` : 'Undisclosed location';
@@ -109,7 +129,7 @@ async function getFeed(req, res) {
         totalPrayerCount: r._count.sessions,
         userHasPrayed: r.sessions.some(s => s.userId === userId),
         isOwner: r.userId === userId,
-        isTop3: index < 3,
+        isTop3,
         rank: index + 1,
         distanceKm: r._distanceKm != null ? Math.round(r._distanceKm * 10) / 10 : null,
         isAnonymous: shouldAnonymize,
@@ -117,14 +137,14 @@ async function getFeed(req, res) {
         sessions: undefined,
         _count: undefined,
         _distanceKm: undefined,
-        _score: undefined,
         lastActivityAt: undefined,
         user: userField,
       };
     };
 
-    const formatted = filtered.map(format);
-    res.json({ top3: formatted.slice(0, 3), rest: formatted.slice(3) });
+    const top3 = top3Raw.map((r, i) => format(r, i, true));
+    const rest = restRaw.map((r, i) => format(r, i + top3Raw.length, false));
+    res.json({ top3, rest });
   } catch (err) {
     console.error('getFeed error:', err);
     res.status(500).json({ error: 'Failed to get feed' });

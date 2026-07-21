@@ -89,7 +89,9 @@ export default function TopPrayerCard({ request, currentUserId, onOpen, onPray, 
             className="text-xs font-semibold mt-2 flex items-center gap-1"
             style={{ color: '#2C4055' }}
           >
-            <Globe size={11} strokeWidth={2} /> {request.prayerCount} {request.prayerCount === 1 ? 'person' : 'people'} praying worldwide
+            {request.prayerCount === 0
+              ? <>Be the first to pray for this</>
+              : <><Globe size={11} strokeWidth={2} /> {request.prayerCount} {request.prayerCount === 1 ? 'person' : 'people'} praying worldwide</>}
           </motion.p>
           {showDistance && request.distanceKm != null && (
             <p className="flex items-center gap-0.5 text-xs text-gray-400 mt-0.5"><MapPin size={10} strokeWidth={2} />{request.distanceKm} km away</p>
