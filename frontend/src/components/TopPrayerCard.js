@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { Globe, MapPin } from 'lucide-react';
 import Avatar from './Avatar';
+import ContentModeration from './ContentModeration';
 
 const BORDER = { 1: '#F5C842', 2: '#C0C0C0', 3: '#CD7F32' };
 
@@ -14,7 +15,7 @@ function getTimeAgo(dateStr) {
   return `${Math.floor(h / 24)}d ago`;
 }
 
-export default function TopPrayerCard({ request, currentUserId, onOpen, onPray, onUserClick, onMarkAnswered, onViewTestimony, rank, showDistance }) {
+export default function TopPrayerCard({ request, currentUserId, onOpen, onPray, onUserClick, onMarkAnswered, onViewTestimony, onHide, rank, showDistance }) {
   // Use backend-provided isOwner — user.id is null when prayer is anonymized
   const isOwner = request.isOwner ?? (request.user?.id === currentUserId);
   const borderColor = BORDER[rank] || '#e5e7eb';
@@ -74,7 +75,19 @@ export default function TopPrayerCard({ request, currentUserId, onOpen, onPray, 
                 <p className="text-xs text-faith-500 mt-0.5">{request.user.churchName}</p>
               )}
             </div>
-            <span className="text-[10px] text-gray-400 whitespace-nowrap mt-0.5 mr-8">{getTimeAgo(request.createdAt)}</span>
+            <div className="flex items-center gap-1.5 flex-shrink-0 mt-0.5 mr-8">
+              <span className="text-[10px] text-gray-400 whitespace-nowrap">{getTimeAgo(request.createdAt)}</span>
+              {!isOwner && (
+                <ContentModeration
+                  contentType="PRAYER"
+                  contentId={request.id}
+                  targetUserId={request.isAnonymous ? undefined : request.user?.id}
+                  targetName={request.user?.name}
+                  onHidden={onHide}
+                  iconSize={16}
+                />
+              )}
+            </div>
           </div>
 
           <h4 className="font-bold text-gray-900 text-sm mt-2 mb-1" style={{ fontFamily: "'Fraunces', serif" }}>{request.title}</h4>

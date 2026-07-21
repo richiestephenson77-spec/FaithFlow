@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ChevronLeft, ChevronRight, User, Bell, Lock,
-  Clock, BookOpen, MessageCircle, Star,
+  Clock, BookOpen, MessageCircle, Star, Ban,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import Avatar from '../components/Avatar';
@@ -153,6 +153,12 @@ export default function Settings() {
             Icon={Bell} iconBg="#EF4444"
             label="Notifications" sublabel="Prayer alerts, followers, comments"
             onClick={() => navigate('notifications')}
+          />
+          <SectionDivider />
+          <SettingsRow
+            Icon={Ban} iconBg="#C0392B"
+            label="Blocked Users" sublabel="Manage who you've blocked"
+            onClick={() => navigate('blocked')}
           />
           <SectionDivider />
           <SettingsRow

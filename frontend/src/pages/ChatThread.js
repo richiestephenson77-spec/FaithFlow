@@ -9,6 +9,7 @@ import { WaterButton, WaterInput } from '../components/water';
 import Skeleton from '../components/Skeleton';
 import { hapticMedium, hapticLight } from '../utils/haptics';
 import { useToast } from '../contexts/ToastContext';
+import ReportSheet from '../components/ReportSheet';
 import CallOverlay from '../components/CallOverlay';
 
 function getTimeStr(d) {
@@ -120,6 +121,9 @@ export default function ChatThread() {
   const [sending, setSending] = useState(false);
   const [typingUser, setTypingUser] = useState(null);
   const [pickerFor, setPickerFor] = useState(null);
+  const [reportMsgId, setReportMsgId] = useState(null);
+  const [blockOpen, setBlockOpen] = useState(false);
+  const [blocking, setBlocking] = useState(false);
   const [recording, setRecording] = useState(false);
   const [recordSeconds, setRecordSeconds] = useState(0);
   const [replyTo, setReplyTo] = useState(null);
@@ -441,6 +445,49 @@ export default function ChatThread() {
         />
       )}
 
+      {reportMsgId && (
+        <ReportSheet
+          contentType="MESSAGE"
+          contentId={reportMsgId}
+          reportedUserId={other?.id}
+          onClose={() => setReportMsgId(null)}
+          onReported={() => setMessages(prev => prev.filter(m => m.id !== reportMsgId))}
+        />
+      )}
+
+      {blockOpen && (
+        <div className="fixed inset-0 z-[60] bg-black/50 flex items-center justify-center px-8" onClick={() => setBlockOpen(false)}>
+          <div className="bg-white rounded-3xl w-full max-w-xs p-5 text-center" onClick={e => e.stopPropagation()}>
+            <p className="font-bold text-[15px]" style={{ color: '#163449' }}>Block {other?.name || 'this user'}?</p>
+            <p className="text-sm mt-2 leading-snug" style={{ color: '#6B7680' }}>
+              They won't be able to message you or see your content, and you won't see theirs.
+            </p>
+            <div className="flex gap-2 mt-5">
+              <button onClick={() => setBlockOpen(false)} className="flex-1 py-3 rounded-xl text-sm font-semibold" style={{ background: '#F0F0F0', color: '#1A1A1A' }}>Cancel</button>
+              <button
+                onClick={async () => {
+                  if (blocking) return;
+                  setBlocking(true);
+                  try {
+                    await api.post('/blocks', { userId: other.id });
+                    showToast(`Blocked ${other?.name?.split(' ')[0] || ''}`.trim());
+                    navigate('/messages');
+                  } catch (err) {
+                    showToast(err.friendlyMessage || 'Could not block user', 'error');
+                    setBlocking(false);
+                  }
+                }}
+                disabled={blocking}
+                className="flex-1 py-3 rounded-xl text-sm font-semibold text-white disabled:opacity-50"
+                style={{ background: '#C0392B' }}
+              >
+                {blocking ? 'Blocking…' : 'Block'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Tap-away dismiss for the reaction picker */}
       {pickerFor && (
         <div className="fixed inset-0" style={{ zIndex: 10 }} onClick={() => setPickerFor(null)} />
@@ -555,6 +602,22 @@ export default function ChatThread() {
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                         Unsend
                       </button>
+                    )}
+                    {!isMe && (
+                      <>
+                        <button
+                          onClick={() => { setReportMsgId(m.id); setPickerFor(null); }}
+                          className="w-full text-left px-4 py-2.5 text-sm text-gray-700 active:bg-gray-50 border-t border-gray-100"
+                        >
+                          Report
+                        </button>
+                        <button
+                          onClick={() => { setBlockOpen(true); setPickerFor(null); }}
+                          className="w-full text-left px-4 py-2.5 text-sm text-red-500 active:bg-gray-50"
+                        >
+                          Block user
+                        </button>
+                      </>
                     )}
                   </div>
                 )}

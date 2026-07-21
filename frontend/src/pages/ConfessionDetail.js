@@ -6,6 +6,7 @@ import api from '../utils/api';
 import Avatar from '../components/Avatar';
 import { useAuth } from '../contexts/AuthContext';
 import { hapticLight } from '../utils/haptics';
+import ContentModeration from '../components/ContentModeration';
 
 const BG = '#EEF3F5';
 const ACCENT = '#2C4055';
@@ -240,6 +241,14 @@ export default function ConfessionDetail() {
                   <p className="text-sm mt-0.5 leading-snug" style={{ color: '#262626' }}>{cm.content}</p>
                   <p className="text-xs mt-0.5" style={{ color: '#9AA6AD' }}>{getTimeAgo(cm.createdAt)}</p>
                 </div>
+                {/* Report only — confession comment authorship stays anonymous */}
+                <ContentModeration
+                  contentType="COMMENT"
+                  contentId={cm.id}
+                  onHidden={() => setComments(prev => prev.filter(x => x.id !== cm.id))}
+                  iconSize={15}
+                  className="mt-1 flex-shrink-0"
+                />
               </motion.div>
             ))}
           </div>

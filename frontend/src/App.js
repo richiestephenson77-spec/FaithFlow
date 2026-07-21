@@ -34,6 +34,7 @@ import PrayerDetail from './pages/PrayerDetail';
 import BibleBot from './pages/BibleBot';
 import PrayerPage from './pages/PrayerPage';
 import AnsweredPrayers from './pages/AnsweredPrayers';
+import BlockedUsers from './pages/BlockedUsers';
 import PrayerImmersive from './pages/PrayerImmersive';
 import Messages from './pages/Messages';
 import ChatThread from './pages/ChatThread';
@@ -103,6 +104,7 @@ function AppRoutes() {
         <Route path="settings" element={<Settings />} />
         <Route path="settings/account" element={<AccountSettings />} />
         <Route path="settings/notifications" element={<NotificationSettings />} />
+        <Route path="settings/blocked" element={<BlockedUsers />} />
         <Route path="settings/reminders" element={<PrayerReminders />} />
         <Route path="settings/contact" element={<ContactUs />} />
         <Route path="bible-bot" element={<BibleBot />} />

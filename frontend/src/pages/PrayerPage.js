@@ -17,6 +17,7 @@ import { hapticMedium, hapticSuccess } from '../utils/haptics';
 import PullToRefresh from '../components/PullToRefresh';
 import PrayerReceipts from '../components/PrayerReceipts';
 import WeeklyRecap from '../components/WeeklyRecap';
+import ContentModeration from '../components/ContentModeration';
 import { useToast } from '../contexts/ToastContext';
 
 const FILTER_TABS = [
@@ -52,7 +53,7 @@ function SkeletonCard() {
   );
 }
 
-function PrayerCard({ request, currentUserId, onOpen, onPray, onUserClick, onMarkAnswered, onViewTestimony, showDistance }) {
+function PrayerCard({ request, currentUserId, onOpen, onPray, onUserClick, onMarkAnswered, onViewTestimony, onHide, showDistance }) {
   const timeAgo = getTimeAgo(request.createdAt);
   // Use backend-provided isOwner — user.id is null for anonymized prayers
   const isOwner = request.isOwner ?? (request.user?.id === currentUserId);
@@ -93,6 +94,16 @@ function PrayerCard({ request, currentUserId, onOpen, onPray, onUserClick, onMar
                 </span>
               )}
               <span className="text-[10px] text-gray-400 whitespace-nowrap">{timeAgo}</span>
+              {!isOwner && (
+                <ContentModeration
+                  contentType="PRAYER"
+                  contentId={request.id}
+                  targetUserId={request.isAnonymous ? undefined : request.user?.id}
+                  targetName={request.user?.name}
+                  onHidden={onHide}
+                  iconSize={16}
+                />
+              )}
             </div>
           </div>
           <div className="flex items-center gap-2 mt-2 mb-1">
@@ -324,6 +335,11 @@ export default function PrayerPage() {
     navigate(`/pray/${q[0].id}`, { state: { queue: q, quota } });
   }
 
+  const hideRequest = (id) => {
+    setTop3(prev => prev.filter(r => r.id !== id));
+    setRestPrayers(prev => prev.filter(r => r.id !== id));
+  };
+
   const cardProps = (request) => ({
     key: request.id, request, currentUserId: user?.id,
     onOpen: () => openImmersive(request),
@@ -331,6 +347,7 @@ export default function PrayerPage() {
     onUserClick: () => navigate(`/profile/${request.user?.id}`),
     onMarkAnswered: () => setTestimonyRequest(request),
     onViewTestimony: () => navigate(`/prayer/${request.id}`),
+    onHide: () => hideRequest(request.id),
   });
 
   return (

@@ -6,6 +6,7 @@ import api from '../utils/api';
 import { WaterPill } from '../components/water';
 import { hapticLight } from '../utils/haptics';
 import PullToRefresh from '../components/PullToRefresh';
+import ContentModeration from '../components/ContentModeration';
 
 const CATEGORIES = ['All', 'Anxiety', 'Doubt', 'Relationships', 'Addiction', 'Grief', 'Sin', 'Loneliness', 'Other'];
 const BG = '#EEF3F5';
@@ -205,6 +206,7 @@ export default function Confessions() {
                 confession={c}
                 onHeart={() => handleHeart(c.id)}
                 onRead={() => navigate(`/confessions/${c.id}`)}
+                onHide={() => setConfessions(prev => prev.filter(x => x.id !== c.id))}
               />
             </motion.div>
           ))}
@@ -246,7 +248,7 @@ export default function Confessions() {
   );
 }
 
-function ConfessionCard({ confession: c, onHeart, onRead }) {
+function ConfessionCard({ confession: c, onHeart, onRead, onHide }) {
   const [expanded, setExpanded] = useState(false);
   const isLong = c.content.length > 180;
   const displayText = isLong && !expanded ? c.content.slice(0, 180) + '…' : c.content;
@@ -270,14 +272,18 @@ function ConfessionCard({ confession: c, onHeart, onRead }) {
             <p className="text-xs" style={{ color: '#9AA6AD' }}>{getTimeAgo(c.createdAt)}</p>
           </div>
         </div>
-        {c.category && c.category !== 'General' && (
-          <span
-            className="text-xs px-2.5 py-0.5 rounded-full"
-            style={{ background: 'rgba(22,52,73,0.06)', color: '#6B7680' }}
-          >
-            {c.category}
-          </span>
-        )}
+        <div className="flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
+          {c.category && c.category !== 'General' && (
+            <span
+              className="text-xs px-2.5 py-0.5 rounded-full"
+              style={{ background: 'rgba(22,52,73,0.06)', color: '#6B7680' }}
+            >
+              {c.category}
+            </span>
+          )}
+          {/* Anonymous — Report only, no author to block */}
+          <ContentModeration contentType="CONFESSION" contentId={c.id} onHidden={onHide} iconSize={16} />
+        </div>
       </div>
 
       {/* Content */}

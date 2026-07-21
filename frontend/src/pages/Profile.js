@@ -1,13 +1,14 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { HandHeart, Clock, Users, Globe, Lock, Shield, MoreHorizontal, Trophy, Flame, Award } from 'lucide-react';
+import { HandHeart, Clock, Users, Globe, Lock, Shield, MoreHorizontal, Trophy, Flame, Award, ChevronLeft } from 'lucide-react';
 import api from '../utils/api';
 import { WaterButton } from '../components/water';
 import { track } from '../utils/analytics';
 import { useAuth } from '../contexts/AuthContext';
 import PostGrid from '../components/PostGrid';
 import FollowListModal from '../components/FollowListModal';
+import ReportSheet from '../components/ReportSheet';
 import { useToast } from '../contexts/ToastContext';
 
 const VIS_OPTS = {
@@ -67,6 +68,31 @@ export default function Profile() {
 
   const profilePhotoRef = useRef();
   const [previewProfile, setPreviewProfile] = useState(null);
+  const [modMenu, setModMenu] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
+  const [blockConfirm, setBlockConfirm] = useState(false);
+
+  async function reloadProfile() {
+    try { const res = await api.get(`/users/${profileId}`); setProfile(res.data); } catch {}
+  }
+
+  async function handleBlock() {
+    try {
+      await api.post('/blocks', { userId: profileId });
+      showToast(`Blocked ${profile?.name?.split(' ')[0] || ''}`.trim());
+      setBlockConfirm(false); setModMenu(false);
+      await reloadProfile();
+    } catch (err) { showToast(err.friendlyMessage || 'Could not block user', 'error'); }
+  }
+
+  async function handleUnblock() {
+    try {
+      await api.delete(`/blocks/${profileId}`);
+      showToast('Unblocked');
+      setModMenu(false);
+      await reloadProfile();
+    } catch (err) { showToast(err.friendlyMessage || 'Could not unblock user', 'error'); }
+  }
 
   useEffect(() => {
     async function load() {
@@ -149,6 +175,31 @@ export default function Profile() {
   if (loading) return <div className="p-8 text-center text-gray-400">Loading...</div>;
   if (!profile) return <div className="p-8 text-center text-gray-400">Profile not found</div>;
 
+  // Moderation: a block in either direction — show a neutral unavailable state,
+  // with Unblock only when the viewer is the one who blocked.
+  if (profile.unavailable) {
+    return (
+      <div className="min-h-full bg-gray-50 flex flex-col">
+        <div className="px-4 pt-5 pb-3 flex items-center gap-3 bg-white" style={{ borderBottom: '1px solid #EFEFEF' }}>
+          <button onClick={() => navigate(-1)} aria-label="Back" className="p-1 -ml-1">
+            <ChevronLeft size={22} color="#163449" strokeWidth={2} />
+          </button>
+        </div>
+        <div className="flex-1 flex flex-col items-center justify-center px-8 text-center">
+          <p className="font-semibold" style={{ color: '#163449' }}>This user is unavailable</p>
+          {profile.isBlockedByMe && (
+            <>
+              <p className="text-sm mt-1" style={{ color: '#8E8E8E' }}>You blocked {profile.name || 'this user'}.</p>
+              <button onClick={handleUnblock} className="mt-5 px-6 py-2.5 rounded-xl text-sm font-semibold" style={{ background: 'rgba(44,64,85,0.08)', color: '#2C4055' }}>
+                Unblock
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   const { stats } = profile;
 
   const staggerChildren = { animate: { transition: { staggerChildren: 0.08 } } };
@@ -166,6 +217,46 @@ export default function Profile() {
             <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
           </svg>
         </Link>
+      )}
+
+      {/* Moderation ··· menu — other users' profiles */}
+      {!isOwnProfile && (
+        <button
+          onClick={() => setModMenu(true)}
+          aria-label="More options"
+          className="absolute top-4 right-4 z-10 w-8 h-8 rounded-full bg-white/80 border border-gray-200 flex items-center justify-center shadow-sm"
+        >
+          <MoreHorizontal size={16} strokeWidth={2} color="#6b7280" />
+        </button>
+      )}
+
+      {modMenu && (
+        <div className="fixed inset-0 z-[60] bg-black/50 flex items-end" onClick={() => setModMenu(false)}>
+          <div className="bg-white w-full max-w-md mx-auto rounded-t-3xl p-2" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 8px)' }} onClick={e => e.stopPropagation()}>
+            <button onClick={() => { setModMenu(false); setReportOpen(true); }} className="w-full text-left px-4 py-3.5 text-sm font-medium rounded-xl" style={{ color: '#1A1A1A' }}>Report</button>
+            {profile.isBlockedByMe
+              ? <button onClick={handleUnblock} className="w-full text-left px-4 py-3.5 text-sm font-medium rounded-xl" style={{ color: '#2C4055' }}>Unblock user</button>
+              : <button onClick={() => { setModMenu(false); setBlockConfirm(true); }} className="w-full text-left px-4 py-3.5 text-sm font-medium rounded-xl" style={{ color: '#C0392B' }}>Block user</button>}
+            <button onClick={() => setModMenu(false)} className="w-full text-center px-4 py-3.5 text-sm font-semibold rounded-xl mt-1" style={{ color: '#8E8E8E' }}>Cancel</button>
+          </div>
+        </div>
+      )}
+
+      {reportOpen && (
+        <ReportSheet contentType="PROFILE" contentId={profileId} reportedUserId={profileId} onClose={() => setReportOpen(false)} />
+      )}
+
+      {blockConfirm && (
+        <div className="fixed inset-0 z-[60] bg-black/50 flex items-center justify-center px-8" onClick={() => setBlockConfirm(false)}>
+          <div className="bg-white rounded-3xl w-full max-w-xs p-5 text-center" onClick={e => e.stopPropagation()}>
+            <p className="font-bold text-[15px]" style={{ color: '#163449' }}>Block {profile.name || 'this user'}?</p>
+            <p className="text-sm mt-2 leading-snug" style={{ color: '#6B7680' }}>They won't be able to message you or see your content, and you won't see theirs.</p>
+            <div className="flex gap-2 mt-5">
+              <button onClick={() => setBlockConfirm(false)} className="flex-1 py-3 rounded-xl text-sm font-semibold" style={{ background: '#F0F0F0', color: '#1A1A1A' }}>Cancel</button>
+              <button onClick={handleBlock} className="flex-1 py-3 rounded-xl text-sm font-semibold text-white" style={{ background: '#C0392B' }}>Block</button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* ── PROFILE HEADER ── */}
