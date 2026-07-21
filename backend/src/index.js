@@ -25,6 +25,7 @@ const gratitudeRoutes = require('./routes/gratitude');
 const searchRoutes = require('./routes/search');
 const reportRoutes = require('./routes/reports');
 const blockRoutes = require('./routes/blocks');
+const adminRoutes = require('./routes/admin');
 
 const app = express();
 const server = http.createServer(app);
@@ -106,6 +107,7 @@ app.use('/api/gratitude', gratitudeRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/blocks', blockRoutes);
+app.use('/api/admin', adminRoutes);
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 

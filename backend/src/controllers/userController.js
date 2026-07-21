@@ -10,6 +10,7 @@ async function getProfile(req, res) {
         id: true, name: true, bio: true, churchName: true,
         location: true, profilePhoto: true, coverPhoto: true, createdAt: true,
         gender: true,
+        isAdmin: true,
         prayerStreak: true, longestPrayerStreak: true,
         prayerWarriorBadge: true, totalPeoplesPrayedFor: true, prayerWarriorEarnedAt: true, dailyPrayerQuota: true,
         _count: { select: { followers: true, following: true, prayerRequests: true, posts: true } },

@@ -42,6 +42,9 @@ async function login(req, res) {
     const valid = await bcrypt.compare(password, user.password);
     if (!valid) return res.status(401).json({ error: 'Invalid credentials' });
 
+    // Suspended accounts (repeat offenders) can't log in.
+    if (user.isSuspended) return res.status(403).json({ error: 'This account has been suspended.' });
+
     const token = jwt.sign({ id: user.id, email: user.email }, process.env.JWT_SECRET, {
       expiresIn: '7d',
     });
