@@ -1,16 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { BookOpen, Radio, Map, Shield, Church, Users, BookMarked, Handshake, Heart, Search } from 'lucide-react';
 
-function IconOrb({ size = 48, Icon, iconSize = 22 }) {
-  return (
-    <div
-      className="icon-orb flex items-center justify-center flex-shrink-0"
-      style={{ width: size, height: size }}
-    >
-      <Icon size={iconSize} color="#A8823C" strokeWidth={1.6} style={{ position: 'relative', zIndex: 1 }} />
-    </div>
-  );
-}
+const ICON_COLOR = '#2C4055';
 
 export default function Explore() {
   const navigate = useNavigate();
@@ -32,7 +23,7 @@ export default function Explore() {
           onClick={() => navigate('/bible')}
         >
           <div style={{ position: 'relative', zIndex: 1 }} className="flex items-center gap-4">
-            <IconOrb size={48} Icon={BookOpen} iconSize={22} />
+            <BookOpen size={22} strokeWidth={1.6} color={ICON_COLOR} className="flex-shrink-0" />
             <div>
               <p className="font-semibold text-lg leading-tight" style={{ color: '#163449' }}>Bible</p>
               <p className="text-xs mt-0.5" style={{ color: '#4A6674' }}>Read and search scripture</p>
@@ -48,7 +39,7 @@ export default function Explore() {
             onClick={() => navigate('/prayer-cells')}
           >
             <div style={{ position: 'relative', zIndex: 1 }} className="flex flex-col gap-3 h-full">
-              <IconOrb size={38} Icon={Radio} iconSize={18} />
+              <Radio size={22} strokeWidth={1.6} color={ICON_COLOR} />
               <p className="font-semibold text-[15px] leading-snug" style={{ color: '#163449' }}>Prayer Cells</p>
               <p className="text-[12px] leading-snug" style={{ color: '#4A6674' }}>Live audio prayer</p>
             </div>
@@ -66,7 +57,7 @@ export default function Explore() {
               New
             </span>
             <div style={{ position: 'relative', zIndex: 1 }} className="flex flex-col gap-3 h-full">
-              <IconOrb size={38} Icon={Map} iconSize={18} />
+              <Map size={22} strokeWidth={1.6} color={ICON_COLOR} />
               <p className="font-semibold text-[15px] leading-snug" style={{ color: '#163449' }}>Bible Maps</p>
               <p className="text-[12px] leading-snug" style={{ color: '#4A6674' }}>Explore the Biblical world</p>
             </div>
@@ -112,7 +103,7 @@ export default function Explore() {
               onClick={() => navigate(route)}
             >
               <div style={{ position: 'relative', zIndex: 1 }} className="flex flex-col justify-between h-full" >
-                <Icon size={18} strokeWidth={1.6} style={{ color: '#163449' }} />
+                <Icon size={22} strokeWidth={1.6} color={ICON_COLOR} />
                 <p className="font-semibold text-[13px] leading-snug mt-3" style={{ color: '#163449' }}>{label}</p>
               </div>
             </button>
