@@ -23,6 +23,8 @@ const bibleRoutes = require('./routes/bible');
 const prayerPartnersRoutes = require('./routes/prayerPartners');
 const gratitudeRoutes = require('./routes/gratitude');
 const searchRoutes = require('./routes/search');
+const reportRoutes = require('./routes/reports');
+const blockRoutes = require('./routes/blocks');
 
 const app = express();
 const server = http.createServer(app);
@@ -102,6 +104,8 @@ app.use('/api/bible', bibleRoutes);
 app.use('/api/prayer-partners', prayerPartnersRoutes);
 app.use('/api/gratitude', gratitudeRoutes);
 app.use('/api/search', searchRoutes);
+app.use('/api/reports', reportRoutes);
+app.use('/api/blocks', blockRoutes);
 
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 

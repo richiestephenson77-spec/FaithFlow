@@ -1,10 +1,30 @@
 
 const { notifyUser } = require('../services/socketService');
 const prisma = require('../db');
+const { getBlockedUserIds, isBlockedBetween } = require('../utils/blocks');
 
 const PARTICIPANT_SELECT = {
   include: { user: { select: { id: true, name: true, profilePhoto: true } } },
 };
+
+// The other participant of a 1:1 conversation (or null).
+async function otherParticipantId(conversationId, meId) {
+  const p = await prisma.conversationParticipant.findFirst({
+    where: { conversationId, userId: { not: meId } },
+    select: { userId: true },
+  });
+  return p?.userId || null;
+}
+
+// Guard used by every send path: returns a clean error (not a crash) when a
+// block exists in either direction. Returns null when sending is allowed.
+async function blockGuard(conversationId, meId) {
+  const otherId = await otherParticipantId(conversationId, meId);
+  if (otherId && await isBlockedBetween(meId, otherId)) {
+    return 'You can no longer message this person.';
+  }
+  return null;
+}
 
 async function getConversations(req, res) {
   try {
@@ -17,9 +37,12 @@ async function getConversations(req, res) {
       },
     });
 
-    const result = await Promise.all(convos.map(async (c) => {
+    // Moderation: hide conversations with users in a block relationship
+    const blockedIds = new Set(await getBlockedUserIds(req.user.id));
+
+    const result = (await Promise.all(convos.map(async (c) => {
       const other = c.participants.find(p => p.user.id !== req.user.id)?.user;
-      const me = c.participants.find(p => p.user.id === req.user.id);
+      if (other && blockedIds.has(other.id)) return null; // hidden from both sides
       const unread = await prisma.message.count({
         where: {
           conversationId: c.id,
@@ -28,7 +51,7 @@ async function getConversations(req, res) {
         },
       });
       return { id: c.id, other, lastMessage: c.messages[0] || null, unread, updatedAt: c.updatedAt };
-    }));
+    }))).filter(Boolean);
 
     res.json(result);
   } catch {
@@ -50,6 +73,10 @@ async function startConversation(req, res) {
       },
       include: { participants: PARTICIPANT_SELECT },
     });
+    if (await isBlockedBetween(req.user.id, userId)) {
+      return res.status(403).json({ error: 'You can no longer message this person.' });
+    }
+
     if (existing) return res.json({ id: existing.id, existing: true });
 
     const convo = await prisma.conversation.create({
@@ -92,8 +119,14 @@ async function getMessages(req, res) {
     });
     if (!participant) return res.status(403).json({ error: 'Not in this conversation' });
 
+    // Moderation: a block hides the whole thread from both sides
+    const otherId = await otherParticipantId(conversationId, req.user.id);
+    if (otherId && await isBlockedBetween(req.user.id, otherId)) {
+      return res.status(403).json({ error: 'This conversation is unavailable.' });
+    }
+
     const messages = await prisma.message.findMany({
-      where: { conversationId },
+      where: { conversationId, isRemoved: false }, // admin-removed messages excluded
       orderBy: { createdAt: 'asc' },
       include: {
         sender: { select: { id: true, name: true, profilePhoto: true } },
@@ -115,6 +148,8 @@ async function sendMessage(req, res) {
       where: { conversationId_userId: { conversationId, userId: req.user.id } },
     });
     if (!participant) return res.status(403).json({ error: 'Not in this conversation' });
+    const blockMsg1 = await blockGuard(conversationId, req.user.id);
+    if (blockMsg1) return res.status(403).json({ error: blockMsg1 });
 
     // Only allow replying to a message that belongs to this same conversation
     let validReplyToId = null;
@@ -173,6 +208,8 @@ async function sendAudioMessage(req, res) {
       where: { conversationId_userId: { conversationId, userId: req.user.id } },
     });
     if (!participant) return res.status(403).json({ error: 'Not in this conversation' });
+    const blockMsg2 = await blockGuard(conversationId, req.user.id);
+    if (blockMsg2) return res.status(403).json({ error: blockMsg2 });
 
     const [message] = await prisma.$transaction([
       prisma.message.create({
@@ -219,6 +256,8 @@ async function sendImageMessage(req, res) {
       where: { conversationId_userId: { conversationId, userId: req.user.id } },
     });
     if (!participant) return res.status(403).json({ error: 'Not in this conversation' });
+    const blockMsg3 = await blockGuard(conversationId, req.user.id);
+    if (blockMsg3) return res.status(403).json({ error: blockMsg3 });
 
     const [message] = await prisma.$transaction([
       prisma.message.create({
@@ -286,6 +325,8 @@ async function sharePrayerRequest(req, res) {
       where: { conversationId_userId: { conversationId, userId: req.user.id } },
     });
     if (!participant) return res.status(403).json({ error: 'Not in this conversation' });
+    const blockMsg4 = await blockGuard(conversationId, req.user.id);
+    if (blockMsg4) return res.status(403).json({ error: blockMsg4 });
 
     // Only allow sharing your OWN prayer request
     const pr = await prisma.prayerRequest.findUnique({ where: { id: prayerRequestId }, select: { userId: true } });

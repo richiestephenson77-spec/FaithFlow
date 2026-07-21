@@ -1,5 +1,6 @@
 
 const prisma = require('../db');
+const { getBlockedUserIds } = require('../utils/blocks');
 
 const POST_INCLUDE = (userId) => ({
   user: { select: { id: true, name: true, profilePhoto: true } },
@@ -125,8 +126,10 @@ async function addComment(req, res) {
 async function getComments(req, res) {
   const { id } = req.params;
   try {
+    // Moderation: hide comments from users in a block relationship
+    const blockedIds = req.user ? await getBlockedUserIds(req.user.id) : [];
     const comments = await prisma.comment.findMany({
-      where: { postId: id },
+      where: { postId: id, ...(blockedIds.length ? { userId: { notIn: blockedIds } } : {}) },
       orderBy: { createdAt: 'asc' },
       include: { user: { select: { id: true, name: true, profilePhoto: true } } },
     });

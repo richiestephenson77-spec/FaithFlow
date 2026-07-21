@@ -1,6 +1,7 @@
 
 const { notifyUser } = require('../services/socketService');
 const { createNotification } = require('../utils/notify');
+const { getBlockedUserIds } = require('../utils/blocks');
 
 const prisma = require('../db');
 
@@ -49,10 +50,14 @@ async function getFeed(req, res) {
   // Lifecycle: auto-hide requests with no activity for 30+ days (still visible
   // to the author under My Requests). Answered ones are already excluded above.
   const staleCutoff = new Date(Date.now() - 30 * 86400000);
+  // Moderation: hide admin-removed requests + anything from blocked users.
+  const blockedIds = await getBlockedUserIds(userId);
   const where = {
     isActive: true,
     isAnswered: false,
+    isRemoved: false,
     lastActivityAt: { gte: staleCutoff },
+    ...(blockedIds.length ? { userId: { notIn: blockedIds } } : {}),
     ...visibilityFilter,
   };
 
@@ -544,7 +549,14 @@ async function getAnsweredFeed(req, res) {
   const page = Math.max(1, parseInt(req.query.page) || 1);
   const limit = Math.min(50, Math.max(1, parseInt(req.query.limit) || 20));
   try {
-    const where = { isAnswered: true, visibility: 'PUBLIC', answeredIsPublic: true };
+    const blockedIds = await getBlockedUserIds(req.user.id);
+    const where = {
+      isAnswered: true,
+      visibility: 'PUBLIC',
+      answeredIsPublic: true,
+      isRemoved: false,
+      ...(blockedIds.length ? { userId: { notIn: blockedIds } } : {}),
+    };
     const [rows, total] = await Promise.all([
       prisma.prayerRequest.findMany({
         where,
@@ -581,10 +593,11 @@ async function getAnsweredFeed(req, res) {
 async function getPrayedForMe(req, res) {
   try {
     const since = new Date(Date.now() - 30 * 86400000); // last 30 days
+    const blockedIds = await getBlockedUserIds(req.user.id);
     const sessions = await prisma.prayerSession.findMany({
       where: {
         startedAt: { gte: since },
-        userId: { not: req.user.id },
+        userId: { not: req.user.id, ...(blockedIds.length ? { notIn: blockedIds } : {}) },
         prayerRequest: { userId: req.user.id },
       },
       orderBy: { startedAt: 'desc' },
@@ -652,6 +665,18 @@ async function getRequest(req, res) {
       },
     });
     if (!request) return res.status(404).json({ error: 'Not found' });
+
+    // Moderation: admin-removed content is gone for everyone but its owner;
+    // a request from a user in a block relationship is unreachable.
+    if (request.isRemoved && request.userId !== req.user.id) {
+      return res.status(404).json({ error: 'This content is no longer available' });
+    }
+    if (request.userId !== req.user.id) {
+      const { isBlockedBetween } = require('../utils/blocks');
+      if (await isBlockedBetween(req.user.id, request.userId)) {
+        return res.status(404).json({ error: 'This content is no longer available' });
+      }
+    }
 
     // Visibility check
     if (request.visibility !== 'PUBLIC') {

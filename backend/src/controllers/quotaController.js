@@ -1,5 +1,6 @@
 
 const prisma = require('../db');
+const { getBlockedUserIds } = require('../utils/blocks');
 
 function todayStr() {
   return new Date().toISOString().slice(0, 10); // "YYYY-MM-DD"
@@ -72,12 +73,17 @@ async function getQueue(req, res) {
     });
     const prayedIds = todaySessions.map(s => s.prayerRequestId).filter(Boolean);
 
+    // Moderation: never queue removed content or requests from blocked users
+    const blockedIds = await getBlockedUserIds(req.user.id);
+    const authorFilter = { not: req.user.id, ...(blockedIds.length ? { notIn: blockedIds } : {}) };
+
     // Fetch urgent first, then regular
     const urgent = await prisma.prayerRequest.findMany({
       where: {
         isUrgent: true,
         isAnswered: false,
-        userId: { not: req.user.id },
+        isRemoved: false,
+        userId: authorFilter,
         id: { notIn: prayedIds },
       },
       include: { user: { select: { id: true, name: true, profilePhoto: true, churchName: true } } },
@@ -91,7 +97,8 @@ async function getQueue(req, res) {
         where: {
           isUrgent: false,
           isAnswered: false,
-          userId: { not: req.user.id },
+          isRemoved: false,
+          userId: authorFilter,
           id: { notIn: [...prayedIds, ...queue.map(r => r.id)] },
         },
         include: { user: { select: { id: true, name: true, profilePhoto: true, churchName: true } } },

@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const prisma = require('../db');
 const { authenticate } = require('../middleware/auth');
+const { isBlockedBetween } = require('../utils/blocks');
 
 // GET active + recent cells
 router.get('/', authenticate, async (req, res) => {
@@ -71,6 +72,16 @@ router.post('/start', authenticate, async (req, res) => {
 // Join a cell
 router.post('/:cellId/join', authenticate, async (req, res) => {
   try {
+    // Moderation: a blocked user can't join a cell hosted by someone in a
+    // block relationship with them (either direction).
+    const cell = await prisma.prayerCell.findUnique({
+      where: { id: req.params.cellId }, select: { hostId: true },
+    });
+    if (!cell) return res.status(404).json({ error: 'Cell not found' });
+    if (await isBlockedBetween(req.user.id, cell.hostId)) {
+      return res.status(403).json({ error: 'You cannot join this prayer cell.' });
+    }
+
     const session = await prisma.prayerCellSession.create({
       data: { cellId: req.params.cellId, guestId: req.user.id },
     });

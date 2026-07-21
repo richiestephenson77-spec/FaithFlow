@@ -88,7 +88,44 @@ model User {
   partnerRequests PrayerPartnerRequest[]
   gratitudeEntries GratitudeEntry[]
 
+  reportsMade     Report[]
+  blocksInitiated Block[] @relation("Blocker")
+  blocksReceived  Block[] @relation("Blocked")
+
   @@map("users")
+}
+
+// A user-submitted report against a piece of content. reportedUserId is a plain
+// id (not a relation) — for confessions it is populated only via deliberate
+// admin lookup through ConfessionAuthor, never surfaced to reporters.
+model Report {
+  id             String    @id @default(cuid())
+  reporterId     String
+  reporter       User      @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+  reason         String    // SPAM | HARASSMENT | HATE_SPEECH | SEXUAL_CONTENT | VIOLENCE | SELF_HARM | MISINFORMATION | OTHER
+  details        String?
+  contentType    String    // PRAYER | CONFESSION | COMMENT | MESSAGE | PROFILE | PRAYER_CELL
+  contentId      String
+  reportedUserId String?
+  status         String    @default("PENDING") // PENDING | REVIEWED | ACTIONED | DISMISSED
+  createdAt      DateTime  @default(now())
+  reviewedAt     DateTime?
+
+  @@index([status])
+  @@index([reporterId, contentType, contentId])
+  @@map("reports")
+}
+
+model Block {
+  id        String   @id @default(cuid())
+  blockerId String
+  blocker   User     @relation("Blocker", fields: [blockerId], references: [id], onDelete: Cascade)
+  blockedId String
+  blocked   User     @relation("Blocked", fields: [blockedId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([blockerId, blockedId])
+  @@map("blocks")
 }
 
 model PrayerCell {
@@ -147,6 +184,8 @@ model Message {
   imageUrl       String?
   replyToId      String?
   isDeleted      Boolean      @default(false)
+  isRemoved      Boolean      @default(false)
+  removedReason  String?
   sharedPrayerRequestId String?
   createdAt      DateTime     @default(now())
   isRead         Boolean      @default(false)
@@ -162,6 +201,8 @@ model Confession {
   content        String
   category       String    @default("General")
   createdAt      DateTime  @default(now())
+  isRemoved      Boolean   @default(false)
+  removedReason  String?
   encouragements ConfessionEncouragement[]
   comments       ConfessionComment[]
   @@map("confessions")
@@ -195,6 +236,8 @@ model ConfessionComment {
   userId       String
   content      String
   isAnonymous  Boolean    @default(false)
+  isRemoved    Boolean    @default(false)
+  removedReason String?
   createdAt    DateTime   @default(now())
   confession   Confession @relation(fields: [confessionId], references: [id], onDelete: Cascade)
   user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -239,6 +282,8 @@ model PrayerRequest {
   answeredAt        DateTime?
   testimonyMessage  String?
   answeredIsPublic  Boolean         @default(true)
+  isRemoved         Boolean         @default(false)
+  removedReason     String?
   updateMessage     String?
   category          PrayerCategory  @default(GENERAL)
   isUrgent          Boolean         @default(false)

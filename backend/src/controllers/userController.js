@@ -22,6 +22,18 @@ async function getProfile(req, res) {
     });
     if (!user) return res.status(404).json({ error: 'User not found' });
 
+    // Moderation: a block in either direction makes the profile unavailable.
+    // Surface isBlockedByMe so the viewer can Unblock; never leak their content.
+    if (req.user && id !== req.user.id) {
+      const [iBlockedThem, theyBlockedMe] = await Promise.all([
+        prisma.block.findUnique({ where: { blockerId_blockedId: { blockerId: req.user.id, blockedId: id } } }),
+        prisma.block.findUnique({ where: { blockerId_blockedId: { blockerId: id, blockedId: req.user.id } } }),
+      ]);
+      if (iBlockedThem || theyBlockedMe) {
+        return res.json({ id, unavailable: true, isBlockedByMe: !!iBlockedThem, name: iBlockedThem ? user.name : null });
+      }
+    }
+
     const sessions = await prisma.prayerSession.aggregate({
       where: { userId: id, durationSeconds: { not: null } },
       _sum: { durationSeconds: true },
@@ -55,6 +67,7 @@ async function getProfile(req, res) {
         todaySeconds,
       },
       isFollowing,
+      isBlockedByMe: false,
     });
   } catch (err) {
     res.status(500).json({ error: 'Failed to get profile' });

@@ -1,10 +1,13 @@
 
 const prisma = require('../db');
 const { createNotification } = require('../utils/notify');
+const { getBlockedUserIds } = require('../utils/blocks');
 
 async function getConfessions(req, res) {
   const { category } = req.query;
-  const where = category && category !== 'All' ? { category } : {};
+  const where = category && category !== 'All'
+    ? { category, isRemoved: false }
+    : { isRemoved: false };
   try {
     const confessions = await prisma.confession.findMany({
       where,
@@ -53,7 +56,7 @@ async function getConfession(req, res) {
         encouragements: req.user ? { where: { userId: req.user.id }, select: { id: true } } : false,
       },
     });
-    if (!c) return res.status(404).json({ error: 'Not found' });
+    if (!c || c.isRemoved) return res.status(404).json({ error: 'Not found' });
     res.json({
       id: c.id,
       content: c.content,
@@ -150,8 +153,14 @@ async function heart(req, res) {
 async function getComments(req, res) {
   const { id } = req.params;
   try {
+    // Moderation: hide removed comments and comments from blocked users
+    const blockedIds = req.user ? await getBlockedUserIds(req.user.id) : [];
     const comments = await prisma.confessionComment.findMany({
-      where: { confessionId: id },
+      where: {
+        confessionId: id,
+        isRemoved: false,
+        ...(blockedIds.length ? { userId: { notIn: blockedIds } } : {}),
+      },
       orderBy: { createdAt: 'asc' },
       include: { user: { select: { id: true, name: true, profilePhoto: true, prayerWarriorBadge: true } } },
     });

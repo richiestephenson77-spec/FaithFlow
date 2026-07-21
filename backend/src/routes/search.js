@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const { authenticate } = require('../middleware/auth');
 const prisma = require('../db');
+const { getBlockedUserIds } = require('../utils/blocks');
 
 // Unified search across people, prayers, churches and confessions.
 // GET /api/search?q=&type=  (type: all | people | prayers | churches | confessions)
@@ -17,9 +18,10 @@ router.get('/', authenticate, async (req, res) => {
   const like = { contains: q, mode: 'insensitive' };
 
   try {
+    const blockedIds = await getBlockedUserIds(req.user.id);
     const [people, prayers, churches, confessions] = await Promise.all([
-      want('people') ? searchPeople(q, req.user.id) : Promise.resolve([]),
-      want('prayers') ? searchPrayers(like) : Promise.resolve([]),
+      want('people') ? searchPeople(q, req.user.id, blockedIds) : Promise.resolve([]),
+      want('prayers') ? searchPrayers(like, blockedIds) : Promise.resolve([]),
       want('churches') ? searchChurches(like) : Promise.resolve([]),
       want('confessions') ? searchConfessions(like) : Promise.resolve([]),
     ]);
@@ -30,7 +32,7 @@ router.get('/', authenticate, async (req, res) => {
   }
 });
 
-async function searchPeople(q, meId) {
+async function searchPeople(q, meId, blockedIds = []) {
   const users = await prisma.user.findMany({
     where: {
       OR: [
@@ -38,7 +40,8 @@ async function searchPeople(q, meId) {
         { churchName: { contains: q, mode: 'insensitive' } },
         { location: { contains: q, mode: 'insensitive' } },
       ],
-      NOT: { id: meId },
+      // Exclude self and anyone in a block relationship (either direction)
+      id: { notIn: [meId, ...blockedIds] },
     },
     select: {
       id: true, name: true, profilePhoto: true, churchName: true,
@@ -58,11 +61,13 @@ async function searchPeople(q, meId) {
 }
 
 // Public, active, non-anonymous requests only — never surface PRIVATE/PASTOR_ONLY.
-async function searchPrayers(like) {
+async function searchPrayers(like, blockedIds = []) {
   const rows = await prisma.prayerRequest.findMany({
     where: {
       visibility: 'PUBLIC',
       isActive: true,
+      isRemoved: false,
+      ...(blockedIds.length ? { userId: { notIn: blockedIds } } : {}),
       OR: [{ title: like }, { body: like }],
     },
     orderBy: { createdAt: 'desc' },
@@ -95,7 +100,7 @@ async function searchChurches(like) {
 // joins ConfessionAuthor, so no author identity can be exposed.
 async function searchConfessions(like) {
   const rows = await prisma.confession.findMany({
-    where: { content: like },
+    where: { content: like, isRemoved: false },
     orderBy: { createdAt: 'desc' },
     take: 20,
     select: {
