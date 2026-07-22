@@ -111,8 +111,11 @@ export default function Layout() {
   // Pages that fill the viewport with their own flex/scroll layout (chat thread,
   // confession detail, immersive prayer, bible map) need a height:100% wrapper so
   // their `h-full` children resolve; every other page grows and lets <main> scroll.
+  // NOTE: only the bare thread/immersive route is full-height — sub-pages like
+  // /messages/:id/details and /privacy are normal scrolling pages.
   const isConfessionDetail = location.pathname.startsWith('/confessions/') && location.pathname.length > '/confessions/'.length;
-  const fullHeightPage = hideNavThread || isConfessionDetail || location.pathname === '/bible-maps';
+  const isFullThread = /^\/(messages|pray)\/[^/]+$/.test(location.pathname);
+  const fullHeightPage = isFullThread || isConfessionDetail || location.pathname === '/bible-maps';
 
   const online = useOnlineStatus();
 

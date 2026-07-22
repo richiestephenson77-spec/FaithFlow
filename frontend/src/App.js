@@ -39,6 +39,8 @@ import Admin from './pages/Admin';
 import PrayerImmersive from './pages/PrayerImmersive';
 import Messages from './pages/Messages';
 import ChatThread from './pages/ChatThread';
+import ChatDetails from './pages/ChatDetails';
+import ChatPrivacy from './pages/ChatPrivacy';
 import Confessions from './pages/Confessions';
 import ConfessionDetail from './pages/ConfessionDetail';
 import Onboarding from './pages/Onboarding';
@@ -118,6 +120,8 @@ function AppRoutes() {
         <Route path="answered" element={<AnsweredPrayers />} />
         <Route path="messages" element={<Messages />} />
         <Route path="messages/:conversationId" element={<ChatThread />} />
+        <Route path="messages/:conversationId/details" element={<ChatDetails />} />
+        <Route path="messages/:conversationId/privacy" element={<ChatPrivacy />} />
         <Route path="confessions" element={<Confessions />} />
         <Route path="/confessions/:id" element={<ConfessionDetail />} />
         <Route path="prayer-cells" element={<PrayerCellDirectory />} />

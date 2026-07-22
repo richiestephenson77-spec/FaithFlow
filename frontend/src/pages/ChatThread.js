@@ -422,7 +422,7 @@ export default function ChatThread() {
           </svg>
         </button>
         <button
-          onClick={() => navigate(`/messages/${conversationId}/details`)}
+          onClick={() => navigate(`/messages/${conversationId}/details`, { state: { other, settings: chatSettings } })}
           className="flex items-center gap-2.5 flex-1 min-w-0 text-left"
         >
           {other && <Avatar user={other} size="sm" />}
