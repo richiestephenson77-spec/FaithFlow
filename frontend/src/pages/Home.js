@@ -10,6 +10,7 @@ import Avatar from '../components/Avatar';
 import MyPrayerRequestsDrawer from '../components/MyPrayerRequestsDrawer';
 import PostOptionsSheet from '../components/PostOptionsSheet';
 import { fadeUp, fadeIn, staggerContainer, staggerItem, springTap } from '../utils/animations';
+import { hapticLight } from '../utils/haptics';
 
 function getTimeAgo(dateStr) {
   const diff = Date.now() - new Date(dateStr);
@@ -32,18 +33,18 @@ function PostCard({ post, onLike, onUserClick, currentUserId, onOptions }) {
   const badge = POST_TYPE_BADGE_ALL[post.type];
   const isOwn = post.user?.id === currentUserId || post.userId === currentUserId;
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden fade-in">
-      <div className="flex items-center gap-3 px-4 pt-4 pb-2">
+    <div className="bg-white rounded-2xl overflow-hidden fade-in" style={{ border: '1px solid #EFEFEF' }}>
+      <div className="flex items-center gap-3 px-4 pt-4 pb-2.5">
         <button onClick={onUserClick} className="flex-shrink-0">
           <Avatar user={post.user} size="md" />
         </button>
         <div className="flex-1 min-w-0">
-          <button onClick={onUserClick} className="font-semibold text-gray-900 text-sm hover:underline text-left leading-tight">
+          <button onClick={onUserClick} className="font-semibold text-sm hover:underline text-left leading-tight" style={{ color: '#163449' }}>
             {post.user?.name}
           </button>
           <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-            <p className="text-xs text-gray-400">{getTimeAgo(post.createdAt)}</p>
-            {post.location && <p className="text-xs text-gray-400">📍 {post.location}</p>}
+            <p className="text-xs" style={{ color: '#8E8E8E' }}>{getTimeAgo(post.createdAt)}</p>
+            {post.location && <p className="text-xs" style={{ color: '#8E8E8E' }}>📍 {post.location}</p>}
           </div>
         </div>
         {badge && (
@@ -52,7 +53,7 @@ function PostCard({ post, onLike, onUserClick, currentUserId, onOptions }) {
           </span>
         )}
         {isOwn && (
-          <button onClick={onOptions} className="p-1.5 -mr-1 flex-shrink-0">
+          <button onClick={onOptions} aria-label="Post options" className="w-11 h-11 -mr-2 flex items-center justify-center flex-shrink-0">
             <MoreHorizontal size={18} strokeWidth={1.8} color="#9ca3af" />
           </button>
         )}
@@ -83,18 +84,20 @@ function PostCard({ post, onLike, onUserClick, currentUserId, onOptions }) {
         </div>
       )}
 
-      <div className="flex items-center gap-4 px-4 py-3 border-t border-gray-50">
-        <button
-          onClick={onLike}
-          className={`flex items-center gap-1.5 text-sm font-semibold transition-colors ${post.likedByMe ? 'text-red-500' : 'text-gray-400'}`}
+      <div className="flex items-center gap-1 px-2 py-1.5" style={{ borderTop: '1px solid #F5F5F5' }}>
+        <motion.button
+          whileTap={{ scale: 0.9 }}
+          transition={{ type: 'spring', stiffness: 500, damping: 20 }}
+          onClick={() => { hapticLight(); onLike(); }}
+          className={`flex items-center gap-1.5 text-sm font-semibold h-11 px-2 transition-colors ${post.likedByMe ? 'text-red-500' : 'text-gray-400'}`}
         >
-          <svg width="17" height="17" viewBox="0 0 24 24" fill={post.likedByMe ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill={post.likedByMe ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
           </svg>
           {post._count?.likes > 0 && post._count.likes}
-        </button>
-        <div className="flex items-center gap-1.5 text-sm text-gray-400">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        </motion.button>
+        <div className="flex items-center gap-1.5 text-sm h-11 px-2" style={{ color: '#9AA6AD' }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
           </svg>
           {post._count?.comments > 0 && post._count.comments}
@@ -120,7 +123,7 @@ function PostCard({ post, onLike, onUserClick, currentUserId, onOptions }) {
 
 function SkeletonCard() {
   return (
-    <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 animate-pulse">
+    <div className="bg-white rounded-2xl p-4 animate-pulse" style={{ border: '1px solid #EFEFEF' }}>
       <div className="flex gap-3 mb-3">
         <div className="w-10 h-10 rounded-full bg-gray-100 flex-shrink-0" />
         <div className="flex-1 space-y-2 pt-1">
@@ -184,6 +187,18 @@ export default function Home() {
     return () => window.removeEventListener('post_created', handler);
   }, []);
 
+  const greeting = (() => {
+    const h = new Date().getHours();
+    return h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
+  })();
+
+  // The create-post modal lives in Layout (opened from the header avatar); ask
+  // it to open so the empty-state CTA reuses the same flow.
+  function openCreatePost() {
+    hapticLight();
+    window.dispatchEvent(new CustomEvent('open_create_post'));
+  }
+
   async function handleLike(postId) {
     try {
       await api.post(`/posts/${postId}/like`);
@@ -201,24 +216,31 @@ export default function Home() {
       {/* Prayer-started toast */}
       {prayerToast && (
         <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-sm">
-          <div className="bg-gray-900 text-white text-sm font-medium px-4 py-3 rounded-2xl shadow-xl text-center animate-fade-in">
+          <div className="text-white text-sm font-medium px-4 py-3 rounded-2xl shadow-xl text-center animate-fade-in" style={{ background: 'rgba(44,64,85,0.96)' }}>
             {prayerToast}
           </div>
         </div>
       )}
 
-      <div className="px-4 pt-4">
-        {/* Prayer Room entry tile */}
+      <div className="px-4 pt-3">
+        {/* Greeting — gives Home a purposeful focal identity */}
+        <motion.div {...fadeUp} className="mb-4">
+          <h1 className="text-[22px] font-bold leading-tight" style={{ color: '#163449', fontFamily: "'Fraunces', serif" }}>
+            {greeting}{user?.name ? `, ${user.name.split(' ')[0]}` : ''}
+          </h1>
+          <p className="text-sm mt-0.5" style={{ color: '#8E8E8E' }}>Here's your community today</p>
+        </motion.div>
+
+        {/* Prayer Room entry — flat premium hero, the primary action */}
         <motion.button
           {...fadeUp}
           {...springTap}
-          onClick={() => navigate('/prayer')}
-          className="water-tile-static water-tile-blue w-full px-5 pt-4 pb-3 mb-5 text-left"
-          style={{ minHeight: 106 }}
+          onClick={() => { hapticLight(); navigate('/prayer'); }}
+          className="w-full rounded-2xl bg-white px-5 py-4 mb-6 text-left"
+          style={{ border: '1px solid #EFEFEF' }}
         >
-          {/* Top row */}
-          <div className="flex items-center justify-between" style={{ position: 'relative', zIndex: 1 }}>
-            <span className="font-bold text-base" style={{ color: '#163449' }}>Prayer Room</span>
+          <div className="flex items-center justify-between">
+            <span className="font-bold text-base" style={{ color: '#163449', fontFamily: "'Fraunces', serif" }}>Prayer Room</span>
             <div className="flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-[#2C4055] animate-pulse" />
               <span className="text-[11px] font-semibold" style={{ color: '#2C4055' }}>
@@ -227,38 +249,49 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Middle — icon previews */}
-          <div className="flex items-center gap-5 mt-3" style={{ position: 'relative', zIndex: 1 }}>
-            {[
-              { Icon: Flame,    label: 'Streaks' },
-              { Icon: BookOpen, label: 'Verses' },
-              { Icon: Radio,    label: 'Live Cells' },
-            ].map(({ Icon, label }) => (
-              <div key={label} className="flex flex-col items-center gap-1">
-                <Icon size={14} strokeWidth={1.6} color="#4A6674" />
-                <span style={{ fontSize: 9, color: '#6B7680' }}>{label}</span>
-              </div>
-            ))}
-          </div>
+          <p className="text-sm mt-0.5" style={{ color: '#8E8E8E' }}>Pray for others and keep your streak alive</p>
 
-          {/* Bottom-right chevron */}
-          <div className="flex justify-end mt-2" style={{ position: 'relative', zIndex: 1 }}>
-            <ChevronRight size={16} color="rgba(22,52,73,0.4)" />
+          <div className="flex items-center justify-between mt-3.5">
+            <div className="flex items-center gap-4">
+              {[
+                { Icon: Flame,    label: 'Streaks' },
+                { Icon: BookOpen, label: 'Verses' },
+                { Icon: Radio,    label: 'Live Cells' },
+              ].map(({ Icon, label }) => (
+                <div key={label} className="flex items-center gap-1.5">
+                  <Icon size={14} strokeWidth={1.7} color="#2C4055" />
+                  <span style={{ fontSize: 11, color: '#6B7680' }}>{label}</span>
+                </div>
+              ))}
+            </div>
+            <span className="flex items-center gap-0.5 text-xs font-semibold flex-shrink-0" style={{ color: '#2C4055' }}>
+              Enter <ChevronRight size={14} />
+            </span>
           </div>
         </motion.button>
 
         {/* Community label */}
-        <motion.p {...fadeIn} transition={{ delay: 0.1, duration: 0.25 }} className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Community</motion.p>
+        <motion.p {...fadeIn} transition={{ delay: 0.1, duration: 0.25 }} className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: '#8E8E8E' }}>Community</motion.p>
 
         {/* Posts */}
         {loading ? (
           <div className="space-y-3">{[1,2,3].map(i => <SkeletonCard key={i} />)}</div>
         ) : posts.length === 0 ? (
-          <div className="text-center py-20">
-            <p className="text-4xl mb-3">🕊️</p>
-            <p className="font-semibold text-gray-700">No posts yet</p>
-            <p className="text-sm text-gray-400 mt-1">Be the first to share something!</p>
-          </div>
+          <motion.div {...fadeUp} className="text-center py-16 px-8">
+            <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4" style={{ background: 'rgba(44,64,85,0.08)' }}>
+              <span className="text-2xl">🕊️</span>
+            </div>
+            <p className="font-semibold" style={{ color: '#163449' }}>Your community feed is quiet</p>
+            <p className="text-sm mt-1" style={{ color: '#8E8E8E' }}>Share an update, testimony, or verse to get things started.</p>
+            <motion.button
+              {...springTap}
+              onClick={openCreatePost}
+              className="mt-5 inline-flex items-center gap-2 px-5 h-11 rounded-xl text-white text-sm font-semibold"
+              style={{ background: '#2C4055' }}
+            >
+              Share something
+            </motion.button>
+          </motion.div>
         ) : (
           <motion.div className="space-y-3" {...staggerContainer}>
             <AnimatePresence>
@@ -309,7 +342,8 @@ export default function Home() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
-            className="fixed bottom-28 left-1/2 -translate-x-1/2 z-50 bg-gray-900 text-white text-sm font-medium px-5 py-3 rounded-2xl shadow-xl"
+            className="fixed bottom-28 left-1/2 -translate-x-1/2 z-50 text-white text-sm font-medium px-5 py-3 rounded-2xl shadow-xl"
+            style={{ background: 'rgba(44,64,85,0.96)' }}
           >
             {feedToast}
           </motion.div>

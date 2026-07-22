@@ -96,6 +96,13 @@ export default function Layout() {
     setPrevCount(notifications.length);
   }, [notifications]);
 
+  // Let any page (e.g. Home's empty-state CTA) open the create-post modal.
+  useEffect(() => {
+    const open = () => setShowCreatePost(true);
+    window.addEventListener('open_create_post', open);
+    return () => window.removeEventListener('open_create_post', open);
+  }, []);
+
   const location = useLocation();
   const hideNavThread = HIDE_NAV_ON.some(p => location.pathname.startsWith(p) && location.pathname.length > p.length);
   const hideNavConfession = HIDE_NAV_EXACT.some(p => location.pathname.startsWith(p));
