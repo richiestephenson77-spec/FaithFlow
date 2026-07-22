@@ -444,6 +444,17 @@ export default function ChatThread() {
   const iconTint = theme.headerText === '#FFFFFF' ? 'rgba(255,255,255,0.12)' : 'rgba(10,10,10,0.06)';
   const autoDownload = user?.autoDownloadMedia !== false; // default on
 
+  // "Seen" goes under the LAST of my messages the other person has read (isRead
+  // is already masked server-side when their read receipts are off).
+  const lastSeenIndex = (() => {
+    for (let k = messages.length - 1; k >= 0; k--) {
+      const mm = messages[k];
+      const mine = mm.senderId === user?.id || mm.sender?.id === user?.id;
+      if (mine && mm.isRead && !mm.isDeleted) return k;
+    }
+    return -1;
+  })();
+
   return (
     <div className="flex flex-col h-full" style={{ background: theme.background }}>
       {/* Header — slim single-row messaging bar */}
@@ -693,8 +704,8 @@ export default function ChatThread() {
                   {getTimeStr(m.createdAt)}
                 </p>
               )}
-              {i === messages.length - 1 && isMe && m.isRead && !m.isDeleted && (
-                <p className="text-[10px] text-gray-400 mt-0.5 px-1">Seen</p>
+              {i === lastSeenIndex && (
+                <p className="text-[10px] mt-0.5 px-1" style={{ color: '#9AA6AD' }}>Seen</p>
               )}
             </div>
             </Fragment>
