@@ -9,7 +9,7 @@ const SLIDES = [
     bg: '#1a1a2e',
     icon: null,
     emoji: '✝️',
-    title: 'Welcome to FaithBridge',
+    title: 'Welcome to FaithString',
     subtitle: 'Your faith community awaits',
   },
   {

@@ -179,11 +179,17 @@ export default function Layout() {
           </button>
           <Logo size="sm" light={false} style={{ position: 'relative', zIndex: 1 }} />
           <div className="flex items-center gap-3 justify-end w-16" style={{ position: 'relative', zIndex: 1 }}>
-            <button onClick={() => navigate('/search')} aria-label="Search" className="w-9 h-9 flex items-center justify-center">
-              <Search size={22} strokeWidth={1.5} color="#262626" />
-            </button>
+            <motion.button
+              onClick={() => { hapticLight(); setTimeout(() => navigate('/search'), 130); }}
+              whileTap={{ scale: 0.9 }}
+              transition={{ type: 'spring', stiffness: 500, damping: 20 }}
+              aria-label="Search"
+              className="w-9 h-9 flex items-center justify-center"
+            >
+              <Search size={24} strokeWidth={2.5} color="#0A0A0A" />
+            </motion.button>
             <button onClick={() => navigate('/notifications')} aria-label="Notifications" className="relative w-9 h-9 flex items-center justify-center">
-              <Bell size={22} strokeWidth={1.5} color="#262626" />
+              <Bell size={24} strokeWidth={2.5} color="#0A0A0A" />
               {unreadCount > 0 && (
                 <span className="absolute top-0 right-0 bg-red-500 text-white text-[10px] rounded-full w-4 h-4 flex items-center justify-center leading-none font-bold">
                   {unreadCount > 9 ? '9+' : unreadCount}

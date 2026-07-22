@@ -40,7 +40,7 @@ export default function WeeklyRecap() {
     if (!recap) return '';
     const bits = [`This week I prayed ${recap.prayersOffered} ${recap.prayersOffered === 1 ? 'time' : 'times'} for ${recap.uniquePeoplePrayedFor} ${recap.uniquePeoplePrayedFor === 1 ? 'person' : 'people'}`];
     if (recap.countriesReached > 0) bits.push(`across ${recap.countriesReached} ${recap.countriesReached === 1 ? 'place' : 'places'}`);
-    return `${bits.join(' ')}. 🙏 #FaithBridge`;
+    return `${bits.join(' ')}. 🙏 #FaithString`;
   }
 
   async function share() {

@@ -83,7 +83,7 @@ export default function Signup() {
               disabled={loading}
               className="w-full bg-[#2C4055] text-white rounded-xl py-3 font-semibold text-sm disabled:opacity-60 mt-2"
             >
-              {step === 1 ? 'Continue' : loading ? 'Creating account...' : 'Join FaithBridge'}
+              {step === 1 ? 'Continue' : loading ? 'Creating account...' : 'Join FaithString'}
             </button>
 
             {step === 2 && (

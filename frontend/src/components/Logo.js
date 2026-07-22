@@ -9,7 +9,8 @@ export default function Logo({ size = 'md', light = true }) {
       <span style={{
         fontFamily: "'Dancing Script', cursive",
         fontSize: '26px',
-        fontWeight: '700',
+        fontWeight: '800',
+        WebkitTextStroke: `0.7px ${color}`,
         color,
         letterSpacing: '-0.5px',
         lineHeight: 1,
@@ -22,21 +23,21 @@ export default function Logo({ size = 'md', light = true }) {
         <div style={{
           position: 'absolute', left: '50%', top: '0',
           transform: 'translateX(-50%)',
-          width: '2px', height: '100%',
+          width: '3px', height: '100%',
           backgroundColor: color, borderRadius: '2px',
           boxShadow: barShadow,
         }} />
         {/* Top crossbar (T) */}
         <div style={{
           position: 'absolute', left: '0', top: '4px',
-          width: '100%', height: '2px',
+          width: '100%', height: '3px',
           backgroundColor: color, borderRadius: '2px',
           boxShadow: barShadow,
         }} />
         {/* Lower crossbar (cross) */}
         <div style={{
           position: 'absolute', left: '15%', top: '45%',
-          width: '70%', height: '1.5px',
+          width: '70%', height: '2.5px',
           backgroundColor: color, borderRadius: '2px',
           boxShadow: barShadow,
         }} />
@@ -45,12 +46,13 @@ export default function Logo({ size = 'md', light = true }) {
       <span style={{
         fontFamily: "'Dancing Script', cursive",
         fontSize: '26px',
-        fontWeight: '700',
+        fontWeight: '800',
+        WebkitTextStroke: `0.7px ${color}`,
         color,
         letterSpacing: '-0.5px',
         lineHeight: 1,
       }}>
-        hBridge
+        hString
       </span>
     </div>
   );
