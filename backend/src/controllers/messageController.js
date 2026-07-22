@@ -127,7 +127,11 @@ async function getMessages(req, res) {
     if (!participant) return res.status(403).json({ error: 'Not in this conversation' });
 
     // Moderation: a block hides the whole thread from both sides
-    const otherId = await otherParticipantId(conversationId, req.user.id);
+    const otherParticipant = await prisma.conversationParticipant.findFirst({
+      where: { conversationId, userId: { not: req.user.id } },
+      select: { userId: true, readReceiptsEnabled: true },
+    });
+    const otherId = otherParticipant?.userId || null;
     if (otherId && await isBlockedBetween(req.user.id, otherId)) {
       return res.status(403).json({ error: 'This conversation is unavailable.' });
     }
@@ -140,7 +144,15 @@ async function getMessages(req, res) {
         replyTo: { select: { id: true, content: true, senderId: true, audioUrl: true } },
       },
     });
-    const hydrated = await hydrateSharedPrayers(messages);
+    let hydrated = await hydrateSharedPrayers(messages);
+
+    // Read receipts (mutual): the sender only sees "Seen" if BOTH participants
+    // keep receipts on. Mask isRead on the viewer's OWN sent messages otherwise
+    // (masks the response only — the DB isRead stays accurate for unread counts).
+    const receiptsVisible = (participant.readReceiptsEnabled !== false) && (otherParticipant?.readReceiptsEnabled !== false);
+    if (!receiptsVisible) {
+      hydrated = hydrated.map(m => (m.senderId === req.user.id ? { ...m, isRead: false } : m));
+    }
     // Per-user conversation settings so the thread opens with the right theme.
     res.json({
       messages: hydrated,
@@ -450,9 +462,17 @@ async function markRead(req, res) {
       where: { conversationId_userId: { conversationId, userId: req.user.id } },
       data: { lastReadAt: new Date() },
     });
-    // Tell the other participant their messages have been seen (live "Seen" receipt)
+
+    // Live "Seen" receipt — only emit when BOTH participants keep receipts on,
+    // so a user with read receipts off never leaks their read status.
+    const parts = await prisma.conversationParticipant.findMany({
+      where: { conversationId }, select: { readReceiptsEnabled: true },
+    });
+    const receiptsVisible = parts.every(p => p.readReceiptsEnabled !== false);
     const io = req.app.get('io');
-    io.to(`conversation:${conversationId}`).emit('messages_read', { conversationId, readerId: req.user.id });
+    if (receiptsVisible) {
+      io.to(`conversation:${conversationId}`).emit('messages_read', { conversationId, readerId: req.user.id });
+    }
     res.json({ ok: true });
   } catch {
     res.status(500).json({ error: 'Failed to mark read' });
