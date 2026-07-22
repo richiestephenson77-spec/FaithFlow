@@ -4,7 +4,16 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  // Runtime queries go through Supabase's TRANSACTION-mode pooler (port 6543,
+  // ?pgbouncer=true&connection_limit=...). Transaction mode returns each
+  // connection to the pool after every query/transaction, so a small pool of
+  // real Postgres connections serves far more concurrent clients than session
+  // mode (which pins a connection for the whole session — the cause of the
+  // "max clients reached in session mode, pool_size: 15" exhaustion).
+  url       = env("DATABASE_URL")
+  // Migrations (prisma migrate deploy in the start script) and any DDL cannot
+  // run through the transaction pooler — they need a direct/session connection.
+  directUrl = env("DIRECT_URL")
 }
 
 model User {

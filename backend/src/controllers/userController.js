@@ -25,13 +25,20 @@ async function getProfile(req, res) {
 
     // Moderation: a block in either direction makes the profile unavailable.
     // Surface isBlockedByMe so the viewer can Unblock; never leak their content.
+    // One query for both directions (was two parallel lookups).
     if (req.user && id !== req.user.id) {
-      const [iBlockedThem, theyBlockedMe] = await Promise.all([
-        prisma.block.findUnique({ where: { blockerId_blockedId: { blockerId: req.user.id, blockedId: id } } }),
-        prisma.block.findUnique({ where: { blockerId_blockedId: { blockerId: id, blockedId: req.user.id } } }),
-      ]);
-      if (iBlockedThem || theyBlockedMe) {
-        return res.json({ id, unavailable: true, isBlockedByMe: !!iBlockedThem, name: iBlockedThem ? user.name : null });
+      const blocks = await prisma.block.findMany({
+        where: {
+          OR: [
+            { blockerId: req.user.id, blockedId: id },
+            { blockerId: id, blockedId: req.user.id },
+          ],
+        },
+        select: { blockerId: true },
+      });
+      if (blocks.length) {
+        const iBlockedThem = blocks.some(b => b.blockerId === req.user.id);
+        return res.json({ id, unavailable: true, isBlockedByMe: iBlockedThem, name: iBlockedThem ? user.name : null });
       }
     }
 
@@ -188,7 +195,7 @@ async function getDashboard(req, res) {
         _sum: { durationSeconds: true },
         _avg: { durationSeconds: true },
       }),
-      prisma.prayerSession.findMany({ where: { userId: id }, distinct: ['prayerRequestId'] }),
+      prisma.prayerSession.findMany({ where: { userId: id }, distinct: ['prayerRequestId'], select: { prayerRequestId: true } }),
       prisma.prayerSession.count({ where: { userId: id, durationSeconds: { gt: 0 } } }),
       prisma.user.findUnique({ where: { id }, select: { prayerStreak: true, longestPrayerStreak: true, graceDaysAvailable: true } }),
     ]);
