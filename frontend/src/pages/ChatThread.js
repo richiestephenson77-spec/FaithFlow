@@ -45,6 +45,29 @@ const REACTION_OPTIONS = ['❤️', '🙏', '😂', '😮', '😢', '🔥'];
 const DOUBLE_TAP_MS = 300;
 const LONG_PRESS_MS = 500;
 
+// Merge a message arriving over the socket into the list WITHOUT duplicating.
+// The server broadcasts new messages to the whole conversation room (io.to),
+// which includes the sender — so my own sends echo back to me. Without this,
+// the optimistic/HTTP copy AND the echo would both render (the "sends twice"
+// bug). Rules:
+//   1. Already have this server id → ignore (HTTP already added it, or a double
+//      emit). This is the dedup that fixes the duplicate.
+//   2. My own message echoed while its optimistic temp is still pending (socket
+//      beat the HTTP response) → replace the temp in place, don't append.
+//   3. Otherwise it's the other person's message (or one we don't have) → append.
+function reconcileIncoming(prev, msg, myId) {
+  if (prev.some(m => m.id === msg.id)) return prev;
+  if (msg.senderId === myId) {
+    const idx = prev.findIndex(m => m.pending && m.tempId && m.content === msg.content);
+    if (idx !== -1) {
+      const copy = prev.slice();
+      copy[idx] = msg;
+      return copy;
+    }
+  }
+  return [...prev, msg];
+}
+
 // Compact prayer-request card shared into a chat (tap to open full request)
 function SharedPrayerCard({ request, isMe, onOpen }) {
   if (!request) {
@@ -145,6 +168,7 @@ export default function ChatThread() {
   const msgRefs = useRef({});
   const imageInputRef = useRef(null);
   const typingTimer = useRef(null);
+  const typingClearRef = useRef(null); // receiver-side safety timeout for the "typing…" indicator
   const lastTapRef = useRef({ id: null, time: 0 });
   const pressTimerRef = useRef(null);
   const longPressFiredRef = useRef(false);
@@ -193,11 +217,21 @@ export default function ChatThread() {
     if (!socket) return;
     socket.emit('join_conversation', conversationId);
     socket.on('message_received', (msg) => {
-      setMessages(prev => [...prev, msg]);
+      // Dedup: my own sends echo back here (server broadcasts to the whole room,
+      // including me). reconcileIncoming drops the echo / reconciles the temp.
+      setMessages(prev => reconcileIncoming(prev, msg, user?.id));
+      // A delivered message means they've stopped typing.
+      clearTimeout(typingClearRef.current);
+      setTypingUser(null);
       api.put(`/messages/conversations/${conversationId}/read`).catch(() => {});
     });
-    socket.on('typing', ({ userName }) => setTypingUser(userName));
-    socket.on('stop_typing', () => setTypingUser(null));
+    socket.on('typing', ({ userName }) => {
+      setTypingUser(userName || 'typing');
+      // Safety net: if a stop_typing is ever dropped, clear the indicator anyway.
+      clearTimeout(typingClearRef.current);
+      typingClearRef.current = setTimeout(() => setTypingUser(null), 4000);
+    });
+    socket.on('stop_typing', () => { clearTimeout(typingClearRef.current); setTypingUser(null); });
     socket.on('message:reaction', ({ messageId, emoji }) => {
       setMessages(prev => prev.map(m => m.id === messageId ? { ...m, reaction: emoji } : m));
     });
@@ -234,8 +268,9 @@ export default function ChatThread() {
       socket.off('messages_read');
       socket.off('messages_vanished');
       socket.off('call:incoming');
+      clearTimeout(typingClearRef.current);
     };
-  }, [socket, conversationId]);
+  }, [socket, conversationId, user?.id]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -266,7 +301,7 @@ export default function ChatThread() {
 
   function handleBubbleTap(m) {
     if (longPressFiredRef.current) { longPressFiredRef.current = false; return; }
-    if (m.isDeleted) return;
+    if (m.isDeleted || m.pending) return; // temp messages have no server id yet
     const now = Date.now();
     const { id, time } = lastTapRef.current;
     if (id === m.id && now - time < DOUBLE_TAP_MS) {
@@ -278,7 +313,7 @@ export default function ChatThread() {
   }
 
   function startPress(m) {
-    if (m.isDeleted) return;
+    if (m.isDeleted || m.pending) return;
     longPressFiredRef.current = false;
     clearTimeout(pressTimerRef.current);
     pressTimerRef.current = setTimeout(() => {
@@ -295,15 +330,46 @@ export default function ChatThread() {
     if (!input.trim() || sending) return;
     hapticMedium();
     const content = input.trim();
-    const replyToId = replyTo?.id || null;
+    const replySnapshot = replyTo;
+    const replyToId = replySnapshot?.id || null;
+    // Optimistic message — rendered INSTANTLY with a temp id, then reconciled
+    // when the server responds (or the socket echoes). Matched back by tempId.
+    const tempId = `temp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const optimistic = {
+      id: tempId,
+      tempId,
+      pending: true,
+      conversationId,
+      senderId: user?.id,
+      sender: { id: user?.id, name: user?.name, profilePhoto: user?.profilePhoto },
+      content,
+      replyToId,
+      replyTo: replySnapshot
+        ? { id: replySnapshot.id, content: replySnapshot.content, senderId: replySnapshot.senderId, audioUrl: replySnapshot.audioUrl }
+        : null,
+      reaction: null,
+      isRead: false,
+      isDeleted: false,
+      createdAt: new Date().toISOString(),
+    };
     setInput('');
     setReplyTo(null);
-    setSending(true);
+    setMessages(prev => [...prev, optimistic]);
     if (socket) socket.emit('stop_typing', { conversationId });
+    setSending(true);
     try {
       const res = await api.post(`/messages/conversations/${conversationId}`, { content, replyToId });
-      setMessages(prev => [...prev, res.data]);
-    } catch {}
+      setMessages(prev => {
+        // If the socket echo already inserted the real row, just drop the temp;
+        // otherwise swap the temp for the confirmed server message.
+        if (prev.some(m => m.id === res.data.id)) return prev.filter(m => m.tempId !== tempId);
+        return prev.map(m => (m.tempId === tempId ? res.data : m));
+      });
+    } catch {
+      // Keep it visible but flag it as failed rather than silently dropping it.
+      setMessages(prev => prev.map(m => (m.tempId === tempId ? { ...m, pending: false, failed: true } : m)));
+      showToast('Message not sent', 'error');
+    }
     setSending(false);
   }
 
@@ -595,7 +661,7 @@ export default function ChatThread() {
                   </span>
                 </button>
               )}
-              <SwipeToReply onReply={() => setReplyTo(m)} disabled={m.isDeleted}>
+              <SwipeToReply onReply={() => setReplyTo(m)} disabled={m.isDeleted || m.pending}>
               <div className={`relative max-w-[78%] ${m.reaction ? 'mb-2.5' : ''}`}>
                 <div
                   onClick={() => handleBubbleTap(m)}
@@ -611,6 +677,7 @@ export default function ChatThread() {
                   }`}
                   style={{
                     WebkitTouchCallout: 'none',
+                    opacity: m.pending ? 0.65 : 1,
                     ...(m.isDeleted
                       ? { background: '#F0F0F0', color: '#9AA6AD' }
                       : isMe
@@ -704,9 +771,20 @@ export default function ChatThread() {
               </div>
               </SwipeToReply>
               {showTime && (
-                <p className="text-[10px] text-gray-400 mt-0.5 px-1 flex items-center gap-1">
+                <p className="text-[10px] mt-0.5 px-1 flex items-center gap-1" style={{ color: m.failed ? '#C0392B' : '#9CA3AF' }}>
                   {m.isVanish && !m.isDeleted && <EyeOff size={10} strokeWidth={2} color="#9AA6AD" />}
-                  {getTimeStr(m.createdAt)}
+                  {m.failed ? (
+                    'Not sent'
+                  ) : (
+                    <>
+                      {getTimeStr(m.createdAt)}
+                      {m.pending && (
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-label="Sending">
+                          <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
+                        </svg>
+                      )}
+                    </>
+                  )}
                 </p>
               )}
               {i === lastSeenIndex && (
