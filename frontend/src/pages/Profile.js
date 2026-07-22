@@ -71,6 +71,19 @@ export default function Profile() {
   const [modMenu, setModMenu] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   const [blockConfirm, setBlockConfirm] = useState(false);
+  const [messaging, setMessaging] = useState(false);
+
+  async function handleMessage() {
+    if (messaging) return;
+    setMessaging(true);
+    try {
+      const res = await api.post('/messages/conversations', { userId: profileId });
+      navigate(`/messages/${res.data.id}`);
+    } catch (err) {
+      showToast(err.friendlyMessage || err.response?.data?.error || 'Could not open chat', 'error');
+      setMessaging(false);
+    }
+  }
 
   async function reloadProfile() {
     try { const res = await api.get(`/users/${profileId}`); setProfile(res.data); } catch {}
@@ -204,6 +217,159 @@ export default function Profile() {
 
   const staggerChildren = { animate: { transition: { staggerChildren: 0.08 } } };
   const fadeUpItem = { initial: { opacity: 0, y: 12 }, animate: { opacity: 1, y: 0, transition: { duration: 0.3 } } };
+
+  // ── OTHER-USER PROFILE — clean, Instagram-style (own profile keeps its
+  //    existing edit/settings layout below) ──
+  if (!isOwnProfile) {
+    // Only ever show another believer's PUBLIC requests — never their private ones.
+    const publicRequests = (profile.prayerRequests || []).filter(r => (r.visibility || 'PUBLIC') === 'PUBLIC');
+    const answeredCount = publicRequests.filter(r => r.isAnswered).length;
+
+    return (
+      <div className="bg-gray-50 min-h-full pb-10">
+        {/* Top bar */}
+        <div className="bg-white px-3 pt-4 pb-2 flex items-center justify-between" style={{ borderBottom: '1px solid #EFEFEF' }}>
+          <button onClick={() => navigate(-1)} aria-label="Back" className="w-11 h-11 flex items-center justify-center">
+            <ChevronLeft size={24} color="#0A0A0A" strokeWidth={2} />
+          </button>
+          <button onClick={() => setModMenu(true)} aria-label="More options" className="w-11 h-11 flex items-center justify-center">
+            <MoreHorizontal size={22} color="#0A0A0A" strokeWidth={2} />
+          </button>
+        </div>
+
+        {/* Header */}
+        <div className="bg-white px-5 pt-4 pb-5">
+          <div className="flex items-center gap-6">
+            <div className="rounded-full overflow-hidden bg-gray-100 flex-shrink-0" style={{ width: 84, height: 84 }}>
+              {profile.profilePhoto
+                ? <img src={profile.profilePhoto} alt={profile.name} className="w-full h-full object-cover" />
+                : <div className="w-full h-full flex items-center justify-center text-2xl font-bold" style={{ background: 'rgba(44,64,85,0.1)', color: '#0A0A0A' }}>{profile.name?.[0]?.toUpperCase()}</div>}
+            </div>
+            <div className="flex-1 flex justify-around">
+              {[
+                { value: stats?.totalSessions ?? 0, label: 'Prayers' },
+                { value: profile._count?.followers ?? 0, label: 'Followers', onTap: () => setFollowModal('followers') },
+                { value: profile._count?.following ?? 0, label: 'Following', onTap: () => setFollowModal('following') },
+              ].map(({ value, label, onTap }) => (
+                <button key={label} onClick={onTap} className="flex flex-col items-center">
+                  <span className="text-lg font-bold leading-tight" style={{ color: '#0A0A0A' }}>{value}</span>
+                  <span className="text-xs mt-0.5" style={{ color: '#8E8E8E' }}>{label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Name + meta */}
+          <div className="mt-3.5">
+            <p className="text-xl font-bold leading-tight" style={{ color: '#0A0A0A', fontFamily: "'Fraunces', serif" }}>{profile.name}</p>
+            {profile.churchName && <p className="text-sm font-medium mt-0.5" style={{ color: '#2C4055' }}>{profile.churchName}</p>}
+            {profile.location && <p className="text-xs mt-0.5" style={{ color: '#8E8E8E' }}>{profile.location}</p>}
+            {profile.bio && <p className="text-sm mt-1.5 leading-snug" style={{ color: '#3D4A57' }}>{profile.bio}</p>}
+          </div>
+
+          {/* Follow + Message */}
+          <div className="flex gap-2 mt-4">
+            <motion.button
+              whileTap={{ scale: 0.97 }}
+              onClick={handleFollow}
+              className="flex-1 h-11 rounded-xl text-sm font-semibold transition-colors"
+              style={following
+                ? { background: '#F0F0F0', color: '#0A0A0A' }
+                : { background: '#2C4055', color: '#fff' }}
+            >
+              {following ? 'Following' : 'Follow'}
+            </motion.button>
+            <motion.button
+              whileTap={{ scale: 0.97 }}
+              onClick={handleMessage}
+              disabled={messaging}
+              className="flex-1 h-11 rounded-xl text-sm font-semibold disabled:opacity-60"
+              style={{ background: '#fff', color: '#0A0A0A', border: '1px solid #D8DCE0' }}
+            >
+              {messaging ? 'Opening…' : 'Message'}
+            </motion.button>
+          </div>
+        </div>
+
+        {/* Their public prayer requests */}
+        <div className="px-4 mt-4">
+          <p className="text-sm font-bold mb-2.5" style={{ color: '#0A0A0A', fontFamily: "'Fraunces', serif" }}>
+            Prayer Requests{answeredCount > 0 ? ` · ${answeredCount} answered` : ''}
+          </p>
+
+          {publicRequests.length === 0 ? (
+            <div className="text-center py-12 px-8">
+              <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-3" style={{ background: 'rgba(44,64,85,0.08)' }}>
+                <HandHeart size={22} strokeWidth={1.8} color="#2C4055" />
+              </div>
+              <p className="text-sm" style={{ color: '#8E8E8E' }}>No public prayer requests yet.</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {publicRequests.map(r => (
+                <button
+                  key={r.id}
+                  onClick={() => navigate(`/prayer/${r.id}`)}
+                  className="w-full text-left bg-white rounded-2xl p-4 active:scale-[0.99] transition-transform"
+                  style={{ border: `1px solid ${r.isAnswered ? '#A7F3D0' : '#EFEFEF'}` }}
+                >
+                  <div className="flex items-center gap-2 flex-wrap mb-1">
+                    {r.isAnswered && <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">Answered</span>}
+                    {r.isUrgent && <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-red-50 text-red-600 uppercase tracking-wide">Urgent</span>}
+                  </div>
+                  <p className="font-semibold text-sm" style={{ color: '#0A0A0A' }}>{r.title}</p>
+                  <p className="text-xs mt-1 line-clamp-2" style={{ color: '#8E8E8E' }}>{r.body}</p>
+                  <div className="flex items-center gap-3 mt-2">
+                    <span className="text-xs" style={{ color: '#9AA6AD' }}>{getTimeAgo(r.createdAt)}</span>
+                    {r._count?.sessions != null && <span className="text-xs" style={{ color: '#9AA6AD' }}>{r._count.sessions} prayed</span>}
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* ··· menu */}
+        {modMenu && (
+          <div className="fixed inset-0 z-[60] bg-black/50 flex items-end" onClick={() => setModMenu(false)}>
+            <div className="bg-white w-full max-w-md mx-auto rounded-t-3xl p-2" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 8px)' }} onClick={e => e.stopPropagation()}>
+              <button onClick={() => { setModMenu(false); setReportOpen(true); }} className="w-full text-left px-4 py-3.5 text-sm font-medium rounded-xl" style={{ color: '#1A1A1A' }}>Report</button>
+              {profile.isBlockedByMe
+                ? <button onClick={handleUnblock} className="w-full text-left px-4 py-3.5 text-sm font-medium rounded-xl" style={{ color: '#0A0A0A' }}>Unblock user</button>
+                : <button onClick={() => { setModMenu(false); setBlockConfirm(true); }} className="w-full text-left px-4 py-3.5 text-sm font-medium rounded-xl" style={{ color: '#C0392B' }}>Block user</button>}
+              <button onClick={() => setModMenu(false)} className="w-full text-center px-4 py-3.5 text-sm font-semibold rounded-xl mt-1" style={{ color: '#8E8E8E' }}>Cancel</button>
+            </div>
+          </div>
+        )}
+
+        {reportOpen && (
+          <ReportSheet contentType="PROFILE" contentId={profileId} reportedUserId={profileId} onClose={() => setReportOpen(false)} />
+        )}
+
+        {blockConfirm && (
+          <div className="fixed inset-0 z-[60] bg-black/50 flex items-center justify-center px-8" onClick={() => setBlockConfirm(false)}>
+            <div className="bg-white rounded-3xl w-full max-w-xs p-5 text-center" onClick={e => e.stopPropagation()}>
+              <p className="font-bold text-[15px]" style={{ color: '#0A0A0A' }}>Block {profile.name || 'this user'}?</p>
+              <p className="text-sm mt-2 leading-snug" style={{ color: '#6B7680' }}>They won't be able to message you or see your content, and you won't see theirs.</p>
+              <div className="flex gap-2 mt-5">
+                <button onClick={() => setBlockConfirm(false)} className="flex-1 py-3 rounded-xl text-sm font-semibold" style={{ background: '#F0F0F0', color: '#1A1A1A' }}>Cancel</button>
+                <button onClick={handleBlock} className="flex-1 py-3 rounded-xl text-sm font-semibold text-white" style={{ background: '#C0392B' }}>Block</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {followModal && (
+          <FollowListModal
+            userId={profileId}
+            type={followModal}
+            onClose={() => setFollowModal(null)}
+            onUserClick={(uid) => { setFollowModal(null); navigate(`/profile/${uid}`); }}
+          />
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="pb-8 bg-gray-50 min-h-full relative">
