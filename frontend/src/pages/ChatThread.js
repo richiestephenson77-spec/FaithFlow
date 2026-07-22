@@ -128,6 +128,7 @@ export default function ChatThread() {
   const [blocking, setBlocking] = useState(false);
   const [lightboxSrc, setLightboxSrc] = useState(null);
   const [chatSettings, setChatSettings] = useState(null);
+  const [loadedImages, setLoadedImages] = useState(() => new Set()); // manually-loaded when auto-download is off
   const [recording, setRecording] = useState(false);
   const [recordSeconds, setRecordSeconds] = useState(0);
   const [replyTo, setReplyTo] = useState(null);
@@ -411,6 +412,7 @@ export default function ChatThread() {
 
   const theme = getChatTheme(chatSettings?.theme);
   const iconTint = theme.headerText === '#FFFFFF' ? 'rgba(255,255,255,0.12)' : 'rgba(10,10,10,0.06)';
+  const autoDownload = user?.autoDownloadMedia !== false; // default on
 
   return (
     <div className="flex flex-col h-full" style={{ background: theme.background }}>
@@ -568,7 +570,17 @@ export default function ChatThread() {
                     : m.sharedPrayerRequestId
                       ? <SharedPrayerCard request={m.sharedPrayerRequest} isMe={isMe} onOpen={() => m.sharedPrayerRequest && navigate(`/prayer/${m.sharedPrayerRequest.id}`)} />
                       : m.imageUrl
-                        ? <img loading="lazy" decoding="async" src={m.imageUrl} alt="" onClick={e => { e.stopPropagation(); setLightboxSrc(m.imageUrl); }} className="rounded-xl block" style={{ maxHeight: 260, maxWidth: '100%', objectFit: 'cover' }} />
+                        ? ((autoDownload || loadedImages.has(m.id))
+                            ? <img loading="lazy" decoding="async" src={m.imageUrl} alt="" onClick={e => { e.stopPropagation(); setLightboxSrc(m.imageUrl); }} className="rounded-xl block" style={{ maxHeight: 260, maxWidth: '100%', objectFit: 'cover' }} />
+                            : <button
+                                onClick={e => { e.stopPropagation(); setLoadedImages(prev => new Set(prev).add(m.id)); }}
+                                className="rounded-xl flex flex-col items-center justify-center gap-1.5"
+                                style={{ width: 180, height: 180, background: 'rgba(0,0,0,0.06)', border: '1px dashed rgba(0,0,0,0.15)' }}
+                              >
+                                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#8E8E8E" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+                                <span className="text-xs font-semibold" style={{ color: '#5C6672' }}>Tap to load</span>
+                                <span className="text-[10px]" style={{ color: '#9AA6AD' }}>Photo</span>
+                              </button>)
                         : m.audioUrl
                           ? <VoiceBubble src={m.audioUrl} duration={m.audioDuration || 0} isMe={isMe} />
                           : m.content}
