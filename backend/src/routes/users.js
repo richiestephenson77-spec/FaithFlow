@@ -52,6 +52,23 @@ router.get('/me/recap', authenticate, async (req, res) => {
     res.status(500).json({ error: 'Failed to build recap' });
   }
 });
+// General per-user app settings (currently just media auto-download).
+router.patch('/me/settings', authenticate, async (req, res) => {
+  const { autoDownloadMedia } = req.body || {};
+  try {
+    const data = {};
+    if (typeof autoDownloadMedia === 'boolean') data.autoDownloadMedia = autoDownloadMedia;
+    const updated = await prisma.user.update({
+      where: { id: req.user.id },
+      data,
+      select: { autoDownloadMedia: true },
+    });
+    res.json(updated);
+  } catch {
+    res.status(500).json({ error: 'Failed to update settings' });
+  }
+});
+
 router.put('/me', authenticate, (req, res, next) => {
   uploadProfile(req, res, (err) => {
     if (err) return res.status(400).json({ error: err.message });

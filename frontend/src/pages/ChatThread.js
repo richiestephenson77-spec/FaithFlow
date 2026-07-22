@@ -126,6 +126,7 @@ export default function ChatThread() {
   const [blockOpen, setBlockOpen] = useState(false);
   const [blocking, setBlocking] = useState(false);
   const [lightboxSrc, setLightboxSrc] = useState(null);
+  const [chatSettings, setChatSettings] = useState(null);
   const [recording, setRecording] = useState(false);
   const [recordSeconds, setRecordSeconds] = useState(0);
   const [replyTo, setReplyTo] = useState(null);
@@ -153,7 +154,10 @@ export default function ChatThread() {
         api.get(`/messages/conversations/${conversationId}`),
         api.get('/messages/conversations'),
       ]);
-      setMessages(msgRes.data);
+      // Thread fetch now returns { messages, settings } (per-user convo state).
+      const payload = msgRes.data;
+      setMessages(Array.isArray(payload) ? payload : (payload.messages || []));
+      if (payload && payload.settings) setChatSettings(payload.settings);
       const convo = convRes.data.find(c => c.id === conversationId);
       if (convo) setOther(convo.other);
       api.put(`/messages/conversations/${conversationId}/read`).catch(() => {});

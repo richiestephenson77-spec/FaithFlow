@@ -140,9 +140,71 @@ async function getMessages(req, res) {
         replyTo: { select: { id: true, content: true, senderId: true, audioUrl: true } },
       },
     });
-    res.json(await hydrateSharedPrayers(messages));
+    const hydrated = await hydrateSharedPrayers(messages);
+    // Per-user conversation settings so the thread opens with the right theme.
+    res.json({
+      messages: hydrated,
+      settings: {
+        theme: participant.theme,
+        vanishMode: participant.vanishMode,
+        readReceiptsEnabled: participant.readReceiptsEnabled,
+        typingIndicatorEnabled: participant.typingIndicatorEnabled,
+      },
+    });
   } catch {
     res.status(500).json({ error: 'Failed to get messages' });
+  }
+}
+
+// PATCH this user's per-conversation settings (theme + persisted UI toggles).
+// vanishMode / read-receipts / typing-indicator are persisted only this batch;
+// enforcement comes later.
+async function updateConversationSettings(req, res) {
+  const { conversationId } = req.params;
+  const { theme, vanishMode, readReceiptsEnabled, typingIndicatorEnabled } = req.body || {};
+  try {
+    const participant = await prisma.conversationParticipant.findUnique({
+      where: { conversationId_userId: { conversationId, userId: req.user.id } },
+    });
+    if (!participant) return res.status(403).json({ error: 'Not in this conversation' });
+
+    const data = {};
+    if (typeof theme === 'string') data.theme = theme;
+    if (typeof vanishMode === 'boolean') data.vanishMode = vanishMode;
+    if (typeof readReceiptsEnabled === 'boolean') data.readReceiptsEnabled = readReceiptsEnabled;
+    if (typeof typingIndicatorEnabled === 'boolean') data.typingIndicatorEnabled = typingIndicatorEnabled;
+
+    const updated = await prisma.conversationParticipant.update({
+      where: { conversationId_userId: { conversationId, userId: req.user.id } },
+      data,
+      select: { theme: true, vanishMode: true, readReceiptsEnabled: true, typingIndicatorEnabled: true },
+    });
+    res.json(updated);
+  } catch (err) {
+    console.error('updateConversationSettings error:', err);
+    res.status(500).json({ error: 'Failed to update settings' });
+  }
+}
+
+// All image messages in a conversation, newest first, for the shared-media grid.
+async function getConversationMedia(req, res) {
+  const { conversationId } = req.params;
+  try {
+    const participant = await prisma.conversationParticipant.findUnique({
+      where: { conversationId_userId: { conversationId, userId: req.user.id } },
+      select: { id: true },
+    });
+    if (!participant) return res.status(403).json({ error: 'Not in this conversation' });
+
+    const rows = await prisma.message.findMany({
+      where: { conversationId, isRemoved: false, isDeleted: false, imageUrl: { not: null } },
+      orderBy: { createdAt: 'desc' },
+      select: { id: true, imageUrl: true, createdAt: true },
+    });
+    res.json(rows.map(r => ({ id: r.id, mediaUrl: r.imageUrl, sentAt: r.createdAt })));
+  } catch (err) {
+    console.error('getConversationMedia error:', err);
+    res.status(500).json({ error: 'Failed to get media' });
   }
 }
 
@@ -445,4 +507,4 @@ async function setReaction(req, res) {
   }
 }
 
-module.exports = { getConversations, startConversation, getMessages, sendMessage, sendAudioMessage, sendImageMessage, markRead, getTotalUnread, setReaction, unsendMessage, sharePrayerRequest };
+module.exports = { getConversations, startConversation, getMessages, sendMessage, sendAudioMessage, sendImageMessage, markRead, getTotalUnread, setReaction, unsendMessage, sharePrayerRequest, updateConversationSettings, getConversationMedia };

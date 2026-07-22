@@ -90,6 +90,8 @@ model User {
   prayerReminderEnabled Boolean @default(false)
   prayerReminderTime    String?
 
+  autoDownloadMedia     Boolean @default(true)
+
   hostedCells     PrayerCell[]        @relation("PrayerCellHost")
   cellSessions    PrayerCellSession[] @relation("PrayerCellGuest")
 
@@ -179,6 +181,10 @@ model ConversationParticipant {
   conversationId String
   userId         String
   lastReadAt     DateTime?
+  theme                  String  @default("light")
+  vanishMode             Boolean @default(false)
+  readReceiptsEnabled    Boolean @default(true)
+  typingIndicatorEnabled Boolean @default(true)
   conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   @@unique([conversationId, userId])
