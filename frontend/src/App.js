@@ -41,6 +41,7 @@ import Messages from './pages/Messages';
 import ChatThread from './pages/ChatThread';
 import ChatDetails from './pages/ChatDetails';
 import ChatPrivacy from './pages/ChatPrivacy';
+import ChatVanish from './pages/ChatVanish';
 import Confessions from './pages/Confessions';
 import ConfessionDetail from './pages/ConfessionDetail';
 import Onboarding from './pages/Onboarding';
@@ -122,6 +123,7 @@ function AppRoutes() {
         <Route path="messages/:conversationId" element={<ChatThread />} />
         <Route path="messages/:conversationId/details" element={<ChatDetails />} />
         <Route path="messages/:conversationId/privacy" element={<ChatPrivacy />} />
+        <Route path="messages/:conversationId/vanish" element={<ChatVanish />} />
         <Route path="confessions" element={<Confessions />} />
         <Route path="/confessions/:id" element={<ConfessionDetail />} />
         <Route path="prayer-cells" element={<PrayerCellDirectory />} />

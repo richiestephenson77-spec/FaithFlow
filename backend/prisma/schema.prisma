@@ -182,7 +182,7 @@ model ConversationParticipant {
   userId         String
   lastReadAt     DateTime?
   theme                  String  @default("light")
-  vanishMode             Boolean @default(false)
+  vanishMode             String  @default("off") // off | after_seen | 24h | 7d | 30d
   readReceiptsEnabled    Boolean @default(true)
   typingIndicatorEnabled Boolean @default(true)
   conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
@@ -206,6 +206,7 @@ model Message {
   removedReason  String?
   isVanish       Boolean      @default(false)
   seenAt         DateTime?
+  expiresAt      DateTime?
   sharedPrayerRequestId String?
   createdAt      DateTime     @default(now())
   isRead         Boolean      @default(false)

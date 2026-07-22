@@ -12,6 +12,7 @@ import { useToast } from '../contexts/ToastContext';
 import ReportSheet from '../components/ReportSheet';
 import ImageLightbox from '../components/ImageLightbox';
 import { getChatTheme } from '../utils/chatThemes';
+import { vanishBanner } from '../utils/vanish';
 import CallOverlay from '../components/CallOverlay';
 
 function getTimeStr(d) {
@@ -518,11 +519,11 @@ export default function ChatThread() {
         <div className="fixed inset-0" style={{ zIndex: 10 }} onClick={() => setPickerFor(null)} />
       )}
 
-      {/* Vanish-mode banner — shown when either participant has it on */}
-      {chatSettings?.vanishActive && (
+      {/* Vanish-mode banner — names the active mode (shown when either side has it on) */}
+      {chatSettings?.vanishActive && vanishBanner(chatSettings.vanishEffective) && (
         <div className="flex items-center justify-center gap-1.5 px-4 py-2 flex-shrink-0" style={{ background: 'rgba(44,64,85,0.06)' }}>
           <EyeOff size={13} strokeWidth={1.9} color="#5C6672" />
-          <span className="text-[11px] font-medium" style={{ color: '#5C6672' }}>Vanish mode is on — messages disappear after they're seen</span>
+          <span className="text-[11px] font-medium" style={{ color: '#5C6672' }}>{vanishBanner(chatSettings.vanishEffective)}</span>
         </div>
       )}
 

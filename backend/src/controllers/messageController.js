@@ -32,11 +32,33 @@ async function blockGuard(conversationId, meId) {
 // thread -> unseen vanish messages get seenAt; recipient leaves (or anyone
 // re-fetches) -> seen vanish messages are soft-deleted for BOTH sides.
 
-async function conversationVanishOn(conversationId) {
-  const on = await prisma.conversationParticipant.findFirst({
-    where: { conversationId, vanishMode: true }, select: { id: true },
+const VANISH_MODES = ['off', 'after_seen', '24h', '7d', '30d'];
+const VANISH_DURATIONS_MS = { '24h': 24 * 3600e3, '7d': 7 * 86400e3, '30d': 30 * 86400e3 };
+// Priority when both participants pick different non-off modes — most
+// aggressive wins (after_seen deletes soonest, then shortest timer).
+const VANISH_PRIORITY = ['after_seen', '24h', '7d', '30d'];
+
+// Effective vanish mode for the conversation: any participant with a non-off
+// mode turns it on for both; if they differ, the most aggressive wins.
+async function conversationVanish(conversationId) {
+  const parts = await prisma.conversationParticipant.findMany({
+    where: { conversationId }, select: { vanishMode: true },
   });
-  return !!on;
+  const modes = parts.map(p => p.vanishMode).filter(m => m && m !== 'off');
+  if (!modes.length) return { mode: 'off', durationMs: null };
+  modes.sort((a, b) => VANISH_PRIORITY.indexOf(a) - VANISH_PRIORITY.indexOf(b));
+  const mode = modes[0];
+  return { mode, durationMs: VANISH_DURATIONS_MS[mode] || null };
+}
+
+// The isVanish/expiresAt columns to stamp on a new message given the
+// conversation's effective vanish mode.
+async function vanishFields(conversationId) {
+  const { mode, durationMs } = await conversationVanish(conversationId);
+  return {
+    isVanish: mode !== 'off',
+    expiresAt: durationMs ? new Date(Date.now() + durationMs) : null,
+  };
 }
 
 // Mark the OTHER person's unseen vanish messages as seen by this reader.
@@ -47,11 +69,11 @@ async function markSeenVanish(conversationId, readerId) {
   });
 }
 
-// Soft-delete vanish messages already seen by the recipient: strip content and
-// media, mark deleted for both, and tell the open thread over the socket.
+// Hard-delete "after_seen" vanish messages the recipient has seen (event-based
+// only — timed modes carry expiresAt and are removed by the scheduled job).
 async function sweepVanish(io, conversationId) {
   const gone = await prisma.message.findMany({
-    where: { conversationId, isVanish: true, seenAt: { not: null } },
+    where: { conversationId, isVanish: true, expiresAt: null, seenAt: { not: null } },
     select: { id: true },
   });
   if (gone.length === 0) return [];
@@ -198,15 +220,16 @@ async function getMessages(req, res) {
     // Vanish: mark the vanish messages now on screen as seen, so they're swept
     // when this user next leaves / re-opens the thread.
     await markSeenVanish(conversationId, req.user.id);
-    const vanishActive = await conversationVanishOn(conversationId);
+    const { mode: vanishEffective } = await conversationVanish(conversationId);
 
     // Per-user conversation settings so the thread opens with the right theme.
     res.json({
       messages: hydrated,
       settings: {
         theme: participant.theme,
-        vanishMode: participant.vanishMode,       // this user's own toggle
-        vanishActive,                             // conversation-level (either side) — drives the banner
+        vanishMode: participant.vanishMode,        // this user's own selection
+        vanishEffective,                           // conversation-level mode (either side) — drives the banner
+        vanishActive: vanishEffective !== 'off',
         readReceiptsEnabled: participant.readReceiptsEnabled,
         typingIndicatorEnabled: participant.typingIndicatorEnabled,
       },
@@ -216,9 +239,9 @@ async function getMessages(req, res) {
   }
 }
 
-// PATCH this user's per-conversation settings (theme + persisted UI toggles).
-// vanishMode / read-receipts / typing-indicator are persisted only this batch;
-// enforcement comes later.
+// PATCH this user's per-conversation settings. vanishMode is now a mode string
+// (off | after_seen | 24h | 7d | 30d) and is enforced; read-receipts / typing
+// are also enforced elsewhere.
 async function updateConversationSettings(req, res) {
   const { conversationId } = req.params;
   const { theme, vanishMode, readReceiptsEnabled, typingIndicatorEnabled } = req.body || {};
@@ -230,7 +253,7 @@ async function updateConversationSettings(req, res) {
 
     const data = {};
     if (typeof theme === 'string') data.theme = theme;
-    if (typeof vanishMode === 'boolean') data.vanishMode = vanishMode;
+    if (typeof vanishMode === 'string' && VANISH_MODES.includes(vanishMode)) data.vanishMode = vanishMode;
     if (typeof readReceiptsEnabled === 'boolean') data.readReceiptsEnabled = readReceiptsEnabled;
     if (typeof typingIndicatorEnabled === 'boolean') data.typingIndicatorEnabled = typingIndicatorEnabled;
 
@@ -297,7 +320,7 @@ async function sendMessage(req, res) {
     if (!participant) return res.status(403).json({ error: 'Not in this conversation' });
     const blockMsg1 = await blockGuard(conversationId, req.user.id);
     if (blockMsg1) return res.status(403).json({ error: blockMsg1 });
-    const vanish1 = await conversationVanishOn(conversationId);
+    const vf1 = await vanishFields(conversationId);
 
     // Only allow replying to a message that belongs to this same conversation
     let validReplyToId = null;
@@ -308,7 +331,7 @@ async function sendMessage(req, res) {
 
     const [message] = await prisma.$transaction([
       prisma.message.create({
-        data: { conversationId, senderId: req.user.id, content: content.trim(), replyToId: validReplyToId, isVanish: vanish1 },
+        data: { conversationId, senderId: req.user.id, content: content.trim(), replyToId: validReplyToId, ...vf1 },
         include: {
           sender: { select: { id: true, name: true, profilePhoto: true } },
           replyTo: { select: { id: true, content: true, senderId: true, audioUrl: true } },
@@ -358,11 +381,11 @@ async function sendAudioMessage(req, res) {
     if (!participant) return res.status(403).json({ error: 'Not in this conversation' });
     const blockMsg2 = await blockGuard(conversationId, req.user.id);
     if (blockMsg2) return res.status(403).json({ error: blockMsg2 });
-    const vanish2 = await conversationVanishOn(conversationId);
+    const vf2 = await vanishFields(conversationId);
 
     const [message] = await prisma.$transaction([
       prisma.message.create({
-        data: { conversationId, senderId: req.user.id, content: '', audioUrl, audioDuration, isVanish: vanish2 },
+        data: { conversationId, senderId: req.user.id, content: '', audioUrl, audioDuration, ...vf2 },
         include: { sender: { select: { id: true, name: true, profilePhoto: true } } },
       }),
       prisma.conversation.update({ where: { id: conversationId }, data: { updatedAt: new Date() } }),
@@ -407,11 +430,11 @@ async function sendImageMessage(req, res) {
     if (!participant) return res.status(403).json({ error: 'Not in this conversation' });
     const blockMsg3 = await blockGuard(conversationId, req.user.id);
     if (blockMsg3) return res.status(403).json({ error: blockMsg3 });
-    const vanish3 = await conversationVanishOn(conversationId);
+    const vf3 = await vanishFields(conversationId);
 
     const [message] = await prisma.$transaction([
       prisma.message.create({
-        data: { conversationId, senderId: req.user.id, content: '', imageUrl, isVanish: vanish3 },
+        data: { conversationId, senderId: req.user.id, content: '', imageUrl, ...vf3 },
         include: { sender: { select: { id: true, name: true, profilePhoto: true } } },
       }),
       prisma.conversation.update({ where: { id: conversationId }, data: { updatedAt: new Date() } }),
@@ -477,7 +500,7 @@ async function sharePrayerRequest(req, res) {
     if (!participant) return res.status(403).json({ error: 'Not in this conversation' });
     const blockMsg4 = await blockGuard(conversationId, req.user.id);
     if (blockMsg4) return res.status(403).json({ error: blockMsg4 });
-    const vanish4 = await conversationVanishOn(conversationId);
+    const vf4 = await vanishFields(conversationId);
 
     // Only allow sharing your OWN prayer request
     const pr = await prisma.prayerRequest.findUnique({ where: { id: prayerRequestId }, select: { userId: true } });
@@ -486,7 +509,7 @@ async function sharePrayerRequest(req, res) {
 
     const [message] = await prisma.$transaction([
       prisma.message.create({
-        data: { conversationId, senderId: req.user.id, content: '', sharedPrayerRequestId: prayerRequestId, isVanish: vanish4 },
+        data: { conversationId, senderId: req.user.id, content: '', sharedPrayerRequestId: prayerRequestId, ...vf4 },
         include: { sender: { select: { id: true, name: true, profilePhoto: true } } },
       }),
       prisma.conversation.update({ where: { id: conversationId }, data: { updatedAt: new Date() } }),

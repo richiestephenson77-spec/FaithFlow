@@ -10,6 +10,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import { hapticLight } from '../utils/haptics';
 import { CHAT_THEMES, CHAT_THEME_ORDER, getChatTheme } from '../utils/chatThemes';
+import { vanishLabel } from '../utils/vanish';
 
 const BLACK = '#0A0A0A';
 
@@ -136,8 +137,9 @@ export default function ChatDetails() {
       <div className="mt-3 bg-white" style={{ borderTop: '1px solid #EFEFEF', borderBottom: '1px solid #EFEFEF' }}>
         <Row Icon={Palette} label="Theme" sub={getChatTheme(settings?.theme).name}
           right={<ChevronRight size={18} color="#C7C7C7" />} onClick={() => setThemePicker(true)} />
-        <Row Icon={EyeOff} label="Vanish mode" sub="Messages disappear after they're seen"
-          right={<Toggle on={!!settings?.vanishMode} />} onClick={() => patchSettings({ vanishMode: !settings?.vanishMode })} />
+        <Row Icon={EyeOff} label="Vanish mode" sub={vanishLabel(settings?.vanishMode || 'off')}
+          right={<ChevronRight size={18} color="#C7C7C7" />}
+          onClick={() => navigate(`/messages/${conversationId}/vanish`, { state: { current: settings?.vanishMode || 'off' } })} />
         <Row Icon={ShieldCheck} label="Privacy & safety"
           right={<ChevronRight size={18} color="#C7C7C7" />}
           onClick={() => navigate(`/messages/${conversationId}/privacy`, { state: { other, settings } })} />
