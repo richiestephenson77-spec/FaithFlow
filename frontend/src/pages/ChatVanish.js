@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { ChevronLeft, Check } from 'lucide-react';
 import api from '../utils/api';
@@ -13,8 +13,18 @@ export default function ChatVanish() {
   const navigate = useNavigate();
   const location = useLocation();
   const showToast = useToast();
+  // Seed from nav state for an instant paint, but always confirm against the
+  // authoritative persisted value so a reopen shows the real saved option.
   const [mode, setMode] = useState(location.state?.current || 'off');
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    let alive = true;
+    api.get(`/messages/conversations/${conversationId}/settings`)
+      .then(res => { if (alive && res.data?.vanishMode) setMode(res.data.vanishMode); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, [conversationId]);
 
   async function pick(id) {
     if (saving) return;

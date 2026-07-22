@@ -268,10 +268,29 @@ async function updateConversationSettings(req, res) {
       data,
       select: { theme: true, vanishMode: true, readReceiptsEnabled: true, typingIndicatorEnabled: true },
     });
-    res.json(updated);
+    const { mode: vanishEffective } = await conversationVanish(conversationId);
+    res.json({ ...updated, vanishEffective, vanishActive: vanishEffective !== 'off' });
   } catch (err) {
     console.error('updateConversationSettings error:', err);
     res.status(500).json({ error: 'Failed to update settings' });
+  }
+}
+
+// Lightweight fetch of THIS user's current persisted settings (no messages) —
+// used by the settings sub-screens so they always show the fresh saved value.
+async function getConversationSettings(req, res) {
+  const { conversationId } = req.params;
+  try {
+    const participant = await prisma.conversationParticipant.findUnique({
+      where: { conversationId_userId: { conversationId, userId: req.user.id } },
+      select: { theme: true, vanishMode: true, readReceiptsEnabled: true, typingIndicatorEnabled: true },
+    });
+    if (!participant) return res.status(403).json({ error: 'Not in this conversation' });
+    const { mode: vanishEffective } = await conversationVanish(conversationId);
+    res.json({ ...participant, vanishEffective, vanishActive: vanishEffective !== 'off' });
+  } catch (err) {
+    console.error('getConversationSettings error:', err);
+    res.status(500).json({ error: 'Failed to get settings' });
   }
 }
 
@@ -630,4 +649,4 @@ async function setReaction(req, res) {
   }
 }
 
-module.exports = { getConversations, startConversation, getMessages, sendMessage, sendAudioMessage, sendImageMessage, markRead, getTotalUnread, setReaction, unsendMessage, sharePrayerRequest, updateConversationSettings, getConversationMedia, leaveConversation };
+module.exports = { getConversations, startConversation, getMessages, sendMessage, sendAudioMessage, sendImageMessage, markRead, getTotalUnread, setReaction, unsendMessage, sharePrayerRequest, updateConversationSettings, getConversationSettings, getConversationMedia, leaveConversation };

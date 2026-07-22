@@ -65,17 +65,17 @@ export default function ChatDetails() {
 
   const load = useCallback(async () => {
     try {
-      const [convRes, mediaRes, threadRes] = await Promise.all([
+      const [convRes, mediaRes, settingsRes] = await Promise.all([
         api.get('/messages/conversations'),
         api.get(`/messages/conversations/${conversationId}/media`),
-        settings ? Promise.resolve(null) : api.get(`/messages/conversations/${conversationId}`),
+        api.get(`/messages/conversations/${conversationId}/settings`),
       ]);
       const convo = convRes.data.find(c => c.id === conversationId);
       if (convo?.other) setOther(convo.other);
       setMedia(mediaRes.data);
-      if (threadRes) setSettings(threadRes.data.settings);
+      if (settingsRes.data) setSettings(settingsRes.data);
     } catch { setMedia([]); }
-  }, [conversationId, settings]);
+  }, [conversationId]);
 
   useEffect(() => { load(); }, [load]);
 

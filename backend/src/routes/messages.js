@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const { authenticate } = require('../middleware/auth');
 const { uploadAudio, uploadMessageImage } = require('../services/cloudinaryService');
-const { getConversations, startConversation, getMessages, sendMessage, sendAudioMessage, sendImageMessage, markRead, getTotalUnread, setReaction, unsendMessage, sharePrayerRequest, updateConversationSettings, getConversationMedia, leaveConversation } = require('../controllers/messageController');
+const { getConversations, startConversation, getMessages, sendMessage, sendAudioMessage, sendImageMessage, markRead, getTotalUnread, setReaction, unsendMessage, sharePrayerRequest, updateConversationSettings, getConversationSettings, getConversationMedia, leaveConversation } = require('../controllers/messageController');
 
 router.get('/unread', authenticate, getTotalUnread);
 router.get('/conversations', authenticate, getConversations);
@@ -21,6 +21,7 @@ router.post('/conversations/:conversationId/image', authenticate, (req, res, nex
   });
 }, sendImageMessage);
 router.post('/conversations/:conversationId/share-prayer', authenticate, sharePrayerRequest);
+router.get('/conversations/:conversationId/settings', authenticate, getConversationSettings);
 router.patch('/conversations/:conversationId/settings', authenticate, updateConversationSettings);
 router.get('/conversations/:conversationId/media', authenticate, getConversationMedia);
 router.post('/conversations/:conversationId/leave', authenticate, leaveConversation);
