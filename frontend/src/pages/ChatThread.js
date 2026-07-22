@@ -569,7 +569,9 @@ export default function ChatThread() {
         )}
         {messages.map((m, i) => {
           const isMe = m.senderId === user?.id || m.sender?.id === user?.id;
-          const showTime = i === messages.length - 1 || messages[i + 1]?.senderId !== m.senderId;
+          // WhatsApp-style: a subtle time under every message (works uniformly
+          // for text / image / voice since it sits just below the bubble).
+          const showTime = true;
           const prev = messages[i - 1];
           const showDayDivider = !prev || !isSameDay(m.createdAt, prev.createdAt);
           return (
