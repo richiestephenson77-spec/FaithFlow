@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { ChevronLeft } from 'lucide-react';
 import api from '../utils/api';
 import Avatar from '../components/Avatar';
 import { WaterCard, WaterButton } from '../components/water';
@@ -17,6 +18,14 @@ export default function Pastors() {
   return (
     <div className="bg-gray-50 min-h-full">
       <WaterCard tone="blue" style={{ borderRadius: '0 0 24px 24px', padding: '20px 20px 32px' }}>
+        <button
+          onClick={() => navigate(-1)}
+          aria-label="Back"
+          className="mb-3 -ml-1 w-9 h-9 flex items-center justify-center rounded-full"
+          style={{ background: 'rgba(10,10,10,0.05)' }}
+        >
+          <ChevronLeft size={22} color="#0A0A0A" strokeWidth={2.2} />
+        </button>
         <h2 className="text-2xl font-bold mb-1" style={{ color: '#0A0A0A' }}>Pray With a Pastor</h2>
         <p className="text-sm" style={{ color: '#4A6674' }}>Connect with a verified pastor for prayer and guidance</p>
       </WaterCard>
