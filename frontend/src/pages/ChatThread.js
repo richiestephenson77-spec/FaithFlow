@@ -14,6 +14,7 @@ import ImageLightbox from '../components/ImageLightbox';
 import { getChatTheme } from '../utils/chatThemes';
 import { vanishBanner } from '../utils/vanish';
 import { chatCache } from '../utils/chatCache';
+import SwipeToReply from '../components/SwipeToReply';
 import CallOverlay from '../components/CallOverlay';
 
 function getTimeStr(d) {
@@ -594,6 +595,7 @@ export default function ChatThread() {
                   </span>
                 </button>
               )}
+              <SwipeToReply onReply={() => setReplyTo(m)} disabled={m.isDeleted}>
               <div className={`relative max-w-[78%] ${m.reaction ? 'mb-2.5' : ''}`}>
                 <div
                   onClick={() => handleBubbleTap(m)}
@@ -700,6 +702,7 @@ export default function ChatThread() {
                   </div>
                 )}
               </div>
+              </SwipeToReply>
               {showTime && (
                 <p className="text-[10px] text-gray-400 mt-0.5 px-1 flex items-center gap-1">
                   {m.isVanish && !m.isDeleted && <EyeOff size={10} strokeWidth={2} color="#9AA6AD" />}
