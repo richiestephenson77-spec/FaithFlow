@@ -7,6 +7,7 @@ import Avatar from '../components/Avatar';
 import { useAuth } from '../contexts/AuthContext';
 import PullToRefresh from '../components/PullToRefresh';
 import { hapticLight } from '../utils/haptics';
+import { chatCache } from '../utils/chatCache';
 
 function getTimeAgo(d) {
   if (!d) return '';
@@ -23,8 +24,9 @@ export default function Messages() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const searchInputRef = useRef(null);
-  const [convos, setConvos] = useState([]);
-  const [loading, setLoading] = useState(true);
+  // Stale-while-revalidate: paint the cached list instantly, refresh in bg.
+  const [convos, setConvos] = useState(() => chatCache.getConversations() || []);
+  const [loading, setLoading] = useState(() => !chatCache.getConversations());
   const [search, setSearch] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [searching, setSearching] = useState(false);
@@ -33,7 +35,7 @@ export default function Messages() {
 
   const loadConvos = useCallback(() => {
     return api.get('/messages/conversations')
-      .then(res => setConvos(res.data))
+      .then(res => { setConvos(res.data); chatCache.setConversations(res.data); })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);

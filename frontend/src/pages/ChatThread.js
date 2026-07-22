@@ -13,6 +13,7 @@ import ReportSheet from '../components/ReportSheet';
 import ImageLightbox from '../components/ImageLightbox';
 import { getChatTheme } from '../utils/chatThemes';
 import { vanishBanner } from '../utils/vanish';
+import { chatCache } from '../utils/chatCache';
 import CallOverlay from '../components/CallOverlay';
 
 function getTimeStr(d) {
@@ -117,9 +118,11 @@ export default function ChatThread() {
   const { socket } = useSocket();
   const navigate = useNavigate();
   const showToast = useToast();
-  const [messages, setMessages] = useState([]);
-  const [loadingMessages, setLoadingMessages] = useState(true);
-  const [other, setOther] = useState(null);
+  // Stale-while-revalidate: paint instantly from cache, refetch in background.
+  const cachedThread = chatCache.getThread(conversationId);
+  const [messages, setMessages] = useState(() => cachedThread?.messages || []);
+  const [loadingMessages, setLoadingMessages] = useState(() => !cachedThread);
+  const [other, setOther] = useState(() => cachedThread?.other || null);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
   const [typingUser, setTypingUser] = useState(null);
@@ -128,7 +131,7 @@ export default function ChatThread() {
   const [blockOpen, setBlockOpen] = useState(false);
   const [blocking, setBlocking] = useState(false);
   const [lightboxSrc, setLightboxSrc] = useState(null);
-  const [chatSettings, setChatSettings] = useState(null);
+  const [chatSettings, setChatSettings] = useState(() => cachedThread?.settings || null);
   const [loadedImages, setLoadedImages] = useState(() => new Set()); // manually-loaded when auto-download is off
   const [recording, setRecording] = useState(false);
   const [recordSeconds, setRecordSeconds] = useState(0);
@@ -159,16 +162,31 @@ export default function ChatThread() {
       ]);
       // Thread fetch now returns { messages, settings } (per-user convo state).
       const payload = msgRes.data;
-      setMessages(Array.isArray(payload) ? payload : (payload.messages || []));
-      if (payload && payload.settings) setChatSettings(payload.settings);
+      const freshMessages = Array.isArray(payload) ? payload : (payload.messages || []);
+      const freshSettings = (payload && payload.settings) || null;
       const convo = convRes.data.find(c => c.id === conversationId);
-      if (convo) setOther(convo.other);
+      const freshOther = convo?.other || null;
+
+      setMessages(freshMessages);
+      if (freshSettings) setChatSettings(freshSettings);
+      if (freshOther) setOther(freshOther);
+      // Refresh the cache so the next open paints this fresh data instantly.
+      chatCache.patchThread(conversationId, {
+        messages: freshMessages,
+        ...(freshSettings ? { settings: freshSettings } : {}),
+        ...(freshOther ? { other: freshOther } : {}),
+      });
+      if (convRes.data) chatCache.setConversations(convRes.data);
       api.put(`/messages/conversations/${conversationId}/read`).catch(() => {});
     } catch {}
     finally { setLoadingMessages(false); }
   }, [conversationId]);
 
   useEffect(() => { loadMessages(); }, [loadMessages]);
+
+  // Keep the cache in sync as messages change live (socket sends, reactions,
+  // unsends, vanish removals) so reopening the thread is instant and correct.
+  useEffect(() => { chatCache.patchThread(conversationId, { messages }); }, [messages, conversationId]);
 
   useEffect(() => {
     if (!socket) return;
