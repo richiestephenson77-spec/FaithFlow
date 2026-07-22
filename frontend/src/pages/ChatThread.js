@@ -10,6 +10,7 @@ import Skeleton from '../components/Skeleton';
 import { hapticMedium, hapticLight } from '../utils/haptics';
 import { useToast } from '../contexts/ToastContext';
 import ReportSheet from '../components/ReportSheet';
+import ImageLightbox from '../components/ImageLightbox';
 import CallOverlay from '../components/CallOverlay';
 
 function getTimeStr(d) {
@@ -124,6 +125,7 @@ export default function ChatThread() {
   const [reportMsgId, setReportMsgId] = useState(null);
   const [blockOpen, setBlockOpen] = useState(false);
   const [blocking, setBlocking] = useState(false);
+  const [lightboxSrc, setLightboxSrc] = useState(null);
   const [recording, setRecording] = useState(false);
   const [recordSeconds, setRecordSeconds] = useState(0);
   const [replyTo, setReplyTo] = useState(null);
@@ -445,6 +447,8 @@ export default function ChatThread() {
         />
       )}
 
+      <ImageLightbox src={lightboxSrc} onClose={() => setLightboxSrc(null)} />
+
       {reportMsgId && (
         <ReportSheet
           contentType="MESSAGE"
@@ -553,7 +557,7 @@ export default function ChatThread() {
                     : m.sharedPrayerRequestId
                       ? <SharedPrayerCard request={m.sharedPrayerRequest} isMe={isMe} onOpen={() => m.sharedPrayerRequest && navigate(`/prayer/${m.sharedPrayerRequest.id}`)} />
                       : m.imageUrl
-                        ? <img loading="lazy" decoding="async" src={m.imageUrl} alt="" onClick={e => { e.stopPropagation(); window.open(m.imageUrl, '_blank', 'noopener'); }} className="rounded-xl block" style={{ maxHeight: 260, maxWidth: '100%', objectFit: 'cover' }} />
+                        ? <img loading="lazy" decoding="async" src={m.imageUrl} alt="" onClick={e => { e.stopPropagation(); setLightboxSrc(m.imageUrl); }} className="rounded-xl block" style={{ maxHeight: 260, maxWidth: '100%', objectFit: 'cover' }} />
                         : m.audioUrl
                           ? <VoiceBubble src={m.audioUrl} duration={m.audioDuration || 0} isMe={isMe} />
                           : m.content}
