@@ -200,7 +200,13 @@ async function getMessages(req, res) {
     await sweepVanish(io, conversationId);
 
     const messages = await prisma.message.findMany({
-      where: { conversationId, isRemoved: false }, // admin-removed messages excluded
+      where: {
+        conversationId,
+        isRemoved: false, // admin-removed messages excluded
+        // Safety net: never return a timed-vanish message past its expiry, even
+        // if the scheduled job hasn't swept it yet.
+        OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+      },
       orderBy: { createdAt: 'asc' },
       include: {
         sender: { select: { id: true, name: true, profilePhoto: true } },

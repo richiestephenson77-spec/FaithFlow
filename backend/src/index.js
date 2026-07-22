@@ -83,6 +83,10 @@ const io = new Server(server, {
 setupSocket(io);
 app.set('io', io);
 
+// Scheduled deletion of timed-vanish messages (every 2 min; runs once at boot).
+const { startVanishJob } = require('./services/vanishJob');
+startVanishJob(io);
+
 app.use(cors({ origin: corsOriginCheck }));
 app.use(express.json());
 app.use('/uploads', express.static('uploads'));
