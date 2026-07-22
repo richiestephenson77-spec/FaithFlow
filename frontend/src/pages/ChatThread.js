@@ -5,7 +5,7 @@ import api from '../utils/api';
 import Avatar from '../components/Avatar';
 import { useAuth } from '../contexts/AuthContext';
 import { useSocket } from '../contexts/SocketContext';
-import { WaterButton, WaterInput } from '../components/water';
+import { motion } from 'framer-motion';
 import Skeleton from '../components/Skeleton';
 import { hapticMedium, hapticLight } from '../utils/haptics';
 import { useToast } from '../contexts/ToastContext';
@@ -544,7 +544,7 @@ export default function ChatThread() {
                       ? 'bg-gray-100 text-gray-400 italic rounded-br-sm rounded-bl-sm'
                       : isMe
                         ? 'bg-[#2C4055] text-white rounded-br-sm'
-                        : 'bg-white border border-gray-100 text-gray-800 shadow-sm rounded-bl-sm'
+                        : 'bg-white border border-[#EFEFEF] text-gray-800 rounded-bl-sm'
                   }`}
                   style={{ WebkitTouchCallout: 'none' }}
                 >
@@ -634,7 +634,7 @@ export default function ChatThread() {
         })}
         {typingUser && (
           <div className="flex items-end gap-2">
-            <div className="bg-white border border-gray-100 rounded-2xl rounded-bl-sm px-4 py-2.5 shadow-sm">
+            <div className="bg-white border border-[#EFEFEF] rounded-2xl rounded-bl-sm px-4 py-2.5">
               <div className="flex gap-1 items-center h-4">
                 <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
                 <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
@@ -648,7 +648,7 @@ export default function ChatThread() {
 
       {/* Reply preview strip above composer */}
       {replyTo && (
-        <div className="px-4 pt-2 flex-shrink-0" style={{ background: 'rgba(238,243,245,0.95)' }}>
+        <div className="px-4 pt-2 flex-shrink-0 bg-white">
           <div className="flex items-center gap-2 rounded-xl px-3 py-2" style={{ background: 'rgba(22,52,73,0.06)', borderLeft: '2px solid #2C4055' }}>
             <div className="flex-1 min-w-0">
               <p className="text-[11px] font-semibold" style={{ color: '#2C4055' }}>
@@ -664,7 +664,7 @@ export default function ChatThread() {
       )}
 
       {/* Input */}
-      <div className="px-4 py-3 flex items-center gap-2 flex-shrink-0 pb-safe relative" style={{ background: 'rgba(238,243,245,0.95)' }}>
+      <div className="px-4 py-2.5 flex items-center gap-2 flex-shrink-0 pb-safe relative bg-white" style={{ borderTop: '1px solid #EFEFEF' }}>
         <input ref={imageInputRef} type="file" accept="image/*" onChange={handleImagePick} className="hidden" />
         {/* Attachment menu */}
         {showAttach && (
@@ -713,27 +713,31 @@ export default function ChatThread() {
             <span className="text-xs text-gray-400 flex-shrink-0">Release to send</span>
           </div>
         ) : (
-          <WaterInput className="flex-1" style={{ borderRadius: 20 }}>
+          <div className="flex-1 bg-gray-50 rounded-full" style={{ border: '1px solid #EFEFEF' }}>
             <input
               value={input}
               onChange={handleInputChange}
               onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleSend()}
-              placeholder="Message..."
-              className="w-full bg-transparent px-4 py-2.5 text-sm focus:outline-none text-gray-800 placeholder-gray-400"
+              placeholder="Message…"
+              className="w-full bg-transparent px-4 text-sm focus:outline-none text-gray-800 placeholder-gray-400"
+              style={{ height: 42 }}
             />
-          </WaterInput>
+          </div>
         )}
         {input.trim() ? (
-          <WaterButton
-            variant="primary"
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            transition={{ type: 'spring', stiffness: 500, damping: 20 }}
             onClick={handleSend}
             disabled={sending}
-            style={{ width: 40, height: 40, borderRadius: 12, padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+            aria-label="Send"
+            className="flex items-center justify-center flex-shrink-0"
+            style={{ width: 42, height: 42, borderRadius: '9999px', background: '#2C4055' }}
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7A5200" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
             </svg>
-          </WaterButton>
+          </motion.button>
         ) : (
           <button
             onPointerDown={e => { e.preventDefault(); startRecording(); }}
