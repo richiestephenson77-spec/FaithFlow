@@ -47,7 +47,7 @@ function getTimeAgo(dateStr) {
 
 function SkeletonCard() {
   return (
-    <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 animate-pulse">
+    <div className="bg-white rounded-2xl p-4 animate-pulse" style={{ border: '1px solid #EFEFEF' }}>
       <div className="flex gap-3"><div className="w-10 h-10 rounded-full bg-gray-100 flex-shrink-0" /><div className="flex-1 space-y-2 pt-1"><div className="h-3 bg-gray-100 rounded-full w-1/3" /><div className="h-4 bg-gray-100 rounded-full w-2/3" /><div className="h-3 bg-gray-100 rounded-full w-full" /></div></div>
     </div>
   );
@@ -61,9 +61,9 @@ function PrayerCard({ request, currentUserId, onOpen, onPray, onUserClick, onMar
   const stop = (fn) => (e) => { e.stopPropagation(); fn && fn(); };
 
   return (
-    <div onClick={onOpen} className={`bg-white rounded-2xl p-4 shadow-sm border fade-in cursor-pointer active:scale-[0.99] transition-transform ${
+    <div onClick={onOpen} className={`bg-white rounded-2xl p-4 border fade-in cursor-pointer active:scale-[0.99] transition-transform ${
       request.isUrgent ? 'border-red-200 ring-1 ring-red-100' :
-      request.isAnswered ? 'border-emerald-100' : 'border-gray-100'}`}>
+      request.isAnswered ? 'border-emerald-100' : 'border-[#EFEFEF]'}`}>
       {(request.isUrgent || request.isAnswered || catLabel) && (
         <div className="flex items-center gap-1.5 mb-3 flex-wrap">
           {request.isUrgent && <span className="bg-red-50 text-red-600 text-[11px] font-semibold px-3 py-1 rounded-full border border-red-100 uppercase tracking-wide">Urgent</span>}
@@ -426,16 +426,16 @@ export default function PrayerPage() {
           initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25, duration: 0.35, ease: 'easeOut' }}
           whileTap={{ scale: 0.98 }}
           onClick={startImmersive}
-          className="w-full mt-2.5 flex items-center justify-center gap-2 text-white font-semibold text-sm"
-          style={{ background: '#2C4055', borderRadius: 14, height: 46 }}
+          className="w-full mt-3 flex items-center justify-center gap-2 text-white font-semibold text-[15px]"
+          style={{ background: '#2C4055', borderRadius: 14, height: 52 }}
         >
-          <Play size={15} strokeWidth={2} /> Start praying
+          <Play size={16} strokeWidth={2.2} fill="#fff" /> Start praying
         </motion.button>
 
         {/* Today's Grace + Need a verse — compact side-by-side rows */}
         <motion.div
           initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 0.35, ease: 'easeOut' }}
-          className="flex gap-2.5 mt-2.5"
+          className="flex gap-2.5 mt-3"
         >
           <button
             onClick={() => !todayGratitude && setShowGratitudeSheet(true)}
@@ -465,7 +465,7 @@ export default function PrayerPage() {
         <motion.button
           initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.33, duration: 0.35, ease: 'easeOut' }}
           onClick={() => navigate('/answered')}
-          className="w-full mt-2.5 flex items-center justify-center gap-1.5 text-xs font-semibold"
+          className="w-full mt-3 flex items-center justify-center gap-1.5 text-xs font-semibold h-9"
           style={{ color: '#2C4055' }}
         >
           <Sparkles size={13} strokeWidth={1.8} /> See answered prayers
@@ -664,12 +664,22 @@ export default function PrayerPage() {
         {loading ? (
           <div className="space-y-3">{[1,2,3].map(i => <SkeletonCard key={i} />)}</div>
         ) : filteredTop3.length === 0 && filteredRest.length === 0 ? (
-          <motion.div {...fadeIn} className="text-center py-16">
+          <motion.div {...fadeIn} className="text-center py-16 px-8">
             <div className="bg-white" style={{ width: 64, height: 64, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', border: '1px solid #EFEFEF' }}>
               <BookOpen size={26} strokeWidth={1.5} color="#2C4055" />
             </div>
-            <p className="font-semibold text-gray-700">{nearMe ? 'No prayers found nearby' : 'No prayer requests yet'}</p>
-            <p className="text-sm text-gray-400 mt-1">{nearMe ? `Try increasing the radius beyond ${radius} km` : 'Be the first to share one!'}</p>
+            <p className="font-semibold" style={{ color: '#163449' }}>{nearMe ? 'No prayers found nearby' : 'No prayer requests yet'}</p>
+            <p className="text-sm mt-1" style={{ color: '#8E8E8E' }}>{nearMe ? `Try increasing the radius beyond ${radius} km` : 'Be the first to share a request with the community.'}</p>
+            {!nearMe && (
+              <motion.button
+                whileTap={{ scale: 0.97 }}
+                onClick={() => setShowNewRequest(true)}
+                className="mt-5 inline-flex items-center gap-2 px-5 h-11 rounded-xl text-white text-sm font-semibold"
+                style={{ background: '#2C4055' }}
+              >
+                <Plus size={15} strokeWidth={2} /> Share a request
+              </motion.button>
+            )}
           </motion.div>
         ) : (
           <>
