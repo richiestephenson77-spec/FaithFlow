@@ -331,15 +331,15 @@ export default function Profile() {
           transition={{ duration: 0.3, delay: 0.1 }}
           className="mt-3"
         >
-          <p className="text-base font-bold text-gray-900">{profile.name}</p>
+          <p className="text-xl font-bold leading-tight" style={{ color: '#163449', fontFamily: "'Fraunces', serif" }}>{profile.name}</p>
           {profile.churchName && (
-            <p className="text-sm text-terracotta-500 font-medium mt-0.5">{profile.churchName}</p>
+            <p className="text-sm font-medium mt-0.5" style={{ color: '#2C4055' }}>{profile.churchName}</p>
           )}
           {profile.location && (
-            <p className="text-xs text-gray-400 mt-0.5">{profile.location}</p>
+            <p className="text-xs mt-0.5" style={{ color: '#8E8E8E' }}>{profile.location}</p>
           )}
           {profile.bio && (
-            <p className="text-sm text-gray-600 mt-1.5 leading-snug">{profile.bio}</p>
+            <p className="text-sm mt-1.5 leading-snug" style={{ color: '#5C6672' }}>{profile.bio}</p>
           )}
         </motion.div>
 
@@ -352,28 +352,32 @@ export default function Profile() {
         >
           {isOwnProfile ? (
             <div className="flex gap-2">
-              <button
+              <motion.button
+                whileTap={{ scale: 0.97 }}
                 onClick={() => setEditing(true)}
-                className="flex-1 bg-gray-100 text-gray-900 text-sm font-medium py-2 rounded-xl"
+                className="flex-1 bg-gray-100 text-sm font-semibold h-11 rounded-xl"
+                style={{ color: '#163449' }}
               >
                 Edit Profile
-              </button>
-              <button
+              </motion.button>
+              <motion.button
+                whileTap={{ scale: 0.97 }}
                 onClick={() => navigate('/search')}
-                className="flex-1 bg-gray-100 text-gray-900 text-sm font-medium py-2 rounded-xl"
+                className="flex-1 bg-gray-100 text-sm font-semibold h-11 rounded-xl"
+                style={{ color: '#163449' }}
               >
                 Find Believers
-              </button>
+              </motion.button>
             </div>
           ) : (
-            <button
+            <motion.button
+              whileTap={{ scale: 0.97 }}
               onClick={handleFollow}
-              className={`w-full py-2 rounded-xl text-sm font-semibold transition-colors ${
-                following ? 'bg-gray-100 text-gray-700' : 'bg-terracotta-400 text-white'
-              }`}
+              className="w-full h-11 rounded-xl text-sm font-semibold transition-colors text-white"
+              style={{ background: following ? '#F0F0F0' : '#2C4055', color: following ? '#1A1A1A' : '#fff' }}
             >
               {following ? 'Following' : 'Follow'}
-            </button>
+            </motion.button>
           )}
         </motion.div>
       </motion.div>
@@ -429,17 +433,16 @@ export default function Profile() {
       <div className="px-4 mt-4">
         <button
           onClick={() => setShowBadgeModal(true)}
-          className={`w-full flex items-center gap-4 rounded-2xl p-4 text-left${profile.prayerWarriorBadge ? ' water-tile-static water-tile-blue' : ''}`}
-          style={profile.prayerWarriorBadge ? undefined : { background: '#F9FAFB', border: '1px solid #e5e7eb' }}
+          className="w-full flex items-center gap-4 rounded-2xl p-4 text-left"
+          style={{ background: profile.prayerWarriorBadge ? 'rgba(44,64,85,0.05)' : '#F9FAFB', border: `1px solid ${profile.prayerWarriorBadge ? 'rgba(44,64,85,0.12)' : '#EFEFEF'}` }}
         >
           {/* Trophy circle */}
           <div
             className="rounded-full flex items-center justify-center flex-shrink-0"
             style={{
-              position: 'relative', zIndex: 1,
               width: 52, height: 52,
-              background: profile.prayerWarriorBadge ? '#fffbeb' : '#f3f4f6',
-              border: `2px solid ${profile.prayerWarriorBadge ? '#B8C5D2' : '#e5e7eb'}`,
+              background: profile.prayerWarriorBadge ? 'rgba(44,64,85,0.1)' : '#f3f4f6',
+              border: `2px solid ${profile.prayerWarriorBadge ? 'rgba(44,64,85,0.18)' : '#e5e7eb'}`,
             }}
           >
             <Trophy
@@ -449,11 +452,11 @@ export default function Profile() {
             />
           </div>
 
-          <div className="flex-1 min-w-0" style={{ position: 'relative', zIndex: 1 }}>
-            <p className={`text-sm font-bold ${profile.prayerWarriorBadge ? 'text-terracotta-800' : 'text-gray-400'}`}>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-bold" style={{ color: profile.prayerWarriorBadge ? '#163449' : '#9AA6AD' }}>
               Prayer Warrior
             </p>
-            <p className={`text-xs mt-0.5 ${profile.prayerWarriorBadge ? 'text-terracotta-600' : 'text-gray-400'}`}>
+            <p className="text-xs mt-0.5" style={{ color: profile.prayerWarriorBadge ? '#5C6672' : '#9AA6AD' }}>
               {profile.prayerWarriorBadge ? 'Level 1 · Seeker' : 'Complete daily quota to unlock'}
             </p>
             {/* Progress bar */}
@@ -480,15 +483,15 @@ export default function Profile() {
             <button
               key={key}
               onClick={() => setActiveTab(key)}
-              className={`flex-1 py-3 text-sm transition-colors relative ${
-                activeTab === key ? 'font-semibold text-gray-900' : 'text-gray-400'
-              }`}
+              className="flex-1 py-3.5 text-sm transition-colors relative"
+              style={{ color: activeTab === key ? '#163449' : '#9AA6AD', fontWeight: activeTab === key ? 600 : 400 }}
             >
               {label}
               {activeTab === key && (
                 <motion.div
                   layoutId="tabUnderline"
-                  className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-900"
+                  className="absolute bottom-0 left-0 right-0 h-0.5"
+                  style={{ background: '#2C4055' }}
                 />
               )}
             </button>
@@ -520,10 +523,28 @@ export default function Profile() {
               className="px-4 pt-4 space-y-3"
             >
               {(profile.prayerRequests?.length ?? 0) === 0 ? (
-                <p className="text-center text-gray-400 py-8 text-sm">No prayer requests yet</p>
+                <div className="text-center py-14 px-8">
+                  <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4" style={{ background: 'rgba(44,64,85,0.08)' }}>
+                    <HandHeart size={24} strokeWidth={1.8} color="#2C4055" />
+                  </div>
+                  <p className="font-semibold" style={{ color: '#163449' }}>{isOwnProfile ? 'No prayer requests yet' : 'No prayer requests'}</p>
+                  <p className="text-sm mt-1" style={{ color: '#8E8E8E' }}>
+                    {isOwnProfile ? 'Share what’s on your heart and let others pray with you.' : 'This believer hasn’t shared any yet.'}
+                  </p>
+                  {isOwnProfile && (
+                    <motion.button
+                      whileTap={{ scale: 0.97 }}
+                      onClick={() => navigate('/prayer')}
+                      className="mt-5 inline-flex items-center gap-2 px-5 h-11 rounded-xl text-white text-sm font-semibold"
+                      style={{ background: '#2C4055' }}
+                    >
+                      Share a request
+                    </motion.button>
+                  )}
+                </div>
               ) : (
                 profile.prayerRequests?.map(r => (
-                  <div key={r.id} className={`bg-white rounded-2xl p-4 border shadow-sm ${r.isAnswered ? 'border-emerald-100' : 'border-gray-100'}`}>
+                  <div key={r.id} className="bg-white rounded-2xl p-4 border" style={{ borderColor: r.isAnswered ? '#A7F3D0' : '#EFEFEF' }}>
                     <div className="flex items-start gap-2">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap mb-1">
@@ -535,19 +556,20 @@ export default function Profile() {
                             <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-red-50 text-red-600 uppercase tracking-wide">Urgent</span>
                           )}
                         </div>
-                        <p className="font-semibold text-gray-800 text-sm">{r.title}</p>
-                        <p className="text-gray-400 text-xs mt-1 line-clamp-2">{r.body}</p>
+                        <p className="font-semibold text-sm" style={{ color: '#163449' }}>{r.title}</p>
+                        <p className="text-xs mt-1 line-clamp-2" style={{ color: '#8E8E8E' }}>{r.body}</p>
                         <div className="flex items-center gap-3 mt-2">
-                          <span className="text-xs text-gray-400">{getTimeAgo(r.createdAt)}</span>
+                          <span className="text-xs" style={{ color: '#9AA6AD' }}>{getTimeAgo(r.createdAt)}</span>
                           {r._count?.sessions != null && (
-                            <span className="text-xs text-gray-400">{r._count.sessions} prayed</span>
+                            <span className="text-xs" style={{ color: '#9AA6AD' }}>{r._count.sessions} prayed</span>
                           )}
                         </div>
                       </div>
                       {isOwnProfile && (
                         <button
                           onClick={() => setPrayerMenu(r)}
-                          className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 flex-shrink-0 -mt-1"
+                          aria-label="Request options"
+                          className="w-11 h-11 flex items-center justify-center rounded-full hover:bg-gray-100 flex-shrink-0 -mt-1 -mr-1"
                         >
                           <MoreHorizontal size={16} color="#9ca3af" />
                         </button>
