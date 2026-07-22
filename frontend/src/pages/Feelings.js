@@ -85,8 +85,8 @@ function VerseCard({ verse, feeling, navigate }) {
   return (
     <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
       <div className="flex items-center gap-2 mb-3">
-        <BookOpen size={13} strokeWidth={1.8} color="#2C4055" />
-        <span className="text-[12px] font-bold text-[#2C4055] uppercase tracking-wide">{verse.ref}</span>
+        <BookOpen size={13} strokeWidth={1.8} color="#0A0A0A" />
+        <span className="text-[12px] font-bold text-[#0A0A0A] uppercase tracking-wide">{verse.ref}</span>
       </div>
       <p className="text-[15px] text-gray-900 font-medium leading-relaxed mb-3">
         "{verse.text}"

@@ -100,7 +100,7 @@ export default function TopPrayerCard({ request, currentUserId, onOpen, onPray, 
             animate={{ scale: 1 }}
             transition={{ duration: 0.3 }}
             className="text-xs font-semibold mt-2 flex items-center gap-1"
-            style={{ color: '#2C4055' }}
+            style={{ color: '#0A0A0A' }}
           >
             {request.prayerCount === 0
               ? <>Be the first to pray for this</>

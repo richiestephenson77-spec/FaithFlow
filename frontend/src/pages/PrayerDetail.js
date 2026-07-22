@@ -86,7 +86,7 @@ export default function PrayerDetail() {
       <WaterCard tone={request.isAnswered ? 'neutral' : 'blue'} style={{ borderRadius: '0 0 24px 24px', padding: '16px 16px 32px' }}>
         <div className="flex items-center gap-3 mb-5">
           <button onClick={() => navigate(-1)} className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: 'rgba(22,52,73,0.1)' }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#163449" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0A0A0A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="15 18 9 12 15 6"/>
             </svg>
           </button>
@@ -98,7 +98,7 @@ export default function PrayerDetail() {
         </div>
 
         {/* Title */}
-        <h1 className="text-2xl leading-snug font-light" style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', color: '#163449' }}>
+        <h1 className="text-2xl leading-snug font-light" style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', color: '#0A0A0A' }}>
           {request.title}
         </h1>
       </WaterCard>

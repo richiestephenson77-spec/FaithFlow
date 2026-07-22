@@ -119,7 +119,7 @@ function PrayerCard({ request, currentUserId, onOpen, onPray, onUserClick, onMar
               {request.currentlyPrayingCount > 0
                 ? <span className="text-xs text-emerald-600 font-semibold bg-emerald-50 px-2 py-1 rounded-full">{request.currentlyPrayingCount} praying now</span>
                 : (request.totalPrayerCount || 0) === 0
-                  ? <span className="text-xs font-semibold" style={{ color: '#2C4055' }}>Be the first to pray for this</span>
+                  ? <span className="text-xs font-semibold" style={{ color: '#0A0A0A' }}>Be the first to pray for this</span>
                   : <span className="text-xs text-gray-400 flex items-center gap-1"><Users size={11} strokeWidth={1.5} /> {request.totalPrayerCount} prayed</span>}
             </div>
             <div className="flex items-center gap-2">
@@ -356,14 +356,14 @@ export default function PrayerPage() {
       {/* Hero — flat white */}
       <div className="bg-white" style={{ padding: '14px 16px 16px', borderBottom: '1px solid #EFEFEF' }}>
         <button onClick={() => navigate(-1)} className="w-8 h-8 rounded-full flex items-center justify-center mb-2.5" style={{ background: 'rgba(22,52,73,0.1)' }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#163449" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0A0A0A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
 
         <motion.div
           initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, ease: 'easeOut' }}
           className="flex items-center gap-3 mb-2.5"
         >
-          <h2 className="text-xl font-bold leading-tight" style={{ color: '#163449', fontFamily: "'Fraunces', serif" }}>
+          <h2 className="text-xl font-bold leading-tight" style={{ color: '#0A0A0A', fontFamily: "'Fraunces', serif" }}>
             Who will you pray for today?
           </h2>
           <div className="flex items-center gap-1.5 flex-shrink-0 self-start mt-0.5">
@@ -373,8 +373,8 @@ export default function PrayerPage() {
                 className="flex items-center gap-1 px-2 py-1 rounded-full"
                 style={{ background: 'rgba(44,64,85,0.15)' }}
               >
-                <Flame size={11} strokeWidth={2} color="#2C4055" />
-                <span className="text-[11px] font-semibold" style={{ color: '#2C4055' }}>{streak}</span>
+                <Flame size={11} strokeWidth={2} color="#0A0A0A" />
+                <span className="text-[11px] font-semibold" style={{ color: '#0A0A0A' }}>{streak}</span>
               </motion.span>
             )}
             {graceDays > 0 && (
@@ -385,7 +385,7 @@ export default function PrayerPage() {
                 title="Grace days — each can save your streak once"
               >
                 <span className="text-[11px]">❄️</span>
-                <span className="text-[11px] font-semibold" style={{ color: '#2C4055' }}>{graceDays}</span>
+                <span className="text-[11px] font-semibold" style={{ color: '#0A0A0A' }}>{graceDays}</span>
               </motion.span>
             )}
           </div>
@@ -399,11 +399,11 @@ export default function PrayerPage() {
         >
           <div className="flex items-center justify-between mb-2.5">
             <div className="flex items-center gap-2">
-              <Target size={15} strokeWidth={1.5} color="#2C4055" />
-              <p className="text-xs font-medium" style={{ color: '#163449' }}>Daily Goal</p>
+              <Target size={15} strokeWidth={1.5} color="#0A0A0A" />
+              <p className="text-xs font-medium" style={{ color: '#0A0A0A' }}>Daily Goal</p>
             </div>
             <div className="flex items-center gap-3">
-              <span className="font-bold text-sm" style={{ color: '#163449' }}>{quota?.completed ?? 0} / {quota?.target ?? '–'}</span>
+              <span className="font-bold text-sm" style={{ color: '#0A0A0A' }}>{quota?.completed ?? 0} / {quota?.target ?? '–'}</span>
               <button onClick={() => setShowSettings(true)} style={{ color: '#9AA6AD' }} className="hover:opacity-70 transition-opacity">
                 <Settings size={14} strokeWidth={1.5} />
               </button>
@@ -442,8 +442,8 @@ export default function PrayerPage() {
             className="bg-white rounded-2xl flex-1 text-left px-3 py-2.5 flex items-center gap-2"
             style={{ border: '1px solid #EFEFEF' }}
           >
-            <Sparkles size={15} strokeWidth={1.8} color="#2C4055" className="flex-shrink-0" />
-            <span className="font-semibold text-xs" style={{ color: '#163449' }}>Today's Grace</span>
+            <Sparkles size={15} strokeWidth={1.8} color="#0A0A0A" className="flex-shrink-0" />
+            <span className="font-semibold text-xs" style={{ color: '#0A0A0A' }}>Today's Grace</span>
             {gratitudeStreak > 0 && (
               <span className="flex items-center gap-0.5 text-[10px] ml-auto" style={{ color: '#6B7680' }}>
                 <Flame size={9} strokeWidth={2} color="#6B7680" />{gratitudeStreak}d
@@ -456,8 +456,8 @@ export default function PrayerPage() {
             className="bg-white rounded-2xl flex-1 text-left px-3 py-2.5 flex items-center gap-2"
             style={{ border: '1px solid #EFEFEF' }}
           >
-            <HeartHandshake size={15} strokeWidth={1.8} color="#2C4055" className="flex-shrink-0" />
-            <span className="font-semibold text-xs" style={{ color: '#163449' }}>Need a verse</span>
+            <HeartHandshake size={15} strokeWidth={1.8} color="#0A0A0A" className="flex-shrink-0" />
+            <span className="font-semibold text-xs" style={{ color: '#0A0A0A' }}>Need a verse</span>
           </button>
         </motion.div>
 
@@ -466,7 +466,7 @@ export default function PrayerPage() {
           initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.33, duration: 0.35, ease: 'easeOut' }}
           onClick={() => navigate('/answered')}
           className="w-full mt-3 flex items-center justify-center gap-1.5 text-xs font-semibold h-9"
-          style={{ color: '#2C4055' }}
+          style={{ color: '#0A0A0A' }}
         >
           <Sparkles size={13} strokeWidth={1.8} /> See answered prayers
         </motion.button>
@@ -485,7 +485,7 @@ export default function PrayerPage() {
           <button
             onClick={() => setShowNewRequest(true)}
             className="flex-1 flex items-center justify-center gap-2 text-sm font-semibold bg-white rounded-xl"
-            style={{ height: 40, border: '1px solid #EFEFEF', color: '#163449' }}
+            style={{ height: 40, border: '1px solid #EFEFEF', color: '#0A0A0A' }}
           >
             <Plus size={14} strokeWidth={2} />
             Share Request
@@ -495,7 +495,7 @@ export default function PrayerPage() {
             className="flex items-center justify-center flex-shrink-0 bg-white rounded-xl"
             style={{ height: 40, width: 40, border: '1px solid #EFEFEF' }}
           >
-            <Bookmark size={17} strokeWidth={1.5} color="#163449" />
+            <Bookmark size={17} strokeWidth={1.5} color="#0A0A0A" />
           </button>
         </motion.div>
 
@@ -551,7 +551,7 @@ export default function PrayerPage() {
               style={{
                 height: 34,
                 background: !nearMe ? 'rgba(0,0,0,0.04)' : 'transparent',
-                color: !nearMe ? '#163449' : '#8E8E8E',
+                color: !nearMe ? '#0A0A0A' : '#8E8E8E',
                 fontWeight: !nearMe ? 500 : 400,
               }}
             >
@@ -566,7 +566,7 @@ export default function PrayerPage() {
               style={{
                 height: 34,
                 background: nearMe ? 'rgba(0,0,0,0.04)' : 'transparent',
-                color: nearMe ? '#163449' : '#8E8E8E',
+                color: nearMe ? '#0A0A0A' : '#8E8E8E',
                 fontWeight: nearMe ? 500 : 400,
               }}
             >
@@ -642,7 +642,7 @@ export default function PrayerPage() {
               className="flex-shrink-0 px-4 py-1.5 rounded-full text-sm whitespace-nowrap transition-colors"
               style={{
                 background: activeCategory === tab.id ? 'rgba(0,0,0,0.04)' : 'transparent',
-                color: activeCategory === tab.id ? '#163449' : '#8E8E8E',
+                color: activeCategory === tab.id ? '#0A0A0A' : '#8E8E8E',
                 fontWeight: activeCategory === tab.id ? 500 : 400,
               }}
             >
@@ -666,9 +666,9 @@ export default function PrayerPage() {
         ) : filteredTop3.length === 0 && filteredRest.length === 0 ? (
           <motion.div {...fadeIn} className="text-center py-16 px-8">
             <div className="bg-white" style={{ width: 64, height: 64, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', border: '1px solid #EFEFEF' }}>
-              <BookOpen size={26} strokeWidth={1.5} color="#2C4055" />
+              <BookOpen size={26} strokeWidth={1.5} color="#0A0A0A" />
             </div>
-            <p className="font-semibold" style={{ color: '#163449' }}>{nearMe ? 'No prayers found nearby' : 'No prayer requests yet'}</p>
+            <p className="font-semibold" style={{ color: '#0A0A0A' }}>{nearMe ? 'No prayers found nearby' : 'No prayer requests yet'}</p>
             <p className="text-sm mt-1" style={{ color: '#8E8E8E' }}>{nearMe ? `Try increasing the radius beyond ${radius} km` : 'Be the first to share a request with the community.'}</p>
             {!nearMe && (
               <motion.button

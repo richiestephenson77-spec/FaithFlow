@@ -182,15 +182,15 @@ export default function Profile() {
       <div className="min-h-full bg-gray-50 flex flex-col">
         <div className="px-4 pt-5 pb-3 flex items-center gap-3 bg-white" style={{ borderBottom: '1px solid #EFEFEF' }}>
           <button onClick={() => navigate(-1)} aria-label="Back" className="p-1 -ml-1">
-            <ChevronLeft size={22} color="#163449" strokeWidth={2} />
+            <ChevronLeft size={22} color="#0A0A0A" strokeWidth={2} />
           </button>
         </div>
         <div className="flex-1 flex flex-col items-center justify-center px-8 text-center">
-          <p className="font-semibold" style={{ color: '#163449' }}>This user is unavailable</p>
+          <p className="font-semibold" style={{ color: '#0A0A0A' }}>This user is unavailable</p>
           {profile.isBlockedByMe && (
             <>
               <p className="text-sm mt-1" style={{ color: '#8E8E8E' }}>You blocked {profile.name || 'this user'}.</p>
-              <button onClick={handleUnblock} className="mt-5 px-6 py-2.5 rounded-xl text-sm font-semibold" style={{ background: 'rgba(44,64,85,0.08)', color: '#2C4055' }}>
+              <button onClick={handleUnblock} className="mt-5 px-6 py-2.5 rounded-xl text-sm font-semibold" style={{ background: 'rgba(44,64,85,0.08)', color: '#0A0A0A' }}>
                 Unblock
               </button>
             </>
@@ -235,7 +235,7 @@ export default function Profile() {
           <div className="bg-white w-full max-w-md mx-auto rounded-t-3xl p-2" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 8px)' }} onClick={e => e.stopPropagation()}>
             <button onClick={() => { setModMenu(false); setReportOpen(true); }} className="w-full text-left px-4 py-3.5 text-sm font-medium rounded-xl" style={{ color: '#1A1A1A' }}>Report</button>
             {profile.isBlockedByMe
-              ? <button onClick={handleUnblock} className="w-full text-left px-4 py-3.5 text-sm font-medium rounded-xl" style={{ color: '#2C4055' }}>Unblock user</button>
+              ? <button onClick={handleUnblock} className="w-full text-left px-4 py-3.5 text-sm font-medium rounded-xl" style={{ color: '#0A0A0A' }}>Unblock user</button>
               : <button onClick={() => { setModMenu(false); setBlockConfirm(true); }} className="w-full text-left px-4 py-3.5 text-sm font-medium rounded-xl" style={{ color: '#C0392B' }}>Block user</button>}
             <button onClick={() => setModMenu(false)} className="w-full text-center px-4 py-3.5 text-sm font-semibold rounded-xl mt-1" style={{ color: '#8E8E8E' }}>Cancel</button>
           </div>
@@ -249,7 +249,7 @@ export default function Profile() {
       {blockConfirm && (
         <div className="fixed inset-0 z-[60] bg-black/50 flex items-center justify-center px-8" onClick={() => setBlockConfirm(false)}>
           <div className="bg-white rounded-3xl w-full max-w-xs p-5 text-center" onClick={e => e.stopPropagation()}>
-            <p className="font-bold text-[15px]" style={{ color: '#163449' }}>Block {profile.name || 'this user'}?</p>
+            <p className="font-bold text-[15px]" style={{ color: '#0A0A0A' }}>Block {profile.name || 'this user'}?</p>
             <p className="text-sm mt-2 leading-snug" style={{ color: '#6B7680' }}>They won't be able to message you or see your content, and you won't see theirs.</p>
             <div className="flex gap-2 mt-5">
               <button onClick={() => setBlockConfirm(false)} className="flex-1 py-3 rounded-xl text-sm font-semibold" style={{ background: '#F0F0F0', color: '#1A1A1A' }}>Cancel</button>
@@ -331,9 +331,9 @@ export default function Profile() {
           transition={{ duration: 0.3, delay: 0.1 }}
           className="mt-3"
         >
-          <p className="text-xl font-bold leading-tight" style={{ color: '#163449', fontFamily: "'Fraunces', serif" }}>{profile.name}</p>
+          <p className="text-xl font-bold leading-tight" style={{ color: '#0A0A0A', fontFamily: "'Fraunces', serif" }}>{profile.name}</p>
           {profile.churchName && (
-            <p className="text-sm font-medium mt-0.5" style={{ color: '#2C4055' }}>{profile.churchName}</p>
+            <p className="text-sm font-medium mt-0.5" style={{ color: '#0A0A0A' }}>{profile.churchName}</p>
           )}
           {profile.location && (
             <p className="text-xs mt-0.5" style={{ color: '#8E8E8E' }}>{profile.location}</p>
@@ -356,7 +356,7 @@ export default function Profile() {
                 whileTap={{ scale: 0.97 }}
                 onClick={() => setEditing(true)}
                 className="flex-1 bg-gray-100 text-sm font-semibold h-11 rounded-xl"
-                style={{ color: '#163449' }}
+                style={{ color: '#0A0A0A' }}
               >
                 Edit Profile
               </motion.button>
@@ -364,7 +364,7 @@ export default function Profile() {
                 whileTap={{ scale: 0.97 }}
                 onClick={() => navigate('/search')}
                 className="flex-1 bg-gray-100 text-sm font-semibold h-11 rounded-xl"
-                style={{ color: '#163449' }}
+                style={{ color: '#0A0A0A' }}
               >
                 Find Believers
               </motion.button>
@@ -393,9 +393,9 @@ export default function Profile() {
             className="grid grid-cols-3 gap-2 mb-3"
           >
             {[
-              { icon: <Flame size={16} color="#2C4055" strokeWidth={1.8} />, value: stats.streak ?? 0, label: 'Streak' },
-              { icon: <Award size={16} color="#2C4055" strokeWidth={1.8} />, value: stats.longestStreak ?? 0, label: 'Best' },
-              { icon: <HandHeart size={16} color="#2C4055" strokeWidth={1.8} />, value: stats.totalSessions ?? 0, label: 'Prayers' },
+              { icon: <Flame size={16} color="#0A0A0A" strokeWidth={1.8} />, value: stats.streak ?? 0, label: 'Streak' },
+              { icon: <Award size={16} color="#0A0A0A" strokeWidth={1.8} />, value: stats.longestStreak ?? 0, label: 'Best' },
+              { icon: <HandHeart size={16} color="#0A0A0A" strokeWidth={1.8} />, value: stats.totalSessions ?? 0, label: 'Prayers' },
             ].map(({ icon, value, label }) => (
               <motion.div
                 key={label}
@@ -412,14 +412,14 @@ export default function Profile() {
           {/* 2 stat cards */}
           <div className="grid grid-cols-2 gap-2">
             <div className="bg-gray-50 rounded-2xl p-4 flex items-center gap-3">
-              <Clock size={18} color="#2C4055" strokeWidth={1.8} />
+              <Clock size={18} color="#0A0A0A" strokeWidth={1.8} />
               <div>
                 <p className="text-sm font-bold text-gray-900">{formatDuration(stats.totalPrayerSeconds)}</p>
                 <p className="text-xs text-gray-400">Prayer Time</p>
               </div>
             </div>
             <div className="bg-gray-50 rounded-2xl p-4 flex items-center gap-3">
-              <Users size={18} color="#2C4055" strokeWidth={1.8} />
+              <Users size={18} color="#0A0A0A" strokeWidth={1.8} />
               <div>
                 <p className="text-sm font-bold text-gray-900">{stats.totalPeoplePrayedFor ?? 0}</p>
                 <p className="text-xs text-gray-400">Prayed For</p>
@@ -448,12 +448,12 @@ export default function Profile() {
             <Trophy
               size={24}
               strokeWidth={1.8}
-              color={profile.prayerWarriorBadge ? '#2C4055' : '#d1d5db'}
+              color={profile.prayerWarriorBadge ? '#0A0A0A' : '#d1d5db'}
             />
           </div>
 
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold" style={{ color: profile.prayerWarriorBadge ? '#163449' : '#9AA6AD' }}>
+            <p className="text-sm font-bold" style={{ color: profile.prayerWarriorBadge ? '#0A0A0A' : '#9AA6AD' }}>
               Prayer Warrior
             </p>
             <p className="text-xs mt-0.5" style={{ color: profile.prayerWarriorBadge ? '#5C6672' : '#9AA6AD' }}>
@@ -484,7 +484,7 @@ export default function Profile() {
               key={key}
               onClick={() => setActiveTab(key)}
               className="flex-1 py-3.5 text-sm transition-colors relative"
-              style={{ color: activeTab === key ? '#163449' : '#9AA6AD', fontWeight: activeTab === key ? 600 : 400 }}
+              style={{ color: activeTab === key ? '#0A0A0A' : '#9AA6AD', fontWeight: activeTab === key ? 600 : 400 }}
             >
               {label}
               {activeTab === key && (
@@ -525,9 +525,9 @@ export default function Profile() {
               {(profile.prayerRequests?.length ?? 0) === 0 ? (
                 <div className="text-center py-14 px-8">
                   <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4" style={{ background: 'rgba(44,64,85,0.08)' }}>
-                    <HandHeart size={24} strokeWidth={1.8} color="#2C4055" />
+                    <HandHeart size={24} strokeWidth={1.8} color="#0A0A0A" />
                   </div>
-                  <p className="font-semibold" style={{ color: '#163449' }}>{isOwnProfile ? 'No prayer requests yet' : 'No prayer requests'}</p>
+                  <p className="font-semibold" style={{ color: '#0A0A0A' }}>{isOwnProfile ? 'No prayer requests yet' : 'No prayer requests'}</p>
                   <p className="text-sm mt-1" style={{ color: '#8E8E8E' }}>
                     {isOwnProfile ? 'Share what’s on your heart and let others pray with you.' : 'This believer hasn’t shared any yet.'}
                   </p>
@@ -556,7 +556,7 @@ export default function Profile() {
                             <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-red-50 text-red-600 uppercase tracking-wide">Urgent</span>
                           )}
                         </div>
-                        <p className="font-semibold text-sm" style={{ color: '#163449' }}>{r.title}</p>
+                        <p className="font-semibold text-sm" style={{ color: '#0A0A0A' }}>{r.title}</p>
                         <p className="text-xs mt-1 line-clamp-2" style={{ color: '#8E8E8E' }}>{r.body}</p>
                         <div className="flex items-center gap-3 mt-2">
                           <span className="text-xs" style={{ color: '#9AA6AD' }}>{getTimeAgo(r.createdAt)}</span>

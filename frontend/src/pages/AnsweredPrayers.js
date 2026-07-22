@@ -45,7 +45,7 @@ function AnsweredCard({ item }) {
       <div className="flex items-center gap-2.5 mb-2.5">
         <Avatar user={item.user} size="sm" />
         <div className="min-w-0">
-          <p className="text-sm font-semibold truncate" style={{ color: '#163449' }}>{item.user?.name || 'Someone'}</p>
+          <p className="text-sm font-semibold truncate" style={{ color: '#0A0A0A' }}>{item.user?.name || 'Someone'}</p>
           <p className="text-[11px]" style={{ color: '#8E8E8E' }}>
             {item.user?.churchName ? `${item.user.churchName} · ` : ''}Answered {dateLabel(item.answeredAt)}
           </p>
@@ -55,7 +55,7 @@ function AnsweredCard({ item }) {
         </span>
       </div>
 
-      <p className="text-sm font-semibold" style={{ color: '#163449' }}>{item.title}</p>
+      <p className="text-sm font-semibold" style={{ color: '#0A0A0A' }}>{item.title}</p>
       <p className="text-sm mt-0.5 leading-snug" style={{ color: '#5C6672' }}>{item.body}</p>
 
       {item.testimonyMessage && (
@@ -78,7 +78,7 @@ function GraceCard({ item }) {
       <div className="flex items-center gap-2.5 mb-2.5">
         <Avatar user={item.user} size="sm" />
         <div className="min-w-0">
-          <p className="text-sm font-semibold truncate" style={{ color: '#163449' }}>{item.user?.name || 'Someone'}</p>
+          <p className="text-sm font-semibold truncate" style={{ color: '#0A0A0A' }}>{item.user?.name || 'Someone'}</p>
           <p className="text-[11px]" style={{ color: '#8E8E8E' }}>{dateLabel(item.createdAt)}</p>
         </div>
         <Sparkles size={15} strokeWidth={1.8} color={ACCENT} className="ml-auto flex-shrink-0" />
@@ -125,10 +125,10 @@ export default function AnsweredPrayers() {
       {/* Header */}
       <div className="px-4 pt-5 pb-3 flex items-center gap-3 bg-white" style={{ borderBottom: '1px solid #EFEFEF' }}>
         <button onClick={() => navigate(-1)} aria-label="Back" className="p-1 -ml-1 flex-shrink-0">
-          <ChevronLeft size={22} color="#163449" strokeWidth={2} />
+          <ChevronLeft size={22} color="#0A0A0A" strokeWidth={2} />
         </button>
         <div>
-          <h2 className="text-xl font-bold leading-tight" style={{ color: '#163449', fontFamily: "'Fraunces', serif" }}>Answered</h2>
+          <h2 className="text-xl font-bold leading-tight" style={{ color: '#0A0A0A', fontFamily: "'Fraunces', serif" }}>Answered</h2>
           <p className="text-xs mt-0.5" style={{ color: '#8E8E8E' }}>Prayers answered and grace shared</p>
         </div>
       </div>

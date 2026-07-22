@@ -17,7 +17,7 @@ export default function Pastors() {
   return (
     <div className="bg-gray-50 min-h-full">
       <WaterCard tone="blue" style={{ borderRadius: '0 0 24px 24px', padding: '20px 20px 32px' }}>
-        <h2 className="text-2xl font-bold mb-1" style={{ color: '#163449' }}>Pray With a Pastor</h2>
+        <h2 className="text-2xl font-bold mb-1" style={{ color: '#0A0A0A' }}>Pray With a Pastor</h2>
         <p className="text-sm" style={{ color: '#4A6674' }}>Connect with a verified pastor for prayer and guidance</p>
       </WaterCard>
 
@@ -27,7 +27,7 @@ export default function Pastors() {
         ) : pastors.length === 0 ? (
           <div className="text-center py-20">
             <WaterCard tone="blue" style={{ width: 64, height: 64, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#163449" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0A0A0A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
                 <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
               </svg>

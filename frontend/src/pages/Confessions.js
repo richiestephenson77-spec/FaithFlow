@@ -138,10 +138,10 @@ export default function Confessions() {
         className="px-5 pt-5 pb-4 flex items-center gap-3"
       >
         <button onClick={() => navigate(-1)} aria-label="Back" className="p-1 -ml-1 flex-shrink-0">
-          <ChevronLeft size={22} color="#163449" strokeWidth={2} />
+          <ChevronLeft size={22} color="#0A0A0A" strokeWidth={2} />
         </button>
         <div>
-          <h2 className="text-2xl font-bold leading-tight" style={{ color: '#163449' }}>Confession Wall</h2>
+          <h2 className="text-2xl font-bold leading-tight" style={{ color: '#0A0A0A' }}>Confession Wall</h2>
           <p className="text-sm mt-0.5" style={{ color: '#6B7680' }}>
             A safe, anonymous space.
           </p>
@@ -157,7 +157,7 @@ export default function Confessions() {
             className="flex-1 py-2 rounded-full text-sm text-center transition-colors"
             style={{
               background: tab === t.id ? 'rgba(0,0,0,0.04)' : 'transparent',
-              color: tab === t.id ? '#163449' : '#8E8E8E',
+              color: tab === t.id ? '#0A0A0A' : '#8E8E8E',
               fontWeight: tab === t.id ? 500 : 400,
             }}
           >
@@ -176,7 +176,7 @@ export default function Confessions() {
               className="flex-shrink-0 px-4 py-1.5 rounded-full text-sm whitespace-nowrap transition-colors"
               style={{
                 background: activeCategory === cat ? 'rgba(0,0,0,0.04)' : 'transparent',
-                color: activeCategory === cat ? '#163449' : '#8E8E8E',
+                color: activeCategory === cat ? '#0A0A0A' : '#8E8E8E',
                 fontWeight: activeCategory === cat ? 500 : 400,
               }}
             >
@@ -233,7 +233,7 @@ export default function Confessions() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
             className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 text-sm font-medium px-5 py-3 rounded-2xl shadow-xl"
-            style={{ background: 'white', color: '#163449', border: '1px solid rgba(22,52,73,0.08)' }}
+            style={{ background: 'white', color: '#0A0A0A', border: '1px solid rgba(22,52,73,0.08)' }}
           >
             {toast}
           </motion.div>
@@ -268,7 +268,7 @@ function ConfessionCard({ confession: c, onHeart, onRead, onHide }) {
         <div className="flex items-center gap-2.5">
           <AnonAvatar size={34} />
           <div>
-            <p className="text-sm font-medium" style={{ color: '#163449' }}>Anonymous</p>
+            <p className="text-sm font-medium" style={{ color: '#0A0A0A' }}>Anonymous</p>
             <p className="text-xs" style={{ color: '#9AA6AD' }}>{getTimeAgo(c.createdAt)}</p>
           </div>
         </div>
@@ -365,7 +365,7 @@ function ConfessionModal({ onClose, onCreate }) {
             </svg>
           </button>
           <div className="text-center">
-            <p className="text-base font-semibold" style={{ color: '#163449' }}>Share Anonymously</p>
+            <p className="text-base font-semibold" style={{ color: '#0A0A0A' }}>Share Anonymously</p>
             <p className="text-xs mt-0.5" style={{ color: '#9AA6AD' }}>No one will ever know this was you</p>
           </div>
           <div className="w-6" />

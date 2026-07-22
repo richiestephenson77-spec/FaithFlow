@@ -98,7 +98,7 @@ function PastorPicker({ selectedPastors, onToggle }) {
                 {p.pastorChurch && <p className="text-xs text-gray-400 truncate">{p.pastorChurch}</p>}
               </div>
               {selectedIds.has(p.id) && (
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2C4055" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0A0A0A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="20 6 9 17 4 12"/>
                 </svg>
               )}

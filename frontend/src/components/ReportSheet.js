@@ -49,7 +49,7 @@ export default function ReportSheet({ contentType, contentId, reportedUserId, on
       >
         <div className="px-4 pt-4 pb-3 flex items-center justify-between flex-shrink-0" style={{ borderBottom: '1px solid #EFEFEF' }}>
           <button onClick={onClose} className="text-sm font-medium" style={{ color: '#8E8E8E' }}>Cancel</button>
-          <h3 className="font-bold text-[15px]" style={{ color: '#163449', fontFamily: "'Fraunces', serif" }}>Report</h3>
+          <h3 className="font-bold text-[15px]" style={{ color: '#0A0A0A', fontFamily: "'Fraunces', serif" }}>Report</h3>
           <button onClick={submit} disabled={!reason || submitting} className="text-sm font-bold disabled:opacity-40" style={{ color: ACCENT }}>
             {submitting ? 'Sending…' : 'Submit'}
           </button>

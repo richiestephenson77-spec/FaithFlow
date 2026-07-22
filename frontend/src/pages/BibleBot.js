@@ -64,7 +64,7 @@ export default function BibleBot() {
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full flex items-center justify-center text-xl" style={{ background: 'rgba(22,52,73,0.1)' }}>📖</div>
             <div>
-              <h2 className="font-bold text-base" style={{ color: '#163449' }}>Ask the Word</h2>
+              <h2 className="font-bold text-base" style={{ color: '#0A0A0A' }}>Ask the Word</h2>
               <p className="text-xs" style={{ color: '#4A6674' }}>Your Bible guide, always here</p>
             </div>
           </div>
@@ -128,7 +128,7 @@ export default function BibleBot() {
             {STARTER_QUESTIONS.slice(0, 3).map(q => (
               <button key={q} onClick={() => send(q)}
                 className="text-xs rounded-full px-3 py-1 whitespace-nowrap flex-shrink-0"
-                style={{ background: 'rgba(22,52,73,0.08)', color: '#163449', border: '1px solid rgba(22,52,73,0.12)' }}>
+                style={{ background: 'rgba(22,52,73,0.08)', color: '#0A0A0A', border: '1px solid rgba(22,52,73,0.12)' }}>
                 {q}
               </button>
             ))}

@@ -18,17 +18,17 @@ function getTimeAgo(dateStr) {
 }
 
 const TYPE_META = {
-  PRAYER_STARTED:          { Icon: Sparkles,      color: '#2C4055', bg: '#fffbeb' },
-  SOMEONE_PRAYED:          { Icon: HandHeart,     color: '#2C4055', bg: 'rgba(44,64,85,0.08)' },
+  PRAYER_STARTED:          { Icon: Sparkles,      color: '#0A0A0A', bg: '#fffbeb' },
+  SOMEONE_PRAYED:          { Icon: HandHeart,     color: '#0A0A0A', bg: 'rgba(44,64,85,0.08)' },
   PRAYER_ANSWERED:         { Icon: Sparkles,      color: '#10b981', bg: '#f0fdf4' },
   NEW_FOLLOWER:            { Icon: UserPlus,      color: '#6366f1', bg: '#eef2ff' },
   POST_LIKE:               { Icon: Heart,         color: '#ef4444', bg: '#fef2f2' },
   POST_COMMENT:            { Icon: MessageCircle, color: '#3b82f6', bg: '#eff6ff' },
   CONFESSION_COMMENT:      { Icon: MessageCircle, color: '#8A5CD0', bg: '#f5f0fc' },
   STREAK_AT_RISK:          { Icon: Flame,         color: '#E86A4B', bg: '#fdf0ec' },
-  PARTNER_SHARED_PRAYER:   { Icon: Users,         color: '#2C4055', bg: 'rgba(44,64,85,0.08)' },
-  REQUEST_NEEDS_BUMP:      { Icon: RefreshCw,     color: '#2C4055', bg: 'rgba(44,64,85,0.08)' },
-  PRAYER_PARTNER_MATCHED:  { Icon: Users,         color: '#2C4055', bg: '#fffbeb' },
+  PARTNER_SHARED_PRAYER:   { Icon: Users,         color: '#0A0A0A', bg: 'rgba(44,64,85,0.08)' },
+  REQUEST_NEEDS_BUMP:      { Icon: RefreshCw,     color: '#0A0A0A', bg: 'rgba(44,64,85,0.08)' },
+  PRAYER_PARTNER_MATCHED:  { Icon: Users,         color: '#0A0A0A', bg: '#fffbeb' },
 };
 
 // Tap-through destination per notification type. refId carries the entity id.
@@ -214,7 +214,7 @@ export default function Notifications() {
               exit={{ opacity: 0, scale: 0.85 }}
               onClick={handleMarkAllRead}
               className="text-xs font-semibold px-3 py-1.5 rounded-full"
-              style={{ background: 'rgba(22,52,73,0.08)', color: '#163449', border: '1px solid rgba(22,52,73,0.15)' }}
+              style={{ background: 'rgba(22,52,73,0.08)', color: '#0A0A0A', border: '1px solid rgba(22,52,73,0.15)' }}
             >
               Mark all read
             </motion.button>

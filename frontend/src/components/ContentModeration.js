@@ -109,7 +109,7 @@ export default function ContentModeration({
               className="bg-white rounded-3xl w-full max-w-xs p-5 text-center"
               onClick={e => e.stopPropagation()}
             >
-              <p className="font-bold text-[15px]" style={{ color: '#163449' }}>Block {targetName || 'this user'}?</p>
+              <p className="font-bold text-[15px]" style={{ color: '#0A0A0A' }}>Block {targetName || 'this user'}?</p>
               <p className="text-sm mt-2 leading-snug" style={{ color: '#6B7680' }}>
                 They won't be able to message you or see your content, and you won't see theirs.
               </p>

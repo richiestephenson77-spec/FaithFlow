@@ -25,7 +25,7 @@ export default function Explore() {
           <div style={{ position: 'relative', zIndex: 1 }} className="flex items-center gap-4">
             <BookOpen size={22} strokeWidth={1.6} color={ICON_COLOR} className="flex-shrink-0" />
             <div>
-              <p className="font-semibold text-lg leading-tight" style={{ color: '#163449' }}>Bible</p>
+              <p className="font-semibold text-lg leading-tight" style={{ color: '#0A0A0A' }}>Bible</p>
               <p className="text-xs mt-0.5" style={{ color: '#4A6674' }}>Read and search scripture</p>
             </div>
           </div>
@@ -40,7 +40,7 @@ export default function Explore() {
           >
             <div style={{ position: 'relative', zIndex: 1 }} className="flex flex-col gap-3 h-full">
               <Radio size={22} strokeWidth={1.6} color={ICON_COLOR} />
-              <p className="font-semibold text-[15px] leading-snug" style={{ color: '#163449' }}>Prayer Cells</p>
+              <p className="font-semibold text-[15px] leading-snug" style={{ color: '#0A0A0A' }}>Prayer Cells</p>
               <p className="text-[12px] leading-snug" style={{ color: '#4A6674' }}>Live audio prayer</p>
             </div>
           </button>
@@ -52,13 +52,13 @@ export default function Explore() {
           >
             <span
               className="absolute top-3 right-3 text-[10px] font-semibold px-2 py-0.5 rounded-full"
-              style={{ background: 'rgba(255,255,255,0.7)', color: '#163449', zIndex: 2 }}
+              style={{ background: 'rgba(255,255,255,0.7)', color: '#0A0A0A', zIndex: 2 }}
             >
               New
             </span>
             <div style={{ position: 'relative', zIndex: 1 }} className="flex flex-col gap-3 h-full">
               <Map size={22} strokeWidth={1.6} color={ICON_COLOR} />
-              <p className="font-semibold text-[15px] leading-snug" style={{ color: '#163449' }}>Bible Maps</p>
+              <p className="font-semibold text-[15px] leading-snug" style={{ color: '#0A0A0A' }}>Bible Maps</p>
               <p className="text-[12px] leading-snug" style={{ color: '#4A6674' }}>Explore the Biblical world</p>
             </div>
           </button>
@@ -104,7 +104,7 @@ export default function Explore() {
             >
               <div style={{ position: 'relative', zIndex: 1 }} className="flex flex-col justify-between h-full" >
                 <Icon size={22} strokeWidth={1.6} color={ICON_COLOR} />
-                <p className="font-semibold text-[13px] leading-snug mt-3" style={{ color: '#163449' }}>{label}</p>
+                <p className="font-semibold text-[13px] leading-snug mt-3" style={{ color: '#0A0A0A' }}>{label}</p>
               </div>
             </button>
           ))}

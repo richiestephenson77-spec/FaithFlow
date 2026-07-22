@@ -49,7 +49,7 @@ function PrayerResult({ item, onClick }) {
         <HandHeart size={17} color={ACCENT} strokeWidth={1.8} />
       </div>
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-semibold truncate" style={{ color: '#163449' }}>{item.title}</p>
+        <p className="text-sm font-semibold truncate" style={{ color: '#0A0A0A' }}>{item.title}</p>
         <p className="text-xs mt-0.5 line-clamp-1" style={{ color: '#8E8E8E' }}>{item.body}</p>
         <p className="text-[11px] mt-0.5" style={{ color: '#B0AEA8' }}>
           {item.user?.name || 'Someone'} · {item.prayerCount} prayed{item.isAnswered ? ' · Answered' : ''}
@@ -66,7 +66,7 @@ function ChurchResult({ item, onClick }) {
         ? <img src={item.logo} alt="" loading="lazy" decoding="async" className="w-10 h-10 rounded-full object-cover flex-shrink-0" />
         : <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(44,64,85,0.08)' }}><ChurchIcon size={17} color={ACCENT} strokeWidth={1.8} /></div>}
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-semibold truncate" style={{ color: '#163449' }}>{item.name}</p>
+        <p className="text-sm font-semibold truncate" style={{ color: '#0A0A0A' }}>{item.name}</p>
         {item.location && <p className="text-xs mt-0.5 truncate" style={{ color: '#8E8E8E' }}>{item.location}</p>}
       </div>
       <span className="text-[11px] flex-shrink-0" style={{ color: '#B0AEA8' }}>{item.followerCount} following</span>

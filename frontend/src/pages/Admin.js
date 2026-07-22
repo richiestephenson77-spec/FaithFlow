@@ -104,7 +104,7 @@ export default function Admin() {
   return (
     <div className="bg-gray-50 min-h-full">
       <div className="bg-white px-4 pt-5 pb-3" style={{ borderBottom: '1px solid #EFEFEF' }}>
-        <h1 className="text-lg font-bold" style={{ color: '#163449', fontFamily: "'Fraunces', serif" }}>Moderation</h1>
+        <h1 className="text-lg font-bold" style={{ color: '#0A0A0A', fontFamily: "'Fraunces', serif" }}>Moderation</h1>
         <p className="text-xs mt-0.5" style={{ color: '#8E8E8E' }}>Pending reports</p>
       </div>
 
@@ -146,7 +146,7 @@ export default function Admin() {
                   onClick={() => suspend(r)}
                   disabled={busy === r.id}
                   className="text-xs font-semibold px-3.5 py-2 rounded-xl disabled:opacity-50"
-                  style={{ background: 'rgba(44,64,85,0.1)', color: '#2C4055' }}
+                  style={{ background: 'rgba(44,64,85,0.1)', color: '#0A0A0A' }}
                 >
                   Suspend user
                 </button>

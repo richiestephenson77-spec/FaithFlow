@@ -15,7 +15,7 @@ export default function WaterPill({
         border: 'none',
         background: active ? 'rgba(0,0,0,0.04)' : 'transparent',
         boxShadow: 'none',
-        color: active ? '#163449' : '#8E8E8E',
+        color: active ? '#0A0A0A' : '#8E8E8E',
         fontWeight: active ? 500 : 400,
         padding: '6px 14px',
         fontSize: 13,

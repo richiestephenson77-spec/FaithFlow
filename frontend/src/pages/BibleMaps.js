@@ -161,7 +161,7 @@ export default function BibleMaps() {
             boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
           }}
         >
-          <ChevronLeft size={20} color="#163449" strokeWidth={2} />
+          <ChevronLeft size={20} color="#0A0A0A" strokeWidth={2} />
         </button>
         <p className="font-semibold text-center" style={{ color: '#232B38' }}>Bible Maps needs setup</p>
         <p className="text-sm text-center mt-2 leading-relaxed" style={{ color: '#5C6270' }}>
@@ -268,7 +268,7 @@ export default function BibleMaps() {
             zIndex: 20,
           }}
         >
-          <ChevronLeft size={20} color="#163449" strokeWidth={2} />
+          <ChevronLeft size={20} color="#0A0A0A" strokeWidth={2} />
         </button>
 
         {/* Header — title/era pills; spacer keeps them clear of the floating back button */}

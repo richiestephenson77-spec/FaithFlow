@@ -255,7 +255,7 @@ export default function Layout() {
                     <Icon
                       size={26}
                       strokeWidth={isActive ? 2.5 : 2}
-                      color={isActive ? '#2C4055' : '#1A1A1A'}
+                      color={isActive ? '#0A0A0A' : '#1A1A1A'}
                     />
                   </motion.span>
                   {label === 'Chats' && unreadMessages > 0 && (

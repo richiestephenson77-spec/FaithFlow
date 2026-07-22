@@ -89,7 +89,7 @@ export default function PrayerReceipts() {
               onClick={e => e.stopPropagation()}
             >
               <div className="px-4 py-4 flex items-center justify-between flex-shrink-0" style={{ borderBottom: '1px solid #EFEFEF' }}>
-                <h3 className="font-bold text-[15px]" style={{ color: '#163449' }}>Prayed for you</h3>
+                <h3 className="font-bold text-[15px]" style={{ color: '#0A0A0A' }}>Prayed for you</h3>
                 <button onClick={() => setOpen(false)} aria-label="Close" className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.04)' }}>
                   <X size={16} color="#8E8E8E" />
                 </button>
@@ -104,7 +104,7 @@ export default function PrayerReceipts() {
                         <div key={i} className="flex items-center gap-2.5">
                           <Avatar user={{ name: e.name, profilePhoto: e.profilePhoto }} size="sm" />
                           <div className="min-w-0 flex-1">
-                            <p className="text-sm font-medium truncate" style={{ color: '#163449' }}>{e.name || 'Someone'}</p>
+                            <p className="text-sm font-medium truncate" style={{ color: '#0A0A0A' }}>{e.name || 'Someone'}</p>
                             <p className="text-[11px] truncate" style={{ color: '#8E8E8E' }}>
                               prayed for “{e.requestTitle || 'your request'}”
                             </p>

@@ -124,7 +124,7 @@ export default function PrayerCellHostRoom() {
       {/* Top bar */}
       <div className="flex items-center justify-between px-5 pt-5 pb-4">
         <div />
-        <p className="font-semibold text-base" style={{ color: '#163449' }}>Your Prayer Cell</p>
+        <p className="font-semibold text-base" style={{ color: '#0A0A0A' }}>Your Prayer Cell</p>
         <button onClick={handleEnd}>
           <span className="text-red-500 text-sm font-medium">End Session</span>
         </button>
@@ -155,7 +155,7 @@ export default function PrayerCellHostRoom() {
                 >
                   <Mic size={32} color={ACCENT} strokeWidth={1.5} />
                 </motion.div>
-                <p className="text-base font-semibold mt-4 text-center" style={{ color: '#163449' }}>
+                <p className="text-base font-semibold mt-4 text-center" style={{ color: '#0A0A0A' }}>
                   Waiting for someone to join...
                 </p>
                 <p className="text-sm text-center mt-1.5" style={{ color: '#6B7680' }}>Your room is live 🔴</p>
@@ -177,7 +177,7 @@ export default function PrayerCellHostRoom() {
                     <Avatar user={guest} size="lg" />
                   </div>
                 </div>
-                <p className="text-sm font-semibold" style={{ color: '#163449' }}>{guest.name} has joined for prayer</p>
+                <p className="text-sm font-semibold" style={{ color: '#0A0A0A' }}>{guest.name} has joined for prayer</p>
 
                 <div className="relative mt-4 flex items-center justify-center">
                   <svg width="88" height="88" className="-rotate-90">
@@ -191,7 +191,7 @@ export default function PrayerCellHostRoom() {
                       style={{ transition: 'stroke-dashoffset 1s linear' }}
                     />
                   </svg>
-                  <span className="absolute text-xl font-bold" style={{ color: '#163449' }}>{timeLeft}</span>
+                  <span className="absolute text-xl font-bold" style={{ color: '#0A0A0A' }}>{timeLeft}</span>
                 </div>
                 <p className="text-sm mt-2" style={{ color: '#6B7680' }}>Praying for {guest.name}</p>
               </motion.div>
@@ -205,7 +205,7 @@ export default function PrayerCellHostRoom() {
                 className="flex flex-col items-center"
                 style={{ position: 'relative', zIndex: 1 }}
               >
-                <p className="text-xl font-bold text-center" style={{ color: '#163449' }}>Prayer Complete 🙏</p>
+                <p className="text-xl font-bold text-center" style={{ color: '#0A0A0A' }}>Prayer Complete 🙏</p>
                 <p className="text-sm text-center mt-1.5" style={{ color: '#6B7680' }}>
                   {sessionCount} {sessionCount === 1 ? 'person' : 'people'} prayed with you
                 </p>
@@ -239,7 +239,7 @@ export default function PrayerCellHostRoom() {
                     <Avatar user={g} size="sm" />
                   </div>
                   <div className="flex-1 min-w-0" style={{ position: 'relative', zIndex: 1 }}>
-                    <p className="text-sm font-semibold truncate" style={{ color: '#163449' }}>{g.name}</p>
+                    <p className="text-sm font-semibold truncate" style={{ color: '#0A0A0A' }}>{g.name}</p>
                   </div>
                   <span className="text-[11px] flex-shrink-0" style={{ color: '#6B7680', position: 'relative', zIndex: 1 }}>
                     {new Date(g.joinedAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
@@ -265,7 +265,7 @@ export default function PrayerCellHostRoom() {
         >
           {isMuted
             ? <MicOff size={22} color="#ef4444" strokeWidth={1.8} />
-            : <Mic size={22} color="#163449" strokeWidth={1.8} />
+            : <Mic size={22} color="#0A0A0A" strokeWidth={1.8} />
           }
         </motion.button>
       </div>

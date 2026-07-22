@@ -39,7 +39,7 @@ function PostCard({ post, onLike, onUserClick, currentUserId, onOptions }) {
           <Avatar user={post.user} size="md" />
         </button>
         <div className="flex-1 min-w-0">
-          <button onClick={onUserClick} className="font-semibold text-sm hover:underline text-left leading-tight" style={{ color: '#163449' }}>
+          <button onClick={onUserClick} className="font-semibold text-sm hover:underline text-left leading-tight" style={{ color: '#0A0A0A' }}>
             {post.user?.name}
           </button>
           <div className="flex items-center gap-2 mt-0.5 flex-wrap">
@@ -225,7 +225,7 @@ export default function Home() {
       <div className="px-4 pt-3">
         {/* Greeting — gives Home a purposeful focal identity */}
         <motion.div {...fadeUp} className="mb-4">
-          <h1 className="text-[22px] font-bold leading-tight" style={{ color: '#163449', fontFamily: "'Fraunces', serif" }}>
+          <h1 className="text-[22px] font-bold leading-tight" style={{ color: '#0A0A0A', fontFamily: "'Fraunces', serif" }}>
             {greeting}{user?.name ? `, ${user.name.split(' ')[0]}` : ''}
           </h1>
           <p className="text-sm mt-0.5" style={{ color: '#8E8E8E' }}>Here's your community today</p>
@@ -240,10 +240,10 @@ export default function Home() {
           style={{ border: '1px solid #EFEFEF' }}
         >
           <div className="flex items-center justify-between">
-            <span className="font-bold text-base" style={{ color: '#163449', fontFamily: "'Fraunces', serif" }}>Prayer Room</span>
+            <span className="font-bold text-base" style={{ color: '#0A0A0A', fontFamily: "'Fraunces', serif" }}>Prayer Room</span>
             <div className="flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-[#2C4055] animate-pulse" />
-              <span className="text-[11px] font-semibold" style={{ color: '#2C4055' }}>
+              <span className="text-[11px] font-semibold" style={{ color: '#0A0A0A' }}>
                 {liveCount != null ? `${liveCount} praying now` : 'Open'}
               </span>
             </div>
@@ -259,12 +259,12 @@ export default function Home() {
                 { Icon: Radio,    label: 'Live Cells' },
               ].map(({ Icon, label }) => (
                 <div key={label} className="flex items-center gap-1.5">
-                  <Icon size={14} strokeWidth={1.7} color="#2C4055" />
+                  <Icon size={14} strokeWidth={1.7} color="#0A0A0A" />
                   <span style={{ fontSize: 11, color: '#6B7680' }}>{label}</span>
                 </div>
               ))}
             </div>
-            <span className="flex items-center gap-0.5 text-xs font-semibold flex-shrink-0" style={{ color: '#2C4055' }}>
+            <span className="flex items-center gap-0.5 text-xs font-semibold flex-shrink-0" style={{ color: '#0A0A0A' }}>
               Enter <ChevronRight size={14} />
             </span>
           </div>
@@ -281,7 +281,7 @@ export default function Home() {
             <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4" style={{ background: 'rgba(44,64,85,0.08)' }}>
               <span className="text-2xl">🕊️</span>
             </div>
-            <p className="font-semibold" style={{ color: '#163449' }}>Your community feed is quiet</p>
+            <p className="font-semibold" style={{ color: '#0A0A0A' }}>Your community feed is quiet</p>
             <p className="text-sm mt-1" style={{ color: '#8E8E8E' }}>Share an update, testimony, or verse to get things started.</p>
             <motion.button
               {...springTap}

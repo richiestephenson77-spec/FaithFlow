@@ -202,7 +202,7 @@ function ChurchCard({ church, location, onClick }) {
           <img loading="lazy" decoding="async" src={church.photo} alt="" className="w-full h-full object-cover" />
         ) : (
           <div className="w-full h-full bg-terracotta-50 flex items-center justify-center">
-            <Church size={28} color="#2C4055" strokeWidth={1.5} />
+            <Church size={28} color="#0A0A0A" strokeWidth={1.5} />
           </div>
         )}
       </div>
@@ -211,7 +211,7 @@ function ChurchCard({ church, location, onClick }) {
         <div className="flex items-center gap-1.5 mt-1">
           {church.rating && (
             <span className="flex items-center gap-0.5 text-sm text-gray-600">
-              <Star size={12} fill="#2C4055" color="#2C4055" /> {church.rating}
+              <Star size={12} fill="#2C4055" color="#0A0A0A" /> {church.rating}
             </span>
           )}
           {church.isOpen != null && (

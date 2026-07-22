@@ -43,11 +43,11 @@ export default function UserRow({ user: initialUser, onNavigate }) {
         <div className="flex items-center gap-1.5">
           <p className="text-sm font-semibold text-gray-900 truncate">{user.name}</p>
           {user.isVerifiedPastor && (
-            <ShieldCheck size={13} color="#2C4055" strokeWidth={2} className="flex-shrink-0" />
+            <ShieldCheck size={13} color="#0A0A0A" strokeWidth={2} className="flex-shrink-0" />
           )}
         </div>
         {user.churchName && (
-          <p className="text-xs font-medium truncate mt-0.5" style={{ color: '#2C4055' }}>{user.churchName}</p>
+          <p className="text-xs font-medium truncate mt-0.5" style={{ color: '#0A0A0A' }}>{user.churchName}</p>
         )}
         <div className="flex items-center gap-2 mt-0.5 flex-wrap">
           {user.location && (
@@ -60,7 +60,7 @@ export default function UserRow({ user: initialUser, onNavigate }) {
           )}
           {user.prayerWarriorBadge && (
             <span className="flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full"
-              style={{ background: 'rgba(201,147,47,0.1)', color: '#2C4055' }}>
+              style={{ background: 'rgba(201,147,47,0.1)', color: '#0A0A0A' }}>
               <Award size={10} strokeWidth={2} />Prayer Warrior
             </span>
           )}
@@ -75,7 +75,7 @@ export default function UserRow({ user: initialUser, onNavigate }) {
         className={`flex-shrink-0 text-xs font-medium px-3 py-1.5 rounded-full transition-colors ${
           user.isFollowedByMe
             ? 'bg-gray-100 text-gray-400'
-            : 'border border-gray-200 text-gray-700 hover:border-[#2C4055]/40 hover:text-[#2C4055]'
+            : 'border border-gray-200 text-gray-700 hover:border-[#2C4055]/40 hover:text-[#0A0A0A]'
         }`}
       >
         {user.isFollowedByMe ? 'Following' : 'Follow'}

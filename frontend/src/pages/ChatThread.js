@@ -46,7 +46,7 @@ function SharedPrayerCard({ request, isMe, onOpen }) {
   if (!request) {
     return <span className="text-xs italic" style={{ color: isMe ? 'rgba(255,255,255,0.8)' : '#9AA6AD' }}>Prayer request no longer available</span>;
   }
-  const fg = isMe ? '#ffffff' : '#163449';
+  const fg = isMe ? '#ffffff' : '#0A0A0A';
   const sub = isMe ? 'rgba(255,255,255,0.85)' : '#4A6674';
   return (
     <button onClick={onOpen} className="text-left rounded-xl overflow-hidden" style={{ width: 220, background: isMe ? 'rgba(255,255,255,0.15)' : 'rgba(22,52,73,0.05)', border: `1px solid ${isMe ? 'rgba(255,255,255,0.25)' : 'rgba(22,52,73,0.1)'}` }}>
@@ -70,7 +70,7 @@ function VoiceBubble({ src, duration, isMe }) {
   const [progress, setProgress] = useState(0);
   const [current, setCurrent] = useState(0);
 
-  const fg = isMe ? '#ffffff' : '#163449';
+  const fg = isMe ? '#ffffff' : '#0A0A0A';
   const track = isMe ? 'rgba(255,255,255,0.35)' : 'rgba(22,52,73,0.15)';
 
   function toggle(e) {
@@ -409,7 +409,7 @@ export default function ChatThread() {
       {/* Header — slim single-row messaging bar */}
       <div className="water-tile-blue flex items-center gap-2 flex-shrink-0 px-3" style={{ height: 60, borderRadius: '0 0 20px 20px' }}>
         <button onClick={() => navigate('/messages')} aria-label="Back" className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(22,52,73,0.1)' }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#163449" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0A0A0A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="15 18 9 12 15 6"/>
           </svg>
         </button>
@@ -418,21 +418,21 @@ export default function ChatThread() {
           className="flex items-center gap-2.5 flex-1 min-w-0 text-left"
         >
           {other && <Avatar user={other} size="sm" />}
-          <p className="font-bold text-sm leading-tight truncate" style={{ color: '#163449' }}>{other?.name || '...'}</p>
+          <p className="font-bold text-sm leading-tight truncate" style={{ color: '#0A0A0A' }}>{other?.name || '...'}</p>
         </button>
         <button
           onClick={() => other && setActiveCall({ direction: 'out', callType: 'audio' })}
           aria-label="Audio call"
           className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(22,52,73,0.08)' }}
         >
-          <Phone size={18} color="#163449" strokeWidth={1.8} />
+          <Phone size={18} color="#0A0A0A" strokeWidth={1.8} />
         </button>
         <button
           onClick={() => other && setActiveCall({ direction: 'out', callType: 'video' })}
           aria-label="Video call"
           className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(22,52,73,0.08)' }}
         >
-          <Video size={18} color="#163449" strokeWidth={1.8} />
+          <Video size={18} color="#0A0A0A" strokeWidth={1.8} />
         </button>
       </div>
 
@@ -462,7 +462,7 @@ export default function ChatThread() {
       {blockOpen && (
         <div className="fixed inset-0 z-[60] bg-black/50 flex items-center justify-center px-8" onClick={() => setBlockOpen(false)}>
           <div className="bg-white rounded-3xl w-full max-w-xs p-5 text-center" onClick={e => e.stopPropagation()}>
-            <p className="font-bold text-[15px]" style={{ color: '#163449' }}>Block {other?.name || 'this user'}?</p>
+            <p className="font-bold text-[15px]" style={{ color: '#0A0A0A' }}>Block {other?.name || 'this user'}?</p>
             <p className="text-sm mt-2 leading-snug" style={{ color: '#6B7680' }}>
               They won't be able to message you or see your content, and you won't see theirs.
             </p>
@@ -595,7 +595,7 @@ export default function ChatThread() {
                       onClick={() => { setReplyTo(m); setPickerFor(null); }}
                       className="w-full text-left px-4 py-2.5 text-sm text-gray-700 active:bg-gray-50 flex items-center gap-2"
                     >
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#163449" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#0A0A0A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 17 4 12 9 7"/><path d="M20 18v-2a4 4 0 0 0-4-4H4"/></svg>
                       Reply
                     </button>
                     {isMe && (
@@ -655,7 +655,7 @@ export default function ChatThread() {
         <div className="px-4 pt-2 flex-shrink-0 bg-white">
           <div className="flex items-center gap-2 rounded-xl px-3 py-2" style={{ background: 'rgba(22,52,73,0.06)', borderLeft: '2px solid #2C4055' }}>
             <div className="flex-1 min-w-0">
-              <p className="text-[11px] font-semibold" style={{ color: '#2C4055' }}>
+              <p className="text-[11px] font-semibold" style={{ color: '#0A0A0A' }}>
                 Replying to {replyTo.senderId === user?.id ? 'yourself' : (other?.name || 'them')}
               </p>
               <p className="text-xs text-gray-500 truncate">{snippetFor(replyTo)}</p>
@@ -700,7 +700,7 @@ export default function ChatThread() {
             className="flex items-center justify-center rounded-full flex-shrink-0"
             style={{ width: 40, height: 40, background: 'rgba(22,52,73,0.1)' }}
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#163449" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ transform: showAttach ? 'rotate(45deg)' : 'none', transition: 'transform 0.15s' }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0A0A0A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ transform: showAttach ? 'rotate(45deg)' : 'none', transition: 'transform 0.15s' }}>
               <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
             </svg>
           </button>
@@ -754,7 +754,7 @@ export default function ChatThread() {
               touchAction: 'none',
             }}
           >
-            <Mic size={19} color={recording ? '#fff' : '#163449'} strokeWidth={1.8} />
+            <Mic size={19} color={recording ? '#fff' : '#0A0A0A'} strokeWidth={1.8} />
           </button>
         )}
       </div>
@@ -789,7 +789,7 @@ export default function ChatThread() {
                     >
                       <div className="flex items-center gap-1.5 mb-1">
                         <span aria-hidden>🙏</span>
-                        <span className="text-[10px] font-bold uppercase tracking-wide" style={{ color: '#2C4055' }}>{p.category || 'Prayer'}</span>
+                        <span className="text-[10px] font-bold uppercase tracking-wide" style={{ color: '#0A0A0A' }}>{p.category || 'Prayer'}</span>
                       </div>
                       <p className="text-sm font-semibold text-gray-900 line-clamp-1">{p.title}</p>
                       {p.body && <p className="text-xs text-gray-500 line-clamp-2 mt-0.5">{p.body}</p>}

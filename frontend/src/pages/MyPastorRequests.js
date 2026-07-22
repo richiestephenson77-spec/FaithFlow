@@ -35,11 +35,11 @@ export default function MyPastorRequests() {
       <WaterCard tone="blue" style={{ borderRadius: '0 0 24px 24px', padding: '16px 16px 28px' }}>
         <div className="flex items-center gap-3 mb-1">
           <button onClick={() => navigate(-1)} className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: 'rgba(22,52,73,0.1)' }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#163449" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0A0A0A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="15 18 9 12 15 6"/>
             </svg>
           </button>
-          <h2 className="text-lg font-bold" style={{ color: '#163449' }}>My Pastor Requests</h2>
+          <h2 className="text-lg font-bold" style={{ color: '#0A0A0A' }}>My Pastor Requests</h2>
         </div>
       </WaterCard>
 

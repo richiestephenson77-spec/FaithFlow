@@ -88,7 +88,7 @@ export default function FindChurchDetail() {
           {church.rating && (
             <span className="flex items-center gap-1 text-sm text-gray-600">
               {Array.from({ length: 5 }, (_, i) => (
-                <Star key={i} size={14} fill={i < Math.round(church.rating) ? '#2C4055' : 'none'} color="#2C4055" />
+                <Star key={i} size={14} fill={i < Math.round(church.rating) ? '#0A0A0A' : 'none'} color="#0A0A0A" />
               ))}
               <span className="text-xs text-gray-400 ml-1">({church.totalRatings || 0} reviews)</span>
             </span>
@@ -113,21 +113,21 @@ export default function FindChurchDetail() {
             onClick={() => window.open(`https://maps.google.com/?q=${church.lat},${church.lng}`)}
             className="w-full flex items-start gap-2.5 mt-4 text-left"
           >
-            <MapPin size={16} color="#2C4055" strokeWidth={1.8} className="mt-0.5 flex-shrink-0" />
+            <MapPin size={16} color="#0A0A0A" strokeWidth={1.8} className="mt-0.5 flex-shrink-0" />
             <span className="text-sm text-gray-700">{church.address}</span>
           </button>
         )}
 
         {church.phone && (
           <button onClick={() => window.open(`tel:${church.phone}`)} className="w-full flex items-center gap-2.5 mt-3 text-left">
-            <Phone size={16} color="#2C4055" strokeWidth={1.8} className="flex-shrink-0" />
+            <Phone size={16} color="#0A0A0A" strokeWidth={1.8} className="flex-shrink-0" />
             <span className="text-sm text-gray-700">{church.phone}</span>
           </button>
         )}
 
         {church.website && (
           <button onClick={() => window.open(church.website, '_blank')} className="w-full flex items-center gap-2.5 mt-3 text-left">
-            <Globe size={16} color="#2C4055" strokeWidth={1.8} className="flex-shrink-0" />
+            <Globe size={16} color="#0A0A0A" strokeWidth={1.8} className="flex-shrink-0" />
             <span className="text-sm text-gray-700 truncate">{church.website}</span>
           </button>
         )}
@@ -158,7 +158,7 @@ export default function FindChurchDetail() {
         {/* Hours */}
         <div className="mt-6">
           <div className="flex items-center gap-2 mb-2">
-            <Clock size={16} color="#2C4055" strokeWidth={1.8} />
+            <Clock size={16} color="#0A0A0A" strokeWidth={1.8} />
             <p className="text-sm font-semibold text-gray-900">Service Times</p>
           </div>
 

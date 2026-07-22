@@ -70,13 +70,13 @@ export default function Messages() {
     <div className="bg-gray-50 min-h-full">
       <div className="bg-gray-50 px-4 pt-4 pb-3">
         <div className="flex items-center justify-between mb-3">
-          <h1 className="text-2xl font-bold leading-tight" style={{ color: '#163449', fontFamily: "'Fraunces', serif" }}>Messages</h1>
+          <h1 className="text-2xl font-bold leading-tight" style={{ color: '#0A0A0A', fontFamily: "'Fraunces', serif" }}>Messages</h1>
           <button
             onClick={() => searchInputRef.current?.focus()}
             aria-label="New chat"
             className="w-11 h-11 -mr-2 flex items-center justify-center"
           >
-            <SquarePen size={22} strokeWidth={1.8} color="#163449" />
+            <SquarePen size={22} strokeWidth={1.8} color="#0A0A0A" />
           </button>
         </div>
         <div className="relative">
@@ -115,13 +115,13 @@ export default function Messages() {
                     style={{ border: '1px solid #EFEFEF' }}>
                     <Avatar user={u} size="md" />
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-sm" style={{ color: '#163449' }}>{u.name}</p>
+                      <p className="font-semibold text-sm" style={{ color: '#0A0A0A' }}>{u.name}</p>
                       {u.churchName && <p className="text-xs" style={{ color: '#8E8E8E' }}>{u.churchName}</p>}
                     </div>
                     {startingConvo === u.id ? (
                       <div className="w-4 h-4 border-2 border-t-transparent rounded-full animate-spin flex-shrink-0" style={{ borderColor: '#2C4055', borderTopColor: 'transparent' }} />
                     ) : (
-                      <span className="text-xs font-semibold flex-shrink-0" style={{ color: '#2C4055' }}>Message</span>
+                      <span className="text-xs font-semibold flex-shrink-0" style={{ color: '#0A0A0A' }}>Message</span>
                     )}
                   </button>
                 ))}
@@ -148,9 +148,9 @@ export default function Messages() {
             ) : convos.length === 0 ? (
               <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="text-center py-16 px-8">
                 <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4" style={{ background: 'rgba(44,64,85,0.08)' }}>
-                  <MessageCircle size={24} strokeWidth={1.8} color="#2C4055" />
+                  <MessageCircle size={24} strokeWidth={1.8} color="#0A0A0A" />
                 </div>
-                <p className="font-semibold" style={{ color: '#163449' }}>No conversations yet</p>
+                <p className="font-semibold" style={{ color: '#0A0A0A' }}>No conversations yet</p>
                 <p className="text-sm mt-1" style={{ color: '#8E8E8E' }}>Find a believer to pray and talk with.</p>
                 <motion.button
                   whileTap={{ scale: 0.97 }}
@@ -170,8 +170,8 @@ export default function Messages() {
                     <Avatar user={c.other} size="md" />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-2">
-                        <p className="text-sm leading-tight truncate" style={{ color: '#163449', fontWeight: c.unread > 0 ? 700 : 600 }}>{c.other?.name}</p>
-                        <span className="text-[10px] flex-shrink-0" style={{ color: c.unread > 0 ? '#2C4055' : '#9AA6AD', fontWeight: c.unread > 0 ? 600 : 400 }}>{getTimeAgo(c.updatedAt)}</span>
+                        <p className="text-sm leading-tight truncate" style={{ color: '#0A0A0A', fontWeight: c.unread > 0 ? 700 : 600 }}>{c.other?.name}</p>
+                        <span className="text-[10px] flex-shrink-0" style={{ color: c.unread > 0 ? '#0A0A0A' : '#9AA6AD', fontWeight: c.unread > 0 ? 600 : 400 }}>{getTimeAgo(c.updatedAt)}</span>
                       </div>
                       <p className="text-xs mt-0.5 truncate" style={{ color: c.unread > 0 ? '#3D4A57' : '#9AA6AD', fontWeight: c.unread > 0 ? 500 : 400 }}>
                         {c.lastMessage?.content || 'Start the conversation'}

@@ -143,9 +143,9 @@ export default function ConfessionDetail() {
       {/* Header */}
       <div className="flex items-center gap-3 px-4 pt-5 pb-3" style={{ borderBottom: '1px solid rgba(22,52,73,0.08)' }}>
         <button onClick={() => navigate(-1)} aria-label="Back" className="p-1 -ml-1">
-          <ChevronLeft size={22} color="#163449" strokeWidth={2} />
+          <ChevronLeft size={22} color="#0A0A0A" strokeWidth={2} />
         </button>
-        <h2 className="text-base font-semibold" style={{ color: '#163449' }}>Confession</h2>
+        <h2 className="text-base font-semibold" style={{ color: '#0A0A0A' }}>Confession</h2>
       </div>
 
       {/* Scrollable body */}
@@ -161,7 +161,7 @@ export default function ConfessionDetail() {
             <div className="flex items-center gap-3 mb-4">
               <AnonAvatar size={40} />
               <div className="flex-1">
-                <p className="text-sm font-medium" style={{ color: '#163449' }}>Anonymous</p>
+                <p className="text-sm font-medium" style={{ color: '#0A0A0A' }}>Anonymous</p>
                 <p className="text-xs" style={{ color: '#9AA6AD' }}>{getTimeAgo(confession.createdAt)}</p>
               </div>
               {confession.category && confession.category !== 'General' && (
@@ -231,7 +231,7 @@ export default function ConfessionDetail() {
                       </>
                     ) : (
                       <>
-                        <p className="text-sm font-medium" style={{ color: '#163449' }}>{cm.commenter.name}</p>
+                        <p className="text-sm font-medium" style={{ color: '#0A0A0A' }}>{cm.commenter.name}</p>
                         {cm.commenter.prayerWarriorBadge && (
                           <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full" style={{ background: 'rgba(44,64,85,0.12)', color: ACCENT }}>🏆</span>
                         )}
@@ -316,7 +316,7 @@ export default function ConfessionDetail() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
             className="fixed bottom-28 left-1/2 -translate-x-1/2 z-50 text-sm font-medium px-5 py-3 rounded-2xl shadow-xl"
-            style={{ background: 'white', color: '#163449', border: '1px solid rgba(22,52,73,0.08)' }}
+            style={{ background: 'white', color: '#0A0A0A', border: '1px solid rgba(22,52,73,0.08)' }}
           >
             {toast}
           </motion.div>

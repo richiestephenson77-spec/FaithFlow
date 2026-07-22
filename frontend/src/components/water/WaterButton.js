@@ -28,7 +28,7 @@ export default function WaterButton({
         border: token.border,
         background: token.background,
         boxShadow: token.boxShadow,
-        color: variant === 'primary' ? '#FFFFFF' : '#163449',
+        color: variant === 'primary' ? '#FFFFFF' : '#0A0A0A',
         fontWeight: 600,
         opacity: disabled ? 0.45 : 1,
         cursor: disabled ? 'not-allowed' : 'pointer',

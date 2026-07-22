@@ -85,7 +85,7 @@ export default function PrayerSession({ session, request, onEnd }) {
       <div className="flex flex-col items-center w-full gap-6">
         <div className="bg-white/10 backdrop-blur rounded-3xl p-5 w-full text-white text-center">
           <p className="text-xs font-bold uppercase tracking-widest mb-2 flex items-center justify-center gap-1.5" style={{ color: 'rgba(255,255,255,0.5)' }}>
-            <HandHeart size={12} color="#2C4055" strokeWidth={2} />
+            <HandHeart size={12} color="#0A0A0A" strokeWidth={2} />
             Prayer in Progress
           </p>
           <h3 className="font-bold text-base mb-2">{request.title}</h3>

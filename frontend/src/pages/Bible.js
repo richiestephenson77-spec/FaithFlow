@@ -235,12 +235,12 @@ export default function Bible() {
       <WaterCard tone="blue" style={{ borderRadius: '0 0 24px 24px', padding: '16px 16px 24px' }}>
         <div className="flex items-center gap-3 mb-4">
           <button onClick={() => navigate(-1)} className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: 'rgba(22,52,73,0.1)' }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#163449" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0A0A0A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="15 18 9 12 15 6"/>
             </svg>
           </button>
           <div>
-            <h2 className="text-3xl leading-tight" style={{ fontFamily: "'Dancing Script', cursive", color: '#163449' }}>Holy Bible</h2>
+            <h2 className="text-3xl leading-tight" style={{ fontFamily: "'Dancing Script', cursive", color: '#0A0A0A' }}>Holy Bible</h2>
             <p className="text-sm" style={{ color: '#4A6674' }}>King James Version</p>
           </div>
         </div>
@@ -284,7 +284,7 @@ export default function Bible() {
             className="w-full flex items-center justify-between px-5 py-2.5 bg-white border-b border-[#EFEFEF]"
           >
             <span className="flex items-center gap-2 text-[13px] text-[#8E8E8E]">
-              <Compass size={14} strokeWidth={1.6} color="#2C4055" />
+              <Compass size={14} strokeWidth={1.6} color="#0A0A0A" />
               Find a verse for how you feel
             </span>
             <X size={12} strokeWidth={1.6} color="#C7C7C7" style={{ transform: 'rotate(45deg)' }} />

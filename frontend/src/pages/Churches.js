@@ -46,7 +46,7 @@ export default function Churches({ embedded = false }) {
         <WaterCard tone="blue" style={{ borderRadius: '0 0 24px 24px', padding: '20px 20px 32px' }}>
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-2xl font-bold" style={{ color: '#163449' }}>Churches</h2>
+              <h2 className="text-2xl font-bold" style={{ color: '#0A0A0A' }}>Churches</h2>
               <p className="text-sm mt-0.5" style={{ color: '#4A6674' }}>Find your faith community</p>
             </div>
             {!myChurch ? (
@@ -135,7 +135,7 @@ function ChurchCard({ church, onClick }) {
         <div className="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 bg-white border-2 border-white shadow-md">
           {church.logo
             ? <img loading="lazy" decoding="async" src={church.logo} alt="" className="w-full h-full object-cover" />
-            : <div className="w-full h-full water-tile-blue flex items-center justify-center text-lg" style={{ color: '#163449' }}>⛪</div>
+            : <div className="w-full h-full water-tile-blue flex items-center justify-center text-lg" style={{ color: '#0A0A0A' }}>⛪</div>
           }
         </div>
         <div className="flex-1 min-w-0 pt-5">

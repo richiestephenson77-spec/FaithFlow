@@ -1,6 +1,6 @@
 export default function Logo({ size = 'md', light = true }) {
   // light = white logo (for dark/colored backgrounds); otherwise dark ink
-  const color = light ? 'white' : '#163449';
+  const color = light ? 'white' : '#0A0A0A';
   // Cross-T follows the text color so it stays visible on any background
   const barShadow = light ? '0 0 1px rgba(0,0,0,0.3)' : 'none';
 

@@ -76,7 +76,7 @@ export default function ChurchPage() {
           <div className="w-16 h-16 rounded-2xl overflow-hidden border-4 border-white shadow-lg flex-shrink-0">
             {church.logo
               ? <img loading="lazy" decoding="async" src={church.logo} alt="" className="w-full h-full object-cover" />
-              : <div className="w-full h-full water-tile-blue flex items-center justify-center text-3xl" style={{ color: '#163449' }}>⛪</div>
+              : <div className="w-full h-full water-tile-blue flex items-center justify-center text-3xl" style={{ color: '#0A0A0A' }}>⛪</div>
             }
           </div>
           <div className="flex-1 pb-1">
