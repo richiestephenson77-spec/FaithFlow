@@ -11,6 +11,7 @@ import { hapticMedium, hapticLight } from '../utils/haptics';
 import { useToast } from '../contexts/ToastContext';
 import ReportSheet from '../components/ReportSheet';
 import ImageLightbox from '../components/ImageLightbox';
+import { getChatTheme } from '../utils/chatThemes';
 import CallOverlay from '../components/CallOverlay';
 
 function getTimeStr(d) {
@@ -408,35 +409,38 @@ export default function ChatThread() {
     };
   }, [recording]);
 
+  const theme = getChatTheme(chatSettings?.theme);
+  const iconTint = theme.headerText === '#FFFFFF' ? 'rgba(255,255,255,0.12)' : 'rgba(10,10,10,0.06)';
+
   return (
-    <div className="flex flex-col h-full bg-gray-50">
+    <div className="flex flex-col h-full" style={{ background: theme.background }}>
       {/* Header — slim single-row messaging bar */}
-      <div className="water-tile-blue flex items-center gap-2 flex-shrink-0 px-3" style={{ height: 60, borderRadius: '0 0 20px 20px' }}>
-        <button onClick={() => navigate('/messages')} aria-label="Back" className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(22,52,73,0.1)' }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0A0A0A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <div className="flex items-center gap-2 flex-shrink-0 px-3" style={{ height: 60, background: theme.headerBg, borderBottom: `1px solid ${theme.theirBubbleBorder}` }}>
+        <button onClick={() => navigate('/messages')} aria-label="Back" className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: iconTint }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={theme.headerText} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="15 18 9 12 15 6"/>
           </svg>
         </button>
         <button
-          onClick={() => other && navigate(`/profile/${other.id}`)}
+          onClick={() => navigate(`/messages/${conversationId}/details`)}
           className="flex items-center gap-2.5 flex-1 min-w-0 text-left"
         >
           {other && <Avatar user={other} size="sm" />}
-          <p className="font-bold text-sm leading-tight truncate" style={{ color: '#0A0A0A' }}>{other?.name || '...'}</p>
+          <p className="font-bold text-sm leading-tight truncate" style={{ color: theme.headerText }}>{other?.name || '...'}</p>
         </button>
         <button
           onClick={() => other && setActiveCall({ direction: 'out', callType: 'audio' })}
           aria-label="Audio call"
-          className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(22,52,73,0.08)' }}
+          className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: iconTint }}
         >
-          <Phone size={18} color="#0A0A0A" strokeWidth={1.8} />
+          <Phone size={18} color={theme.headerText} strokeWidth={1.8} />
         </button>
         <button
           onClick={() => other && setActiveCall({ direction: 'out', callType: 'video' })}
           aria-label="Video call"
-          className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(22,52,73,0.08)' }}
+          className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: iconTint }}
         >
-          <Video size={18} color="#0A0A0A" strokeWidth={1.8} />
+          <Video size={18} color={theme.headerText} strokeWidth={1.8} />
         </button>
       </div>
 
@@ -548,13 +552,16 @@ export default function ChatThread() {
                   onMouseLeave={cancelPress}
                   onContextMenu={e => e.preventDefault()}
                   className={`${m.imageUrl && !m.isDeleted ? 'p-1' : 'px-4 py-2.5'} rounded-2xl text-sm leading-relaxed select-none cursor-pointer ${
-                    m.isDeleted
-                      ? 'bg-gray-100 text-gray-400 italic rounded-br-sm rounded-bl-sm'
-                      : isMe
-                        ? 'bg-[#2C4055] text-white rounded-br-sm'
-                        : 'bg-white border border-[#EFEFEF] text-gray-800 rounded-bl-sm'
+                    m.isDeleted ? 'italic rounded-br-sm rounded-bl-sm' : isMe ? 'rounded-br-sm' : 'rounded-bl-sm'
                   }`}
-                  style={{ WebkitTouchCallout: 'none' }}
+                  style={{
+                    WebkitTouchCallout: 'none',
+                    ...(m.isDeleted
+                      ? { background: '#F0F0F0', color: '#9AA6AD' }
+                      : isMe
+                        ? { background: theme.myBubble, color: theme.myBubbleText }
+                        : { background: theme.theirBubble, color: theme.theirBubbleText, border: `1px solid ${theme.theirBubbleBorder}` }),
+                  }}
                 >
                   {m.isDeleted
                     ? 'Message unsent'
@@ -672,7 +679,7 @@ export default function ChatThread() {
       )}
 
       {/* Input */}
-      <div className="px-4 py-2.5 flex items-center gap-2 flex-shrink-0 pb-safe relative bg-white" style={{ borderTop: '1px solid #EFEFEF' }}>
+      <div className="px-4 py-2.5 flex items-center gap-2 flex-shrink-0 pb-safe relative" style={{ background: theme.composerBg, borderTop: `1px solid ${theme.theirBubbleBorder}` }}>
         <input ref={imageInputRef} type="file" accept="image/*" onChange={handleImagePick} className="hidden" />
         {/* Attachment menu */}
         {showAttach && (
