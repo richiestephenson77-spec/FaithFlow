@@ -214,7 +214,9 @@ export default function ChatThread() {
 
   function handleInputChange(e) {
     setInput(e.target.value);
-    if (socket) {
+    // Typing indicator: don't broadcast my own typing if I've turned it off
+    // (I can still SEE the other person's typing — this only gates outbound).
+    if (socket && chatSettings?.typingIndicatorEnabled !== false) {
       socket.emit('typing', { conversationId, userName: user?.name });
       clearTimeout(typingTimer.current);
       typingTimer.current = setTimeout(() => socket.emit('stop_typing', { conversationId }), 1500);
