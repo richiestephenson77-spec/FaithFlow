@@ -26,6 +26,44 @@ async function blockGuard(conversationId, meId) {
   return null;
 }
 
+// ── Vanish mode ──────────────────────────────────────────────────────────────
+// A conversation is "in vanish mode" if EITHER participant has it on; new
+// messages sent then are flagged isVanish. The loop is: recipient opens the
+// thread -> unseen vanish messages get seenAt; recipient leaves (or anyone
+// re-fetches) -> seen vanish messages are soft-deleted for BOTH sides.
+
+async function conversationVanishOn(conversationId) {
+  const on = await prisma.conversationParticipant.findFirst({
+    where: { conversationId, vanishMode: true }, select: { id: true },
+  });
+  return !!on;
+}
+
+// Mark the OTHER person's unseen vanish messages as seen by this reader.
+async function markSeenVanish(conversationId, readerId) {
+  await prisma.message.updateMany({
+    where: { conversationId, isVanish: true, isDeleted: false, seenAt: null, senderId: { not: readerId } },
+    data: { seenAt: new Date() },
+  });
+}
+
+// Soft-delete vanish messages already seen by the recipient: strip content and
+// media, mark deleted for both, and tell the open thread over the socket.
+async function sweepVanish(io, conversationId) {
+  const gone = await prisma.message.findMany({
+    where: { conversationId, isVanish: true, isDeleted: false, seenAt: { not: null } },
+    select: { id: true },
+  });
+  if (gone.length === 0) return [];
+  const ids = gone.map(g => g.id);
+  await prisma.message.updateMany({
+    where: { id: { in: ids } },
+    data: { isDeleted: true, content: '', audioUrl: null, imageUrl: null, reaction: null, replyToId: null },
+  });
+  if (io) io.to(`conversation:${conversationId}`).emit('messages_vanished', { conversationId, ids });
+  return ids;
+}
+
 async function getConversations(req, res) {
   try {
     const convos = await prisma.conversation.findMany({
@@ -136,6 +174,10 @@ async function getMessages(req, res) {
       return res.status(403).json({ error: 'This conversation is unavailable.' });
     }
 
+    const io = req.app.get('io');
+    // Vanish: delete anything already seen (from a prior visit) before returning.
+    await sweepVanish(io, conversationId);
+
     const messages = await prisma.message.findMany({
       where: { conversationId, isRemoved: false }, // admin-removed messages excluded
       orderBy: { createdAt: 'asc' },
@@ -153,12 +195,19 @@ async function getMessages(req, res) {
     if (!receiptsVisible) {
       hydrated = hydrated.map(m => (m.senderId === req.user.id ? { ...m, isRead: false } : m));
     }
+
+    // Vanish: mark the vanish messages now on screen as seen, so they're swept
+    // when this user next leaves / re-opens the thread.
+    await markSeenVanish(conversationId, req.user.id);
+    const vanishActive = await conversationVanishOn(conversationId);
+
     // Per-user conversation settings so the thread opens with the right theme.
     res.json({
       messages: hydrated,
       settings: {
         theme: participant.theme,
-        vanishMode: participant.vanishMode,
+        vanishMode: participant.vanishMode,       // this user's own toggle
+        vanishActive,                             // conversation-level (either side) — drives the banner
         readReceiptsEnabled: participant.readReceiptsEnabled,
         typingIndicatorEnabled: participant.typingIndicatorEnabled,
       },
@@ -209,7 +258,8 @@ async function getConversationMedia(req, res) {
     if (!participant) return res.status(403).json({ error: 'Not in this conversation' });
 
     const rows = await prisma.message.findMany({
-      where: { conversationId, isRemoved: false, isDeleted: false, imageUrl: { not: null } },
+      // Vanish photos are ephemeral and never belong in the permanent grid.
+      where: { conversationId, isRemoved: false, isDeleted: false, isVanish: false, imageUrl: { not: null } },
       orderBy: { createdAt: 'desc' },
       select: { id: true, imageUrl: true, createdAt: true },
     });
@@ -217,6 +267,23 @@ async function getConversationMedia(req, res) {
   } catch (err) {
     console.error('getConversationMedia error:', err);
     res.status(500).json({ error: 'Failed to get media' });
+  }
+}
+
+// Called when a user leaves the thread: sweep vanish messages they've seen.
+async function leaveConversation(req, res) {
+  const { conversationId } = req.params;
+  try {
+    const participant = await prisma.conversationParticipant.findUnique({
+      where: { conversationId_userId: { conversationId, userId: req.user.id } },
+      select: { id: true },
+    });
+    if (!participant) return res.status(403).json({ error: 'Not in this conversation' });
+    const ids = await sweepVanish(req.app.get('io'), conversationId);
+    res.json({ vanished: ids });
+  } catch (err) {
+    console.error('leaveConversation error:', err);
+    res.status(500).json({ error: 'Failed' });
   }
 }
 
@@ -231,6 +298,7 @@ async function sendMessage(req, res) {
     if (!participant) return res.status(403).json({ error: 'Not in this conversation' });
     const blockMsg1 = await blockGuard(conversationId, req.user.id);
     if (blockMsg1) return res.status(403).json({ error: blockMsg1 });
+    const vanish1 = await conversationVanishOn(conversationId);
 
     // Only allow replying to a message that belongs to this same conversation
     let validReplyToId = null;
@@ -241,7 +309,7 @@ async function sendMessage(req, res) {
 
     const [message] = await prisma.$transaction([
       prisma.message.create({
-        data: { conversationId, senderId: req.user.id, content: content.trim(), replyToId: validReplyToId },
+        data: { conversationId, senderId: req.user.id, content: content.trim(), replyToId: validReplyToId, isVanish: vanish1 },
         include: {
           sender: { select: { id: true, name: true, profilePhoto: true } },
           replyTo: { select: { id: true, content: true, senderId: true, audioUrl: true } },
@@ -291,10 +359,11 @@ async function sendAudioMessage(req, res) {
     if (!participant) return res.status(403).json({ error: 'Not in this conversation' });
     const blockMsg2 = await blockGuard(conversationId, req.user.id);
     if (blockMsg2) return res.status(403).json({ error: blockMsg2 });
+    const vanish2 = await conversationVanishOn(conversationId);
 
     const [message] = await prisma.$transaction([
       prisma.message.create({
-        data: { conversationId, senderId: req.user.id, content: '', audioUrl, audioDuration },
+        data: { conversationId, senderId: req.user.id, content: '', audioUrl, audioDuration, isVanish: vanish2 },
         include: { sender: { select: { id: true, name: true, profilePhoto: true } } },
       }),
       prisma.conversation.update({ where: { id: conversationId }, data: { updatedAt: new Date() } }),
@@ -339,10 +408,11 @@ async function sendImageMessage(req, res) {
     if (!participant) return res.status(403).json({ error: 'Not in this conversation' });
     const blockMsg3 = await blockGuard(conversationId, req.user.id);
     if (blockMsg3) return res.status(403).json({ error: blockMsg3 });
+    const vanish3 = await conversationVanishOn(conversationId);
 
     const [message] = await prisma.$transaction([
       prisma.message.create({
-        data: { conversationId, senderId: req.user.id, content: '', imageUrl },
+        data: { conversationId, senderId: req.user.id, content: '', imageUrl, isVanish: vanish3 },
         include: { sender: { select: { id: true, name: true, profilePhoto: true } } },
       }),
       prisma.conversation.update({ where: { id: conversationId }, data: { updatedAt: new Date() } }),
@@ -408,6 +478,7 @@ async function sharePrayerRequest(req, res) {
     if (!participant) return res.status(403).json({ error: 'Not in this conversation' });
     const blockMsg4 = await blockGuard(conversationId, req.user.id);
     if (blockMsg4) return res.status(403).json({ error: blockMsg4 });
+    const vanish4 = await conversationVanishOn(conversationId);
 
     // Only allow sharing your OWN prayer request
     const pr = await prisma.prayerRequest.findUnique({ where: { id: prayerRequestId }, select: { userId: true } });
@@ -416,7 +487,7 @@ async function sharePrayerRequest(req, res) {
 
     const [message] = await prisma.$transaction([
       prisma.message.create({
-        data: { conversationId, senderId: req.user.id, content: '', sharedPrayerRequestId: prayerRequestId },
+        data: { conversationId, senderId: req.user.id, content: '', sharedPrayerRequestId: prayerRequestId, isVanish: vanish4 },
         include: { sender: { select: { id: true, name: true, profilePhoto: true } } },
       }),
       prisma.conversation.update({ where: { id: conversationId }, data: { updatedAt: new Date() } }),
@@ -462,6 +533,10 @@ async function markRead(req, res) {
       where: { conversationId_userId: { conversationId, userId: req.user.id } },
       data: { lastReadAt: new Date() },
     });
+
+    // Vanish: the other person's messages the reader just saw become eligible
+    // for deletion on their next leave/fetch.
+    await markSeenVanish(conversationId, req.user.id);
 
     // Live "Seen" receipt — only emit when BOTH participants keep receipts on,
     // so a user with read receipts off never leaks their read status.
@@ -527,4 +602,4 @@ async function setReaction(req, res) {
   }
 }
 
-module.exports = { getConversations, startConversation, getMessages, sendMessage, sendAudioMessage, sendImageMessage, markRead, getTotalUnread, setReaction, unsendMessage, sharePrayerRequest, updateConversationSettings, getConversationMedia };
+module.exports = { getConversations, startConversation, getMessages, sendMessage, sendAudioMessage, sendImageMessage, markRead, getTotalUnread, setReaction, unsendMessage, sharePrayerRequest, updateConversationSettings, getConversationMedia, leaveConversation };

@@ -204,6 +204,8 @@ model Message {
   isDeleted      Boolean      @default(false)
   isRemoved      Boolean      @default(false)
   removedReason  String?
+  isVanish       Boolean      @default(false)
+  seenAt         DateTime?
   sharedPrayerRequestId String?
   createdAt      DateTime     @default(now())
   isRead         Boolean      @default(false)

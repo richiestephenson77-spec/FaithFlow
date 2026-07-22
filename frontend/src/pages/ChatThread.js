@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback, Fragment } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Mic, Play, Pause, Phone, Video } from 'lucide-react';
+import { Mic, Play, Pause, Phone, Video, EyeOff } from 'lucide-react';
 import api from '../utils/api';
 import Avatar from '../components/Avatar';
 import { useAuth } from '../contexts/AuthContext';
@@ -192,18 +192,29 @@ export default function ChatThread() {
         setMessages(prev => prev.map(m => (m.senderId === user?.id ? { ...m, isRead: true } : m)));
       }
     });
+    socket.on('messages_vanished', ({ ids }) => {
+      // Vanish messages the recipient saw + left: gone for both sides.
+      if (!Array.isArray(ids) || !ids.length) return;
+      const gone = new Set(ids);
+      setMessages(prev => prev.map(m => gone.has(m.id)
+        ? { ...m, isDeleted: true, content: '', audioUrl: null, imageUrl: null, reaction: null, replyTo: null }
+        : m));
+    });
     socket.on('call:incoming', (payload) => {
       // One call at a time; ignore new invites while a call is active
       setActiveCall(prev => prev || { direction: 'in', callType: payload.callType, fromUser: payload.fromUser, fromSocketId: payload.fromSocketId });
     });
     return () => {
       socket.emit('leave_conversation', conversationId);
+      // Sweep vanish messages this user has seen (deletes them for both sides).
+      api.post(`/messages/conversations/${conversationId}/leave`).catch(() => {});
       socket.off('message_received');
       socket.off('typing');
       socket.off('stop_typing');
       socket.off('message:reaction');
       socket.off('message:unsend');
       socket.off('messages_read');
+      socket.off('messages_vanished');
       socket.off('call:incoming');
     };
   }, [socket, conversationId]);
@@ -509,6 +520,14 @@ export default function ChatThread() {
         <div className="fixed inset-0" style={{ zIndex: 10 }} onClick={() => setPickerFor(null)} />
       )}
 
+      {/* Vanish-mode banner — shown when either participant has it on */}
+      {chatSettings?.vanishActive && (
+        <div className="flex items-center justify-center gap-1.5 px-4 py-2 flex-shrink-0" style={{ background: 'rgba(44,64,85,0.06)' }}>
+          <EyeOff size={13} strokeWidth={1.9} color="#5C6672" />
+          <span className="text-[11px] font-medium" style={{ color: '#5C6672' }}>Vanish mode is on — messages disappear after they're seen</span>
+        </div>
+      )}
+
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-2">
         {loadingMessages && messages.length === 0 && (
@@ -652,7 +671,10 @@ export default function ChatThread() {
                 )}
               </div>
               {showTime && (
-                <p className="text-[10px] text-gray-400 mt-0.5 px-1">{getTimeStr(m.createdAt)}</p>
+                <p className="text-[10px] text-gray-400 mt-0.5 px-1 flex items-center gap-1">
+                  {m.isVanish && !m.isDeleted && <EyeOff size={10} strokeWidth={2} color="#9AA6AD" />}
+                  {getTimeStr(m.createdAt)}
+                </p>
               )}
               {i === messages.length - 1 && isMe && m.isRead && !m.isDeleted && (
                 <p className="text-[10px] text-gray-400 mt-0.5 px-1">Seen</p>
