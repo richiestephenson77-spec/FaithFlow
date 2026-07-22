@@ -40,18 +40,25 @@ async function getConversations(req, res) {
     // Moderation: hide conversations with users in a block relationship
     const blockedIds = new Set(await getBlockedUserIds(req.user.id));
 
-    const result = (await Promise.all(convos.map(async (c) => {
+    // Unread counts for ALL conversations in a single groupBy — previously this
+    // fired one message.count per conversation (N parallel queries per request,
+    // a major source of connection-pool pressure for chatty users).
+    const unreadRows = await prisma.message.groupBy({
+      by: ['conversationId'],
+      where: {
+        conversationId: { in: convos.map(c => c.id) },
+        senderId: { not: req.user.id },
+        isRead: false,
+      },
+      _count: { _all: true },
+    });
+    const unreadByConvo = new Map(unreadRows.map(r => [r.conversationId, r._count._all]));
+
+    const result = convos.map((c) => {
       const other = c.participants.find(p => p.user.id !== req.user.id)?.user;
       if (other && blockedIds.has(other.id)) return null; // hidden from both sides
-      const unread = await prisma.message.count({
-        where: {
-          conversationId: c.id,
-          senderId: { not: req.user.id },
-          isRead: false,
-        },
-      });
-      return { id: c.id, other, lastMessage: c.messages[0] || null, unread, updatedAt: c.updatedAt };
-    }))).filter(Boolean);
+      return { id: c.id, other, lastMessage: c.messages[0] || null, unread: unreadByConvo.get(c.id) || 0, updatedAt: c.updatedAt };
+    }).filter(Boolean);
 
     res.json(result);
   } catch {
