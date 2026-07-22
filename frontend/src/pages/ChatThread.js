@@ -193,12 +193,10 @@ export default function ChatThread() {
       }
     });
     socket.on('messages_vanished', ({ ids }) => {
-      // Vanish messages the recipient saw + left: gone for both sides.
+      // Vanish messages disappear COMPLETELY — remove the rows, no tombstone.
       if (!Array.isArray(ids) || !ids.length) return;
       const gone = new Set(ids);
-      setMessages(prev => prev.map(m => gone.has(m.id)
-        ? { ...m, isDeleted: true, content: '', audioUrl: null, imageUrl: null, reaction: null, replyTo: null }
-        : m));
+      setMessages(prev => prev.filter(m => !gone.has(m.id)));
     });
     socket.on('call:incoming', (payload) => {
       // One call at a time; ignore new invites while a call is active

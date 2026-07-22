@@ -51,15 +51,14 @@ async function markSeenVanish(conversationId, readerId) {
 // media, mark deleted for both, and tell the open thread over the socket.
 async function sweepVanish(io, conversationId) {
   const gone = await prisma.message.findMany({
-    where: { conversationId, isVanish: true, isDeleted: false, seenAt: { not: null } },
+    where: { conversationId, isVanish: true, seenAt: { not: null } },
     select: { id: true },
   });
   if (gone.length === 0) return [];
   const ids = gone.map(g => g.id);
-  await prisma.message.updateMany({
-    where: { id: { in: ids } },
-    data: { isDeleted: true, content: '', audioUrl: null, imageUrl: null, reaction: null, replyToId: null },
-  });
+  // HARD delete — vanish messages leave no tombstone ("Message unsent" is the
+  // unsend path and must never show for a vanish deletion).
+  await prisma.message.deleteMany({ where: { id: { in: ids } } });
   if (io) io.to(`conversation:${conversationId}`).emit('messages_vanished', { conversationId, ids });
   return ids;
 }
