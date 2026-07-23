@@ -70,10 +70,22 @@ const messageImageStorage = new CloudinaryStorage({
 const uploadMessageImage = multer({ storage: messageImageStorage, limits: { fileSize: 15 * 1024 * 1024 } })
   .single('image');
 
+const cellImageStorage = new CloudinaryStorage({
+  cloudinary,
+  params: {
+    folder: 'faithflow/cells',
+    allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
+    transformation: [{ width: 600, height: 600, crop: 'fill' }],
+  },
+});
+
+const uploadCellImage = multer({ storage: cellImageStorage, limits: { fileSize: 10 * 1024 * 1024 } })
+  .single('image');
+
 const uploadPost = multer({ storage: postStorage, limits: { fileSize: 50 * 1024 * 1024 } })
   .array('media', 10);
 
 const uploadChurch = multer({ storage: churchStorage, limits: { fileSize: 10 * 1024 * 1024 } })
   .fields([{ name: 'logo', maxCount: 1 }, { name: 'coverPhoto', maxCount: 1 }]);
 
-module.exports = { uploadProfile, uploadPost, uploadChurch, uploadAudio, uploadMessageImage };
+module.exports = { uploadProfile, uploadPost, uploadChurch, uploadAudio, uploadMessageImage, uploadCellImage };
