@@ -58,8 +58,8 @@ async function loadContent(contentType, contentId) {
       return u && { kind: 'PROFILE', name: u.name, bio: u.bio, isSuspended: u.isSuspended, authorId: u.id };
     }
     case 'PRAYER_CELL': {
-      const cell = await prisma.prayerCell.findUnique({ where: { id: contentId }, include: { host: { select: { id: true, name: true } } } });
-      return cell && { kind: 'PRAYER_CELL', isActive: cell.isActive, author: cell.host, authorId: cell.hostId };
+      const cell = await prisma.prayerCell.findUnique({ where: { id: contentId }, include: { creator: { select: { id: true, name: true } } } });
+      return cell && { kind: 'PRAYER_CELL', name: cell.name, isActive: false, author: cell.creator, authorId: cell.creatorId };
     }
     default:
       return null;

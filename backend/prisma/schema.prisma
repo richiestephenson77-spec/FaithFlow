@@ -92,8 +92,11 @@ model User {
 
   autoDownloadMedia     Boolean @default(true)
 
-  hostedCells     PrayerCell[]        @relation("PrayerCellHost")
-  cellSessions    PrayerCellSession[] @relation("PrayerCellGuest")
+  prayerCellsCreated              PrayerCell[]                   @relation("PrayerCellCreator")
+  prayerCellMemberships           PrayerCellMember[]             @relation("PrayerCellMemberships")
+  prayerCellJoinRequests          PrayerCellJoinRequest[]        @relation("PrayerCellJoinRequests")
+  prayerCellSessionsStarted       PrayerCellSession[]            @relation("PrayerCellSessionStarter")
+  prayerCellSessionParticipations PrayerCellSessionParticipant[] @relation("PrayerCellSessionParticipations")
 
   gender          String?
 
@@ -142,29 +145,86 @@ model Block {
   @@map("blocks")
 }
 
+// A persistent group community (like a church small group) that can also host
+// live audio prayer sessions. Was previously a transient 1-host live room.
 model PrayerCell {
-  id           String              @id @default(cuid())
-  hostId       String
-  host         User                @relation("PrayerCellHost", fields: [hostId], references: [id], onDelete: Cascade)
-  isActive     Boolean             @default(true)
-  startedAt    DateTime            @default(now())
-  endedAt      DateTime?
-  sessionCount Int                 @default(0)
+  id            String    @id @default(cuid())
+  name          String
+  description   String?
+  imageUrl      String?
+  creatorId     String
+  creator       User      @relation("PrayerCellCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  joinPolicy    String    @default("open") // "open" | "request"
+  totalSessions Int       @default(0)
+  totalMinutes  Int       @default(0)
+  lastActiveAt  DateTime?
+  createdAt     DateTime  @default(now())
+
+  members      PrayerCellMember[]
+  joinRequests PrayerCellJoinRequest[]
   sessions     PrayerCellSession[]
 
+  @@index([creatorId])
   @@map("prayer_cells")
 }
 
-model PrayerCellSession {
+// Membership + role. The creator is auto-added as admin on cell creation.
+model PrayerCellMember {
   id       String     @id @default(cuid())
   cellId   String
-  guestId  String
+  userId   String
+  role     String     @default("member") // "admin" | "member"
   joinedAt DateTime   @default(now())
-  leftAt   DateTime?
   cell     PrayerCell @relation(fields: [cellId], references: [id], onDelete: Cascade)
-  guest    User       @relation("PrayerCellGuest", fields: [guestId], references: [id], onDelete: Cascade)
+  user     User       @relation("PrayerCellMemberships", fields: [userId], references: [id], onDelete: Cascade)
 
+  @@unique([cellId, userId])
+  @@index([userId])
+  @@map("prayer_cell_members")
+}
+
+// A pending/approved/denied request to join a "request"-policy cell.
+model PrayerCellJoinRequest {
+  id        String     @id @default(cuid())
+  cellId    String
+  userId    String
+  status    String     @default("pending") // "pending" | "approved" | "denied"
+  createdAt DateTime   @default(now())
+  cell      PrayerCell @relation(fields: [cellId], references: [id], onDelete: Cascade)
+  user      User       @relation("PrayerCellJoinRequests", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([cellId, userId])
+  @@index([cellId, status])
+  @@map("prayer_cell_join_requests")
+}
+
+// A live audio prayer session belonging to a cell. Multiple members can join.
+model PrayerCellSession {
+  id           String     @id @default(cuid())
+  cellId       String
+  startedById  String
+  startedAt    DateTime   @default(now())
+  endedAt      DateTime?
+  isActive     Boolean    @default(true)
+  cell         PrayerCell @relation(fields: [cellId], references: [id], onDelete: Cascade)
+  startedBy    User       @relation("PrayerCellSessionStarter", fields: [startedById], references: [id], onDelete: Cascade)
+  participants PrayerCellSessionParticipant[]
+
+  @@index([cellId])
   @@map("prayer_cell_sessions")
+}
+
+model PrayerCellSessionParticipant {
+  id        String            @id @default(cuid())
+  sessionId String
+  userId    String
+  joinedAt  DateTime          @default(now())
+  leftAt    DateTime?
+  session   PrayerCellSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user      User              @relation("PrayerCellSessionParticipations", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, userId])
+  @@map("prayer_cell_session_participants")
 }
 
 model Conversation {
