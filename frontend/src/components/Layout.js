@@ -106,7 +106,9 @@ export default function Layout() {
   const location = useLocation();
   const hideNavThread = HIDE_NAV_ON.some(p => location.pathname.startsWith(p) && location.pathname.length > p.length);
   const hideNavConfession = HIDE_NAV_EXACT.some(p => location.pathname.startsWith(p));
-  const hideNav = hideNavThread || hideNavConfession;
+  // Immersive live prayer session room (its own leave control).
+  const hideNavSession = /^\/prayer-cells\/[^/]+\/(session|host|guest)$/.test(location.pathname);
+  const hideNav = hideNavThread || hideNavConfession || hideNavSession;
   const showHeader = SHOW_HEADER_ON.includes(location.pathname);
   // Pages that fill the viewport with their own flex/scroll layout (chat thread,
   // confession detail, immersive prayer, bible map) need a height:100% wrapper so

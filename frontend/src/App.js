@@ -52,8 +52,7 @@ import Pastors from './pages/Pastors';
 import MyPastorRequests from './pages/MyPastorRequests';
 import PastorDashboard from './pages/PastorDashboard';
 import PrayerCellDirectory from './pages/PrayerCellDirectory';
-import PrayerCellHostRoom from './pages/PrayerCellHostRoom';
-import PrayerCellGuestRoom from './pages/PrayerCellGuestRoom';
+import PrayerCellSessionRoom from './pages/PrayerCellSessionRoom';
 import Layout from './components/Layout';
 import LoadingScreen from './components/LoadingScreen';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -127,8 +126,7 @@ function AppRoutes() {
         <Route path="confessions" element={<Confessions />} />
         <Route path="/confessions/:id" element={<ConfessionDetail />} />
         <Route path="prayer-cells" element={<PrayerCellDirectory />} />
-        <Route path="prayer-cells/:cellId/host" element={<PrayerCellHostRoom />} />
-        <Route path="prayer-cells/:cellId/guest" element={<PrayerCellGuestRoom />} />
+        <Route path="prayer-cells/:cellId/session" element={<PrayerCellSessionRoom />} />
         <Route path="find-churches" element={<FindChurches />} />
         <Route path="find-churches/:placeId" element={<FindChurchDetail />} />
         <Route path="churches-hub" element={<ChurchesHub />} />
