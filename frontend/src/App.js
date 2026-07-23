@@ -53,6 +53,8 @@ import MyPastorRequests from './pages/MyPastorRequests';
 import PastorDashboard from './pages/PastorDashboard';
 import PrayerCellDirectory from './pages/PrayerCellDirectory';
 import CreatePrayerCell from './pages/CreatePrayerCell';
+import PrayerCellDetail from './pages/PrayerCellDetail';
+import PrayerCellInfo from './pages/PrayerCellInfo';
 import PrayerCellSessionRoom from './pages/PrayerCellSessionRoom';
 import Layout from './components/Layout';
 import LoadingScreen from './components/LoadingScreen';
@@ -128,6 +130,8 @@ function AppRoutes() {
         <Route path="/confessions/:id" element={<ConfessionDetail />} />
         <Route path="prayer-cells" element={<PrayerCellDirectory />} />
         <Route path="prayer-cells/create" element={<CreatePrayerCell />} />
+        <Route path="prayer-cells/:cellId" element={<PrayerCellDetail />} />
+        <Route path="prayer-cells/:cellId/info" element={<PrayerCellInfo />} />
         <Route path="prayer-cells/:cellId/session" element={<PrayerCellSessionRoom />} />
         <Route path="find-churches" element={<FindChurches />} />
         <Route path="find-churches/:placeId" element={<FindChurchDetail />} />
