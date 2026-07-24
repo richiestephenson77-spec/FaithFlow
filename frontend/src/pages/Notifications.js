@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bell, Heart, MessageCircle, UserPlus, Sparkles, Users, HandHeart, Flame, RefreshCw } from 'lucide-react';
+import { Bell, Heart, MessageCircle, UserPlus, Sparkles, Users, HandHeart, Flame, RefreshCw, Radio, CheckCircle2 } from 'lucide-react';
 import api from '../utils/api';
 import { useSocket } from '../contexts/SocketContext';
 import Avatar from '../components/Avatar';
@@ -29,6 +29,10 @@ const TYPE_META = {
   PARTNER_SHARED_PRAYER:   { Icon: Users,         color: '#0A0A0A', bg: 'rgba(44,64,85,0.08)' },
   REQUEST_NEEDS_BUMP:      { Icon: RefreshCw,     color: '#0A0A0A', bg: 'rgba(44,64,85,0.08)' },
   PRAYER_PARTNER_MATCHED:  { Icon: Users,         color: '#0A0A0A', bg: '#fffbeb' },
+  CELL_MEMBER_JOINED:      { Icon: Users,         color: '#2C4055', bg: 'rgba(44,64,85,0.08)' },
+  CELL_JOIN_REQUEST:       { Icon: UserPlus,      color: '#2C4055', bg: 'rgba(44,64,85,0.08)' },
+  CELL_REQUEST_APPROVED:   { Icon: CheckCircle2,  color: '#10b981', bg: '#f0fdf4' },
+  CELL_SESSION_STARTED:    { Icon: Radio,         color: '#ED4956', bg: 'rgba(237,73,86,0.1)' },
 };
 
 // Tap-through destination per notification type. refId carries the entity id.
@@ -40,6 +44,12 @@ function routeFor(n) {
     case 'PRAYER_ANSWERED':        return '/answered';
     case 'CONFESSION_COMMENT':     return n.refId ? `/confessions/${n.refId}` : '/confessions';
     case 'STREAK_AT_RISK':         return '/prayer';
+    // Cell notifications: join/request → group info (approve/deny lives there),
+    // approved → the cell, session started → straight into the live room.
+    case 'CELL_MEMBER_JOINED':
+    case 'CELL_JOIN_REQUEST':      return n.refId ? `/prayer-cells/${n.refId}/info` : '/prayer-cells';
+    case 'CELL_REQUEST_APPROVED':  return n.refId ? `/prayer-cells/${n.refId}` : '/prayer-cells';
+    case 'CELL_SESSION_STARTED':   return n.refId ? `/prayer-cells/${n.refId}/session` : '/prayer-cells';
     default:                       return n.sender?.id ? `/profile/${n.sender.id}` : null;
   }
 }

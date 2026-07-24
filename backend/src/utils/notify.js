@@ -13,6 +13,9 @@ const PREF_BY_TYPE = {
   CONFESSION_COMMENT: 'notifyConfessionComment',
   STREAK_AT_RISK: 'notifyStreakReminder',
   PARTNER_SHARED_PRAYER: 'notifyPartnerActivity',
+  // A live cell session starting is a "prayer started" event — gate it on the
+  // same preference. The membership/request cell types are direct and always sent.
+  CELL_SESSION_STARTED: 'notifyPrayerStarted',
 };
 
 // Create a persisted notification (respecting the recipient's per-type setting)

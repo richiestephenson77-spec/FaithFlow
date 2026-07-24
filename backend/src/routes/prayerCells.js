@@ -4,8 +4,23 @@ const prisma = require('../db');
 const { authenticate } = require('../middleware/auth');
 const { isBlockedBetween } = require('../utils/blocks');
 const { uploadCellImage } = require('../services/cloudinaryService');
+const { createNotification } = require('../utils/notify');
 
 const USER_CARD = { id: true, name: true, profilePhoto: true, isVerifiedPastor: true };
+
+// First name of the acting user, for notification copy.
+async function actorName(userId) {
+  const u = await prisma.user.findUnique({ where: { id: userId }, select: { name: true } });
+  return u?.name || 'Someone';
+}
+
+// Admin userIds of a cell (creator + promoted admins).
+async function adminIdsFor(cellId) {
+  const admins = await prisma.prayerCellMember.findMany({
+    where: { cellId, role: 'admin' }, select: { userId: true },
+  });
+  return admins.map(a => a.userId);
+}
 
 // --- helpers ---------------------------------------------------------------
 
@@ -286,7 +301,7 @@ router.post('/:cellId/join', authenticate, async (req, res) => {
   try {
     const cell = await prisma.prayerCell.findUnique({
       where: { id: req.params.cellId },
-      select: { id: true, joinPolicy: true, creatorId: true },
+      select: { id: true, name: true, joinPolicy: true, creatorId: true },
     });
     if (!cell) return res.status(404).json({ error: 'Cell not found' });
 
@@ -298,9 +313,19 @@ router.post('/:cellId/join', authenticate, async (req, res) => {
       return res.status(403).json({ error: 'You cannot join this prayer cell.' });
     }
 
+    const io = req.app.get('io');
     if (cell.joinPolicy === 'open') {
       await prisma.prayerCellMember.create({ data: { cellId: cell.id, userId: req.user.id, role: 'member' } });
-      return res.json({ status: 'member' });
+      res.json({ status: 'member' });
+      // Notify the cell's admins that someone joined (fire-and-forget).
+      (async () => {
+        const [name, adminIds] = await Promise.all([actorName(req.user.id), adminIdsFor(cell.id)]);
+        for (const adminId of adminIds) {
+          if (adminId === req.user.id) continue;
+          await createNotification(io, { userId: adminId, type: 'CELL_MEMBER_JOINED', message: `${name} joined ${cell.name}`, fromUser: req.user.id, refId: cell.id });
+        }
+      })().catch(() => {});
+      return;
     }
 
     // request policy → create / re-open a pending request
@@ -310,6 +335,14 @@ router.post('/:cellId/join', authenticate, async (req, res) => {
       create: { cellId: cell.id, userId: req.user.id, status: 'pending' },
     });
     res.json({ status: 'requested' });
+    // Notify admins there's a request awaiting approval (fire-and-forget).
+    (async () => {
+      const [name, adminIds] = await Promise.all([actorName(req.user.id), adminIdsFor(cell.id)]);
+      for (const adminId of adminIds) {
+        if (adminId === req.user.id) continue;
+        await createNotification(io, { userId: adminId, type: 'CELL_JOIN_REQUEST', message: `${name} requested to join ${cell.name}`, fromUser: req.user.id, refId: cell.id });
+      }
+    })().catch(() => {});
   } catch (err) {
     console.error('cells.join:', err);
     res.status(500).json({ error: 'Failed to join' });
@@ -376,10 +409,11 @@ router.post('/:cellId/members', authenticate, requireAdmin, async (req, res) => 
   try {
     const { userId } = req.body;
     if (!userId) return res.status(400).json({ error: 'userId required' });
-    const cell = await prisma.prayerCell.findUnique({ where: { id: req.params.cellId }, select: { creatorId: true } });
+    const cell = await prisma.prayerCell.findUnique({ where: { id: req.params.cellId }, select: { name: true, creatorId: true } });
     if (await isBlockedBetween(req.user.id, userId) || await isBlockedBetween(cell.creatorId, userId)) {
       return res.status(403).json({ error: 'This user cannot be added.' });
     }
+    const alreadyMember = await getMembership(req.params.cellId, userId);
     const member = await prisma.prayerCellMember.upsert({
       where: { cellId_userId: { cellId: req.params.cellId, userId } },
       update: {},
@@ -392,6 +426,14 @@ router.post('/:cellId/members', authenticate, requireAdmin, async (req, res) => 
       data: { status: 'approved' },
     });
     res.json(member);
+    // Let the newly added user know (only if they weren't already in).
+    if (!alreadyMember) {
+      createNotification(req.app.get('io'), {
+        userId, type: 'CELL_REQUEST_APPROVED',
+        message: `You're now a member of ${cell.name}`,
+        fromUser: req.user.id, refId: req.params.cellId,
+      }).catch(() => {});
+    }
   } catch (err) {
     console.error('cells.addMember:', err);
     res.status(500).json({ error: 'Failed to add member' });
@@ -464,7 +506,17 @@ router.post('/:cellId/requests/:requestId', authenticate, requireAdmin, async (r
         }),
         prisma.prayerCellJoinRequest.update({ where: { id: request.id }, data: { status: 'approved' } }),
       ]);
-      return res.json({ status: 'approved' });
+      res.json({ status: 'approved' });
+      // Tell the requester they're in (fire-and-forget).
+      (async () => {
+        const cell = await prisma.prayerCell.findUnique({ where: { id: request.cellId }, select: { name: true } });
+        await createNotification(req.app.get('io'), {
+          userId: request.userId, type: 'CELL_REQUEST_APPROVED',
+          message: `You're now a member of ${cell?.name || 'the cell'}`,
+          fromUser: req.user.id, refId: request.cellId,
+        });
+      })().catch(() => {});
+      return;
     }
     await prisma.prayerCellJoinRequest.update({ where: { id: request.id }, data: { status: 'denied' } });
     res.json({ status: 'denied' });
@@ -486,6 +538,7 @@ router.post('/:cellId/session/start', authenticate, async (req, res) => {
       where: { cellId: req.params.cellId, isActive: true },
       orderBy: { startedAt: 'desc' },
     });
+    const isNewSession = !session;
     if (!session) {
       session = await prisma.prayerCellSession.create({
         data: { cellId: req.params.cellId, startedById: req.user.id },
@@ -507,6 +560,25 @@ router.post('/:cellId/session/start', authenticate, async (req, res) => {
       sessionId: session.id,
       participants: full ? full.participants.map(p => p.user) : [],
     });
+
+    // Only when this call actually STARTED the session: rally the other members.
+    if (isNewSession) {
+      (async () => {
+        const [name, cell, members] = await Promise.all([
+          actorName(req.user.id),
+          prisma.prayerCell.findUnique({ where: { id: req.params.cellId }, select: { name: true } }),
+          prisma.prayerCellMember.findMany({ where: { cellId: req.params.cellId }, select: { userId: true } }),
+        ]);
+        for (const mem of members) {
+          if (mem.userId === req.user.id) continue;
+          await createNotification(io, {
+            userId: mem.userId, type: 'CELL_SESSION_STARTED',
+            message: `${name} started a prayer session in ${cell?.name || 'a cell'} — join now`,
+            fromUser: req.user.id, refId: req.params.cellId,
+          });
+        }
+      })().catch(() => {});
+    }
   } catch (err) {
     console.error('cells.session.start:', err);
     res.status(500).json({ error: 'Failed to start session' });
