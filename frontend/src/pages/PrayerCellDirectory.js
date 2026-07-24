@@ -10,13 +10,53 @@ import { hapticLight } from '../utils/haptics';
 const ACCENT = '#2C4055';
 const LIVE_RED = '#ED4956';
 
+// Deterministic per-cell tint from its name, so cells without an image still
+// look distinct (a colored initial rather than a generic grey "P").
+const TINTS = [
+  ['#2C4055', 'rgba(44,64,85,0.1)'],   // slate
+  ['#B45309', 'rgba(180,83,9,0.1)'],   // amber
+  ['#0E7490', 'rgba(14,116,144,0.1)'], // teal
+  ['#7C3AED', 'rgba(124,58,237,0.1)'], // violet
+  ['#B91C1C', 'rgba(185,28,28,0.1)'],  // red
+  ['#15803D', 'rgba(21,128,61,0.1)'],  // green
+  ['#BE185D', 'rgba(190,24,93,0.1)'],  // pink
+];
+function tintFor(name = '') {
+  let sum = 0;
+  for (let i = 0; i < name.length; i++) sum += name.charCodeAt(i);
+  return TINTS[sum % TINTS.length];
+}
+
+function timeAgo(date) {
+  if (!date) return '';
+  const mins = Math.floor((Date.now() - new Date(date)) / 60000);
+  if (mins < 1) return 'moments ago';
+  if (mins < 60) return `${mins}m ago`;
+  const h = Math.floor(mins / 60);
+  if (h < 24) return `${h}h ago`;
+  return `${Math.floor(h / 24)}d ago`;
+}
+
+// A short line of real "life" for a tile, prioritising live > activity > new.
+function lifeLine(cell) {
+  if (cell.liveNow) return { text: `Live now · ${cell.liveCount} praying together`, color: LIVE_RED };
+  if (cell.totalSessions > 0) {
+    const s = `${cell.totalSessions} session${cell.totalSessions === 1 ? '' : 's'}`;
+    return { text: cell.lastActiveAt ? `${s} · last prayed ${timeAgo(cell.lastActiveAt)}` : s, color: '#5C6672' };
+  }
+  const days = cell.createdAt ? Math.floor((Date.now() - new Date(cell.createdAt)) / 86400000) : 0;
+  if (days >= 2) return { text: `Active for ${days} days · be the first to pray`, color: '#5C6672' };
+  return { text: 'New group · be the first to pray', color: ACCENT };
+}
+
 function CellImage({ cell, size = 52 }) {
   if (cell.imageUrl) {
     return <img src={cell.imageUrl} alt="" className="rounded-2xl object-cover flex-shrink-0" style={{ width: size, height: size }} />;
   }
+  const [fg, bg] = tintFor(cell.name);
   return (
-    <div className="rounded-2xl flex items-center justify-center flex-shrink-0" style={{ width: size, height: size, background: 'rgba(44,64,85,0.1)' }}>
-      <span className="font-bold" style={{ color: ACCENT, fontSize: size * 0.4, fontFamily: "'Fraunces', serif" }}>
+    <div className="rounded-2xl flex items-center justify-center flex-shrink-0" style={{ width: size, height: size, background: bg }}>
+      <span className="font-bold" style={{ color: fg, fontSize: size * 0.4, fontFamily: "'Fraunces', serif" }}>
         {cell.name?.charAt(0).toUpperCase() || 'C'}
       </span>
     </div>
@@ -150,10 +190,16 @@ export default function PrayerCellDirectory() {
                 key={cell.id}
                 whileTap={{ scale: 0.99 }}
                 onClick={() => { hapticLight(); navigate(`/prayer-cells/${cell.id}`); }}
-                className="w-full flex items-center gap-3 bg-white rounded-2xl p-3 text-left"
-                style={{ border: '1px solid #EFEFEF' }}
+                className="w-full flex items-center gap-3 rounded-2xl p-3 text-left"
+                style={{
+                  background: cell.liveNow ? 'rgba(237,73,86,0.04)' : '#fff',
+                  border: `1px solid ${cell.liveNow ? 'rgba(237,73,86,0.25)' : '#EFEFEF'}`,
+                }}
               >
-                <CellImage cell={cell} />
+                <div className="relative flex-shrink-0">
+                  <CellImage cell={cell} />
+                  {cell.liveNow && <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full border-2 border-white animate-pulse" style={{ background: LIVE_RED }} />}
+                </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <p className="font-bold text-sm truncate" style={{ color: '#0A0A0A' }}>{cell.name}</p>
@@ -167,12 +213,13 @@ export default function PrayerCellDirectory() {
                   {cell.description && (
                     <p className="text-xs mt-0.5 truncate" style={{ color: '#8E8E8E' }}>{cell.description}</p>
                   )}
-                  <div className="flex items-center gap-1 mt-1">
-                    <Users size={12} color="#9AA6AD" strokeWidth={2} />
-                    <span className="text-[11px]" style={{ color: '#9AA6AD' }}>
-                      {cell.memberCount} {cell.memberCount === 1 ? 'member' : 'members'}
-                      {cell.liveNow ? ` · ${cell.liveCount} praying now` : ''}
-                    </span>
+                  {/* Life line — real activity from the cell's stats */}
+                  {(() => { const life = lifeLine(cell); return (
+                    <p className="text-[11px] mt-1 font-medium truncate" style={{ color: life.color }}>{life.text}</p>
+                  ); })()}
+                  <div className="flex items-center gap-1 mt-0.5">
+                    <Users size={11} color="#B0B0B0" strokeWidth={2} />
+                    <span className="text-[11px]" style={{ color: '#B0B0B0' }}>{cell.memberCount} {cell.memberCount === 1 ? 'member' : 'members'}</span>
                   </div>
                 </div>
                 {/* Join affordance */}

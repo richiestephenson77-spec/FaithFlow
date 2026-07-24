@@ -108,6 +108,8 @@ router.get('/', authenticate, async (req, res) => {
         liveNow: liveCount > 0,
         liveCount,
         lastActiveAt: c.lastActiveAt,
+        createdAt: c.createdAt,
+        totalSessions: c.totalSessions,
       };
     });
     res.json(list);
