@@ -198,14 +198,19 @@ export default function PrayerCellInfo() {
         <div className="bg-white rounded-2xl overflow-hidden" style={{ border: '1px solid #EFEFEF' }}>
           {cell.members.map((m, i) => (
             <div key={m.id} className="flex items-center gap-3 px-4 py-3" style={{ borderTop: i === 0 ? 'none' : '1px solid #EFEFEF' }}>
-              <Avatar user={m} size="md" />
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold truncate" style={{ color: '#0A0A0A' }}>{m.name}{m.id === user?.id ? ' (You)' : ''}</p>
-                <div className="flex items-center gap-1.5 mt-0.5">
-                  {m.isCreator && <span className="inline-flex items-center gap-1 text-[10px] font-bold" style={{ color: '#B8860B' }}><Crown size={10} strokeWidth={2.5} /> Creator</span>}
-                  {!m.isCreator && m.role === 'admin' && <span className="inline-flex items-center gap-1 text-[10px] font-bold" style={{ color: ACCENT }}><Shield size={10} strokeWidth={2.5} /> Admin</span>}
+              <button
+                onClick={() => m.id !== user?.id && navigate(`/profile/${m.id}`)}
+                className="flex items-center gap-3 flex-1 min-w-0 text-left"
+              >
+                <Avatar user={m} size="md" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold truncate" style={{ color: '#0A0A0A' }}>{m.name}{m.id === user?.id ? ' (You)' : ''}</p>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    {m.isCreator && <span className="inline-flex items-center gap-1 text-[10px] font-bold" style={{ color: '#B8860B' }}><Crown size={10} strokeWidth={2.5} /> Creator</span>}
+                    {!m.isCreator && m.role === 'admin' && <span className="inline-flex items-center gap-1 text-[10px] font-bold" style={{ color: ACCENT }}><Shield size={10} strokeWidth={2.5} /> Admin</span>}
+                  </div>
                 </div>
-              </div>
+              </button>
               {isAdmin && m.id !== user?.id && !m.isCreator && (
                 <button onClick={() => setMemberMenu(m)} aria-label="Manage member" className="p-1.5 -mr-1">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9AA6AD" strokeWidth="2"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>

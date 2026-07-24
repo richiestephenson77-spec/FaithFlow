@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, MoreHorizontal, Radio, Info, BarChart3, LogOut, Users, Globe, Lock } from 'lucide-react';
+import { ChevronLeft, MoreHorizontal, Radio, Info, BarChart3, LogOut, Users, Globe, Lock, Share2, Flag } from 'lucide-react';
 import api from '../utils/api';
 import Avatar from '../components/Avatar';
+import ReportSheet from '../components/ReportSheet';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import { hapticLight } from '../utils/haptics';
@@ -19,7 +20,22 @@ export default function PrayerCellDetail() {
   const [cell, setCell] = useState(null);
   const [loading, setLoading] = useState(true);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
   const [busy, setBusy] = useState(false);
+
+  async function handleShare() {
+    setMenuOpen(false);
+    const url = `${window.location.origin}/prayer-cells/${cellId}`;
+    const shareText = `Join "${cell.name}" — a prayer cell on FaithString`;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: cell.name, text: shareText, url });
+      } else {
+        await navigator.clipboard.writeText(url);
+        showToast('Cell link copied');
+      }
+    } catch { /* user dismissed the share sheet — no-op */ }
+  }
 
   const load = useCallback(async () => {
     try {
@@ -197,6 +213,14 @@ export default function PrayerCellDetail() {
                 <button onClick={() => { setMenuOpen(false); navigate(`/prayer-cells/${cellId}/stats`); }} className="w-full flex items-center gap-3 px-4 py-3.5 text-sm font-medium rounded-xl" style={{ color: '#1A1A1A' }}>
                   <BarChart3 size={18} strokeWidth={1.9} color="#0A0A0A" /> Stats
                 </button>
+                <button onClick={handleShare} className="w-full flex items-center gap-3 px-4 py-3.5 text-sm font-medium rounded-xl" style={{ color: '#1A1A1A' }}>
+                  <Share2 size={18} strokeWidth={1.9} color="#0A0A0A" /> Share cell
+                </button>
+                {cell.creatorId !== user?.id && (
+                  <button onClick={() => { setMenuOpen(false); setReportOpen(true); }} className="w-full flex items-center gap-3 px-4 py-3.5 text-sm font-medium rounded-xl" style={{ color: '#1A1A1A' }}>
+                    <Flag size={18} strokeWidth={1.9} color="#0A0A0A" /> Report cell
+                  </button>
+                )}
                 {cell.isMember && cell.creatorId !== user?.id && (
                   <button onClick={handleLeave} className="w-full flex items-center gap-3 px-4 py-3.5 text-sm font-medium rounded-xl" style={{ color: '#C0392B' }}>
                     <LogOut size={18} strokeWidth={1.9} color="#C0392B" /> Leave cell
@@ -208,6 +232,19 @@ export default function PrayerCellDetail() {
               </div>
             </motion.div>
           </div>
+        )}
+      </AnimatePresence>
+
+      {/* Report the cell — reuses the moderation report flow */}
+      <AnimatePresence>
+        {reportOpen && (
+          <ReportSheet
+            contentType="PRAYER_CELL"
+            contentId={cellId}
+            reportedUserId={cell.creatorId}
+            onClose={() => setReportOpen(false)}
+            onReported={() => showToast('Report submitted')}
+          />
         )}
       </AnimatePresence>
     </div>
