@@ -36,7 +36,7 @@ const EDGE_GUARD_PX = 20;
 // How much a drag toward a nonexistent tab (before Home / after Profile) resists.
 const EDGE_RUBBER_BAND = 0.3;
 
-const SLIDE_TRANSITION = { type: 'tween', duration: 0.32, ease: [0.32, 0.72, 0, 1] };
+const SLIDE_TRANSITION = { type: 'tween', duration: 0.38, ease: [0.4, 0.0, 0.2, 1] };
 const FADE_TRANSITION = { duration: 0.18, ease: 'easeOut' };
 const DRAG_RELEASE_SPRING = { type: 'spring', stiffness: 380, damping: 38 };
 
