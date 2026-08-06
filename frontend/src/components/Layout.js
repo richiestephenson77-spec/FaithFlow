@@ -2,7 +2,7 @@ import { NavLink, useNavigate, useLocation, useOutlet } from 'react-router-dom';
 import { useSocket } from '../contexts/SocketContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence, useDragControls } from 'framer-motion';
+import { motion, AnimatePresence, useMotionValue, useMotionValueEvent, useDragControls, animate } from 'framer-motion';
 import { Home, Compass, Search, MessageCircle, User, Bell, HandHeart } from 'lucide-react';
 import Toast from './Toast';
 import Logo from './Logo';
@@ -33,12 +33,22 @@ const HIDE_NAV_EXACT = ['/confessions', '/bible-maps'];
 const SWIPE_DISTANCE_THRESHOLD = 80;
 const SWIPE_VELOCITY_THRESHOLD = 500;
 const EDGE_GUARD_PX = 20;
+// How much a drag toward a nonexistent tab (before Home / after Profile) resists.
+const EDGE_RUBBER_BAND = 0.3;
+
+const SLIDE_TRANSITION = { type: 'tween', duration: 0.32, ease: [0.32, 0.72, 0, 1] };
+const FADE_TRANSITION = { duration: 0.18, ease: 'easeOut' };
+const DRAG_RELEASE_SPRING = { type: 'spring', stiffness: 380, damping: 38 };
 
 // Mirrors NavLink's own active-match rules (exact for `end` items, prefix
 // otherwise) so swipe-nav agrees with which tab icon is actually highlighted.
 function isTabActive(pathname, item) {
   if (item.end) return pathname === item.to;
   return pathname === item.to || pathname.startsWith(`${item.to}/`);
+}
+
+function getTabIndex(pathname) {
+  return navItems.findIndex(item => isTabActive(pathname, item));
 }
 
 // Walks up from the touch target to the <main> boundary looking for a
@@ -57,27 +67,79 @@ function isInsideHorizontalScroller(target, boundary) {
   return false;
 }
 
-// Cross-fade between pages on navigation. We animate opacity ONLY (no transform):
-// a transform on this wrapper would establish a containing block and re-anchor
-// every `position: fixed` composer/bottom-sheet/full-screen page to the wrapper
-// instead of the viewport. Opacity is safe. useOutlet() (not <Outlet/>) lets the
-// exiting page keep rendering its own content while it fades out.
-function AnimatedOutlet({ fullHeight }) {
+// Continuous horizontal slide between the 5 main tabs (fade elsewhere).
+//
+// FIXED-POSITION SAFETY: any CSS `transform` on an ancestor creates a
+// containing block for `position: fixed` descendants, silently re-anchoring
+// composers/sheets/banners to that ancestor instead of the viewport — this is
+// why the app used a plain opacity fade before. This component avoids that by
+// keeping the transform TRANSIENT: each page's own `x` motion value is bound
+// via `style={{ x }}` only while it is actively animating or being dragged;
+// the instant it settles at 0 (see the useMotionValueEvent below), the inline
+// `transform` is stripped from the DOM node entirely — not just set to
+// `translateX(0)`, which would still count — so an idle tab is exactly as
+// "un-transformed" as it was under the old fade, and any fixed element a page
+// opens while at rest anchors to the real viewport. The bottom nav and header
+// are rendered as SIBLINGS of this whole tree in Layout below, never as a
+// descendant of any transformed wrapper, so they're never at risk at all.
+//
+// `isSlide`/`direction` are computed by Layout (which owns the previous-path
+// tracking) and passed in, then ALSO handed to <AnimatePresence custom>, since
+// that's the only way an EXITING instance (already removed from the tree) can
+// learn the direction of the transition that's currently removing it.
+function AnimatedOutlet({ fullHeight, isSlide, direction, registerCurrentX, showHeader, hideNav }) {
   const location = useLocation();
   const element = useOutlet();
+  const nodeRef = useRef(null);
+  const x = useMotionValue(0);
+
+  useEffect(() => {
+    // Seed this fresh instance's entry point (off the right/left edge for a
+    // tab slide, or in place for a fade) then animate home. Registering the
+    // live motion value with Layout is what lets an in-progress finger-drag
+    // steer THIS page once it becomes the settled/current one.
+    x.set(isSlide ? direction * window.innerWidth : 0);
+    registerCurrentX?.(x);
+    const controls = animate(x, 0, isSlide ? SLIDE_TRANSITION : FADE_TRANSITION);
+    return () => controls.stop();
+  }, [location.pathname]);
+
+  // Settled at rest — strip the inline transform so this page's own
+  // position:fixed descendants (sheets, banners, composers) anchor to the
+  // real viewport again. This is the one step that must never be skipped.
+  useMotionValueEvent(x, 'change', (latest) => {
+    if (latest === 0 && nodeRef.current) nodeRef.current.style.transform = '';
+  });
+
   return (
-    <AnimatePresence mode="wait" initial={false}>
-      <motion.div
-        key={location.pathname}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.18, ease: 'easeOut' }}
-        style={fullHeight ? { height: '100%' } : { minHeight: '100%' }}
-      >
-        {element}
-      </motion.div>
-    </AnimatePresence>
+    <motion.div
+      key={location.pathname}
+      custom={{ direction, isSlide }}
+      ref={nodeRef}
+      style={{
+        x,
+        opacity: isSlide ? 1 : undefined,
+        position: 'absolute',
+        inset: 0,
+        overflowY: fullHeight ? 'hidden' : 'auto',
+        overscrollBehavior: 'contain',
+        WebkitOverflowScrolling: 'touch',
+        // Header only renders on Home; every other page needs the top inset
+        // here so its own top content doesn't sit under the status bar/notch.
+        paddingTop: showHeader ? undefined : 'env(safe-area-inset-top)',
+        // Nav sits flush at the safe-area inset with a 52px tap target; clear
+        // its top edge (plus breathing room) with generous bottom padding.
+        paddingBottom: hideNav ? undefined : 'calc(5.5rem + env(safe-area-inset-bottom))',
+      }}
+      initial={isSlide ? { x: direction * window.innerWidth, opacity: 1 } : { opacity: 0 }}
+      animate={{ x: 0, opacity: 1 }}
+      exit={(custom) => custom?.isSlide
+        ? { x: custom.direction * -window.innerWidth, opacity: 1 }
+        : { opacity: 0 }}
+      transition={isSlide ? SLIDE_TRANSITION : FADE_TRANSITION}
+    >
+      {element}
+    </motion.div>
   );
 }
 
@@ -111,15 +173,27 @@ export default function Layout() {
   const hideNav = hideNavThread || hideNavConfession || hideNavSession;
   const showHeader = SHOW_HEADER_ON.includes(location.pathname);
   // Pages that fill the viewport with their own flex/scroll layout (chat thread,
-  // confession detail, immersive prayer, bible map) need a height:100% wrapper so
-  // their `h-full` children resolve; every other page grows and lets <main> scroll.
-  // NOTE: only the bare thread/immersive route is full-height — sub-pages like
-  // /messages/:id/details and /privacy are normal scrolling pages.
+  // confession detail, immersive prayer, bible map) need an exact-height box so
+  // their `h-full` children resolve, and shouldn't ALSO scroll at this wrapper
+  // level since they manage their own internal scroll region.
   const isConfessionDetail = location.pathname.startsWith('/confessions/') && location.pathname.length > '/confessions/'.length;
   const isFullThread = /^\/(messages|pray)\/[^/]+$/.test(location.pathname);
   const fullHeightPage = isFullThread || isConfessionDetail || location.pathname === '/bible-maps';
 
   const online = useOnlineStatus();
+
+  // Direction-aware transition bookkeeping — owned here (not inside
+  // AnimatedOutlet) so it can also be handed to <AnimatePresence custom>,
+  // which is what lets the EXITING page (already unmounted from the tree)
+  // still learn which way this specific transition is going.
+  const prevPathRef = useRef(location.pathname);
+  const prevIdx = getTabIndex(prevPathRef.current);
+  const currIdx = getTabIndex(location.pathname);
+  const isSlide = prevIdx !== -1 && currIdx !== -1 && prevIdx !== currIdx;
+  const direction = currIdx > prevIdx ? 1 : -1;
+  useEffect(() => {
+    prevPathRef.current = location.pathname;
+  }, [location.pathname]);
 
   // Swipe-nav between the 5 main tabs. Gated on hideNav (no nav = no tab
   // context = nothing to swipe between) — which already covers every
@@ -129,23 +203,50 @@ export default function Layout() {
   // swiping on a detail page (settings, a church profile, etc.) is a no-op.
   const mainRef = useRef(null);
   const dragControls = useDragControls();
-  const activeTabIndex = navItems.findIndex(item => isTabActive(location.pathname, item));
+  // The CURRENT tab page's own live x motion value (registered by
+  // AnimatedOutlet once it settles as "current") — dragging writes straight
+  // into it so the page follows the finger, then either springs back or
+  // hands off to AnimatePresence's exit animation to finish the slide.
+  const currentPageXRef = useRef(null);
+  const dragStartXRef = useRef(0);
+  const activeTabIndex = getTabIndex(location.pathname);
   const swipeEnabled = !hideNav && activeTabIndex !== -1;
 
   function handleSwipePointerDown(e) {
     if (!swipeEnabled) return;
     if (e.clientX < EDGE_GUARD_PX) return; // reserved for iOS's system back-swipe
     if (isInsideHorizontalScroller(e.target, mainRef.current)) return; // let chips/pills scroll instead
+    dragStartXRef.current = currentPageXRef.current?.get() ?? 0;
     dragControls.start(e);
   }
 
+  function handleSwipeDrag(e, info) {
+    const target = currentPageXRef.current;
+    if (!target) return;
+    const raw = dragStartXRef.current + info.offset.x;
+    const towardPrev = raw > 0; // dragging right = revealing the previous tab
+    const atStart = activeTabIndex === 0 && towardPrev;
+    const atEnd = activeTabIndex === navItems.length - 1 && !towardPrev;
+    target.set((atStart || atEnd) ? raw * EDGE_RUBBER_BAND : raw);
+  }
+
   function handleSwipeDragEnd(e, info) {
+    const target = currentPageXRef.current;
     const { offset, velocity } = info;
     const passedThreshold = Math.abs(offset.x) > SWIPE_DISTANCE_THRESHOLD || Math.abs(velocity.x) > SWIPE_VELOCITY_THRESHOLD;
-    if (!passedThreshold) return; // dragConstraints springs it back to center on its own
-    const targetIndex = activeTabIndex + (offset.x < 0 ? 1 : -1);
-    if (targetIndex < 0 || targetIndex >= navItems.length) return; // already at the first/last tab
-    navigate(navItems[targetIndex].to);
+    const dir = offset.x < 0 ? 1 : -1; // dragging left = moving to the NEXT tab
+    const targetIndex = activeTabIndex + dir;
+    const canCommit = passedThreshold && targetIndex >= 0 && targetIndex < navItems.length;
+
+    if (canCommit) {
+      // Don't manually finish the animation here — navigate() swaps in the
+      // new page, and AnimatePresence's exit variant carries THIS SAME motion
+      // value the rest of the way from wherever the finger left it, while the
+      // incoming page slides in from the opposite edge at the same time.
+      navigate(navItems[targetIndex].to);
+    } else if (target) {
+      animate(target, 0, DRAG_RELEASE_SPRING);
+    }
   }
 
   return (
@@ -204,9 +305,21 @@ export default function Layout() {
 
       {latestToast && <Toast key={latestToast.id} message={latestToast.message} />}
 
-      <motion.main
+      {/* Viewport: captures the swipe gesture and clips pages sliding past its
+          edges. It never itself carries a transform — only the page WRAPPERS
+          inside AnimatedOutlet do, and only transiently (see above) — so the
+          bottom nav and header (both rendered OUTSIDE this element, below)
+          are never nested inside anything that could re-anchor their fixed
+          descendants; they stay exactly where CSS put them regardless of
+          what's animating in here. drag/dragControls mirrors the original
+          gesture-capture setup (dragListener=false + manual start) so the
+          edge-guard and horizontal-scroller guards keep working exactly as
+          before; dragConstraints pins THIS element itself at (0,0) — only
+          onDrag/onDragEnd's raw pointer info is used, to steer the actual
+          page via currentPageXRef. */}
+      <motion.div
         ref={mainRef}
-        className="flex-1 overflow-y-auto"
+        className="flex-1 relative overflow-hidden"
         onPointerDown={handleSwipePointerDown}
         drag="x"
         dragListener={false}
@@ -214,25 +327,25 @@ export default function Layout() {
         dragConstraints={{ left: 0, right: 0 }}
         dragElastic={0.35}
         dragMomentum={false}
+        onDrag={handleSwipeDrag}
         onDragEnd={handleSwipeDragEnd}
-        style={{
-          overscrollBehavior: 'contain',
-          WebkitOverflowScrolling: 'touch',
-          // Header only renders on Home; every other page needs the top inset
-          // here so its own top content doesn't sit under the status bar/notch.
-          paddingTop: showHeader ? undefined : 'env(safe-area-inset-top)',
-          // Nav sits flush at the safe-area inset with a 52px tap target; clear
-          // its top edge (plus breathing room) with generous bottom padding.
-          paddingBottom: hideNav ? undefined : 'calc(5.5rem + env(safe-area-inset-bottom))',
-        }}
       >
         {/* Per-page boundary — a page crash shows the fallback but the
             header/nav (rendered outside this) survive. Keyed by pathname
             so navigating away auto-recovers. */}
         <ErrorBoundary resetKey={location.pathname}>
-          <AnimatedOutlet fullHeight={fullHeightPage} />
+          <AnimatePresence initial={false} custom={{ direction, isSlide }}>
+            <AnimatedOutlet
+              fullHeight={fullHeightPage}
+              isSlide={isSlide}
+              direction={direction}
+              showHeader={showHeader}
+              hideNav={hideNav}
+              registerCurrentX={x => { currentPageXRef.current = x; }}
+            />
+          </AnimatePresence>
         </ErrorBoundary>
-      </motion.main>
+      </motion.div>
 
       {showCreatePost && (
         <CreatePostModal
