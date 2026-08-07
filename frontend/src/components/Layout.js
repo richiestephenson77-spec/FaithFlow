@@ -2,22 +2,38 @@ import { NavLink, useNavigate, useLocation, useOutlet } from 'react-router-dom';
 import { useSocket } from '../contexts/SocketContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence, useMotionValue, useMotionValueEvent, useDragControls, animate } from 'framer-motion';
-import { Home, Compass, Search, MessageCircle, User, Bell, HandHeart } from 'lucide-react';
+import { motion, AnimatePresence, useMotionValue, useMotionValueEvent, useTransform, useDragControls, animate } from 'framer-motion';
+import { Home as HomeIcon, Compass, Search, MessageCircle, User, Bell, HandHeart } from 'lucide-react';
 import Toast from './Toast';
 import Logo from './Logo';
 import CreatePostModal from './CreatePostModal';
 import ErrorBoundary from './ErrorBoundary';
 import { hapticLight } from '../utils/haptics';
 import useOnlineStatus from '../hooks/useOnlineStatus';
+import HomePage from '../pages/Home';
+import ExplorePage from '../pages/Explore';
+import PrayerPage from '../pages/PrayerPage';
+import MessagesPage from '../pages/Messages';
+import ProfilePage from '../pages/Profile';
 
 const navItems = [
-  { to: '/', label: 'Home', Icon: Home, end: true },
+  { to: '/', label: 'Home', Icon: HomeIcon, end: true },
   { to: '/explore', label: 'Explore', Icon: Compass },
   { to: '/prayer', label: 'Prayer', Icon: HandHeart },
   { to: '/messages', label: 'Chats', Icon: MessageCircle },
   { to: '/profile', label: 'Profile', Icon: User },
 ];
+
+// Direct component lookup for the drag-peek layer (see PeekLayer below) — the
+// ONLY place these are mounted outside the real router outlet, and only for
+// the duration of an active drag between two adjacent tabs.
+const TAB_COMPONENTS = {
+  '/': HomePage,
+  '/explore': ExplorePage,
+  '/prayer': PrayerPage,
+  '/messages': MessagesPage,
+  '/profile': ProfilePage,
+};
 
 // The branded global header (logo + avatar + search + bell) appears ONLY on
 // Home. Every other page has its own in-page title/back button.
@@ -35,6 +51,9 @@ const SWIPE_VELOCITY_THRESHOLD = 500;
 const EDGE_GUARD_PX = 20;
 // How much a drag toward a nonexistent tab (before Home / after Profile) resists.
 const EDGE_RUBBER_BAND = 0.3;
+// Raw drag distance past which the adjacent tab's page mounts and starts
+// tracking the finger — small, so the "peek" feels immediate, not laggy.
+const PEEK_DEADZONE = 4;
 
 const SLIDE_TRANSITION = { type: 'tween', duration: 0.38, ease: [0.4, 0.0, 0.2, 1] };
 const FADE_TRANSITION = { duration: 0.18, ease: 'easeOut' };
@@ -87,13 +106,30 @@ function isInsideHorizontalScroller(target, boundary) {
 // tracking) and passed in, then ALSO handed to <AnimatePresence custom>, since
 // that's the only way an EXITING instance (already removed from the tree) can
 // learn the direction of the transition that's currently removing it.
-function AnimatedOutlet({ fullHeight, isSlide, direction, registerCurrentX, showHeader, hideNav }) {
+function AnimatedOutlet({ fullHeight, isSlide, direction, registerCurrentX, showHeader, hideNav, skipEnterRef }) {
   const location = useLocation();
   const element = useOutlet();
   const nodeRef = useRef(null);
   const x = useMotionValue(0);
+  // Read once per render (NOT reset here) so the declarative `initial` prop
+  // below sees the same value the mount effect acts on — resetting only
+  // happens inside the effect, after this render has already used it, so a
+  // later re-render of this same instance can't retroactively change what
+  // `initial` was evaluated with at mount.
+  const skipEnter = skipEnterRef?.current;
 
   useEffect(() => {
+    // A committed drag already carried the PeekLayer's copy of this page all
+    // the way to x=0 in full view — Layout sets skipEnterRef right before
+    // navigate() for exactly that handoff. Seed straight to rest instead of
+    // replaying the edge-to-center slide, so there's no double motion where
+    // the peek finishes and then this "real" mount slides in again on top.
+    if (skipEnter) {
+      skipEnterRef.current = false;
+      x.set(0);
+      registerCurrentX?.(x);
+      return;
+    }
     // Seed this fresh instance's entry point (off the right/left edge for a
     // tab slide, or in place for a fade) then animate home. Registering the
     // live motion value with Layout is what lets an in-progress finger-drag
@@ -131,7 +167,7 @@ function AnimatedOutlet({ fullHeight, isSlide, direction, registerCurrentX, show
         // its top edge (plus breathing room) with generous bottom padding.
         paddingBottom: hideNav ? undefined : 'calc(5.5rem + env(safe-area-inset-bottom))',
       }}
-      initial={isSlide ? { x: direction * window.innerWidth, opacity: 1 } : { opacity: 0 }}
+      initial={skipEnter ? { x: 0, opacity: 1 } : (isSlide ? { x: direction * window.innerWidth, opacity: 1 } : { opacity: 0 })}
       animate={{ x: 0, opacity: 1 }}
       exit={(custom) => custom?.isSlide
         ? { x: custom.direction * -window.innerWidth, opacity: 1 }
@@ -139,6 +175,55 @@ function AnimatedOutlet({ fullHeight, isSlide, direction, registerCurrentX, show
       transition={isSlide ? SLIDE_TRANSITION : FADE_TRANSITION}
     >
       {element}
+    </motion.div>
+  );
+}
+
+// The adjacent tab, rendered only while the user is actively dragging toward
+// it, so the "next" page is visible and tracking the finger from the very
+// start of the gesture instead of appearing only after release. `baseX` is
+// the CURRENT page's own live motion value (the same one the drag writes
+// into) — deriving this layer's position from it via useTransform is what
+// makes the two pages move together as one surface: no separate animation
+// to keep in sync, no separate drag handling, just arithmetic on one value.
+//
+// This mounts a SECOND, independent instance of the real page component
+// (looked up in TAB_COMPONENTS) — not a placeholder — so what you see mid-
+// drag is the actual destination content, not a blank or a decoy. It is only
+// ever mounted for the lifetime of one drag gesture: torn down on cancel
+// (spring-back settles it fully off-screen, then it's unmounted) or on
+// commit (Layout arms `skipEnterRef` and calls navigate(), which mounts the
+// REAL router-driven instance already-settled at the same on-screen spot —
+// see AnimatedOutlet above — so this copy is removed in the same React
+// commit with nothing visibly changing).
+//
+// Same fixed-position rule applies here as everywhere else: a transform is
+// present on this wrapper for the ENTIRE time it's mounted (there's no idle
+// state to settle into — it only exists mid-gesture), so if the peeked page
+// happens to have a position:fixed sheet open at that exact moment it could
+// mis-anchor for that brief window. In practice nothing opens a modal while
+// a neighboring tab is being dragged into view, and the risk disappears the
+// instant the gesture ends either way (spring-back unmounts it; commit hands
+// off to the untransformed real mount) — there is no persistent exposure.
+function PeekLayer({ direction, baseX, path, showHeader }) {
+  const x = useTransform(baseX, v => v + direction * window.innerWidth);
+  const Component = TAB_COMPONENTS[path];
+  if (!Component) return null;
+  return (
+    <motion.div
+      style={{
+        x,
+        position: 'absolute',
+        inset: 0,
+        overflowY: 'auto',
+        overscrollBehavior: 'contain',
+        WebkitOverflowScrolling: 'touch',
+        paddingTop: showHeader ? undefined : 'env(safe-area-inset-top)',
+        paddingBottom: 'calc(5.5rem + env(safe-area-inset-bottom))',
+        zIndex: 2,
+      }}
+    >
+      <Component />
     </motion.div>
   );
 }
@@ -211,6 +296,14 @@ export default function Layout() {
   const dragStartXRef = useRef(0);
   const activeTabIndex = getTabIndex(location.pathname);
   const swipeEnabled = !hideNav && activeTabIndex !== -1;
+  // The adjacent tab currently being dragged into view — { direction, path }
+  // while a real (past-deadzone) drag is in progress toward a tab that
+  // exists, else null. See PeekLayer above for how this actually renders.
+  const [peek, setPeek] = useState(null);
+  // Set right before navigate() on a committed drag so AnimatedOutlet's
+  // fresh mount for the destination seeds already-settled instead of
+  // replaying the slide the peek just finished — see AnimatedOutlet above.
+  const skipEnterRef = useRef(false);
 
   function handleSwipePointerDown(e) {
     if (!swipeEnabled) return;
@@ -218,6 +311,21 @@ export default function Layout() {
     if (isInsideHorizontalScroller(e.target, mainRef.current)) return; // let chips/pills scroll instead
     dragStartXRef.current = currentPageXRef.current?.get() ?? 0;
     dragControls.start(e);
+  }
+
+  // Arms (or re-arms, on a reversed drag) the peek once the raw drag distance
+  // clears a small deadzone. No-ops if the implied neighbor doesn't exist
+  // (past Home or past Profile) — those cases stay a plain rubber-banded
+  // drag of the current page with nothing peeking in, same as before.
+  function armPeek(raw) {
+    if (Math.abs(raw) < PEEK_DEADZONE) return;
+    const dir = raw < 0 ? 1 : -1; // dragging left = the NEXT tab is peeking in
+    setPeek(prev => {
+      if (prev && prev.direction === dir) return prev;
+      const targetIndex = activeTabIndex + dir;
+      if (targetIndex < 0 || targetIndex >= navItems.length) return prev;
+      return { direction: dir, path: navItems[targetIndex].to };
+    });
   }
 
   function handleSwipeDrag(e, info) {
@@ -228,6 +336,7 @@ export default function Layout() {
     const atStart = activeTabIndex === 0 && towardPrev;
     const atEnd = activeTabIndex === navItems.length - 1 && !towardPrev;
     target.set((atStart || atEnd) ? raw * EDGE_RUBBER_BAND : raw);
+    armPeek(raw);
   }
 
   function handleSwipeDragEnd(e, info) {
@@ -238,14 +347,23 @@ export default function Layout() {
     const targetIndex = activeTabIndex + dir;
     const canCommit = passedThreshold && targetIndex >= 0 && targetIndex < navItems.length;
 
+    if (!target) { setPeek(null); if (canCommit) navigate(navItems[targetIndex].to); return; }
+
     if (canCommit) {
-      // Don't manually finish the animation here — navigate() swaps in the
-      // new page, and AnimatePresence's exit variant carries THIS SAME motion
-      // value the rest of the way from wherever the finger left it, while the
-      // incoming page slides in from the opposite edge at the same time.
-      navigate(navItems[targetIndex].to);
-    } else if (target) {
-      animate(target, 0, DRAG_RELEASE_SPRING);
+      // Carry this SAME motion value the rest of the way to fully off-screen.
+      // The peek is a live transform of this exact value, so it arrives at
+      // x=0 (fully in view) in the same instant — by the time this resolves,
+      // the destination is already sitting where it needs to be, so handing
+      // off to the real route is a no-op visually (see skipEnterRef above).
+      animate(target, dir * -window.innerWidth, SLIDE_TRANSITION).then(() => {
+        setPeek(null);
+        skipEnterRef.current = true;
+        navigate(navItems[targetIndex].to);
+      });
+    } else {
+      // Under threshold — spring back. The peek rides along for free (same
+      // derived value) and gets torn down once both are back at rest.
+      animate(target, 0, DRAG_RELEASE_SPRING).then(() => setPeek(null));
     }
   }
 
@@ -342,9 +460,23 @@ export default function Layout() {
               showHeader={showHeader}
               hideNav={hideNav}
               registerCurrentX={x => { currentPageXRef.current = x; }}
+              skipEnterRef={skipEnterRef}
             />
           </AnimatePresence>
         </ErrorBoundary>
+
+        {/* The neighbor being dragged into view — real content, not a
+            placeholder, tracking the SAME motion value as the current page
+            (see PeekLayer above). Only exists for the lifetime of one drag. */}
+        {peek && currentPageXRef.current && (
+          <PeekLayer
+            key={peek.path}
+            direction={peek.direction}
+            baseX={currentPageXRef.current}
+            path={peek.path}
+            showHeader={SHOW_HEADER_ON.includes(peek.path)}
+          />
+        )}
       </motion.div>
 
       {showCreatePost && (
