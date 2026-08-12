@@ -341,7 +341,7 @@ export default function PrayerPage() {
   };
 
   const cardProps = (request) => ({
-    key: request.id, request, currentUserId: user?.id,
+    request, currentUserId: user?.id,
     onOpen: () => openImmersive(request),
     onPray: () => startPraying(request),
     onUserClick: () => navigate(`/profile/${request.user?.id}`),

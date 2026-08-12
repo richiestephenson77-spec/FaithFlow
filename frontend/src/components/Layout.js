@@ -223,7 +223,7 @@ function PeekLayer({ direction, baseX, path, showHeader }) {
         zIndex: 2,
       }}
     >
-      <Component />
+      <Component key={path} />
     </motion.div>
   );
 }
