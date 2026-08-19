@@ -5,11 +5,19 @@ import { X, Compass } from 'lucide-react';
 import BookPicker from '../components/BookPicker';
 import ChapterVersePicker from '../components/ChapterVersePicker';
 import WordSpan from '../components/WordSpan';
+import BibleReaderControls from '../components/BibleReaderControls';
 import api from '../utils/api';
 import { WaterCard, WaterPill } from '../components/water';
+import { getVersion, fetchChapter, searchScripture, searchVersionFor, DEFAULT_VERSION_ID } from '../utils/bibleVersions';
+import { getReadingTheme, DEFAULT_READING_THEME_ID } from '../utils/bibleThemes';
 
-// bible-api.com — free, no API key, public domain KJV
-const BASE = 'https://bible-api.com';
+// Persisted reader preferences (version + reading theme).
+const VERSION_KEY = 'bible:version';
+const THEME_KEY = 'bible:readingTheme';
+
+function readStored(key, fallback) {
+  try { return localStorage.getItem(key) || fallback; } catch { return fallback; }
+}
 
 const BOOKS = [
   { id: 'genesis', name: 'Genesis', chapters: 50 },
@@ -103,26 +111,42 @@ export default function Bible() {
   const [wordPopup, setWordPopup] = useState(null);
   const [wordData, setWordData] = useState(null);
   const [wordLoading, setWordLoading] = useState(false);
+  const [versionId, setVersionId] = useState(() => readStored(VERSION_KEY, DEFAULT_VERSION_ID));
+  const [themeId, setThemeId] = useState(() => readStored(THEME_KEY, DEFAULT_READING_THEME_ID));
+
+  const version = getVersion(versionId);
+  const theme = getReadingTheme(themeId);
 
   const verseCountCache = useRef({});
 
-  const loadChapter = useCallback(async (b, ch) => {
+  function changeVersion(id) {
+    setVersionId(id);
+    try { localStorage.setItem(VERSION_KEY, id); } catch {}
+  }
+  function changeTheme(id) {
+    setThemeId(id);
+    try { localStorage.setItem(THEME_KEY, id); } catch {}
+  }
+
+  // Fetches through the version adapter, which normalizes every source to the
+  // same verse shape and serves repeat views from its own cache.
+  const loadChapter = useCallback(async (v, b, ch) => {
     setLoading(true);
     setError('');
     setVerses([]);
     try {
-      const res = await fetch(`${BASE}/${b.id}+${ch}?translation=kjv`);
-      if (!res.ok) throw new Error();
-      const data = await res.json();
-      setVerses(data.verses || []);
-      verseCountCache.current[`${b.id}-${ch}`] = data.verses?.length || 0;
+      const list = await fetchChapter(v, b, ch);
+      setVerses(list);
+      verseCountCache.current[`${v.id}-${b.id}-${ch}`] = list.length;
     } catch {
-      setError('Could not load this chapter. Please try again.');
+      setError(`Could not load ${b.name} ${ch} in ${v.label}. Please check your connection and try again.`);
     }
     setLoading(false);
   }, []);
 
-  useEffect(() => { loadChapter(book, chapter); }, [book, chapter, loadChapter]);
+  // Re-runs on version change too, so switching translation refetches the
+  // passage you're already on rather than resetting your place.
+  useEffect(() => { loadChapter(version, book, chapter); }, [version, book, chapter, loadChapter]);
 
   useEffect(() => {
     if (jumpToVerse == null) return;
@@ -143,18 +167,16 @@ export default function Bible() {
   }, []);
 
   const getVerseCount = useCallback(async (b, ch) => {
-    const key = `${b.id}-${ch}`;
+    const key = `${version.id}-${b.id}-${ch}`;
     if (verseCountCache.current[key] != null) return verseCountCache.current[key];
     try {
-      const res = await fetch(`${BASE}/${b.id}+${ch}?translation=kjv`);
-      const data = await res.json();
-      const count = data.verses?.length || 0;
-      verseCountCache.current[key] = count;
-      return count;
+      const list = await fetchChapter(version, b, ch);
+      verseCountCache.current[key] = list.length;
+      return list.length;
     } catch {
       return 0;
     }
-  }, []);
+  }, [version]);
 
   function handleSelectBook(b) {
     setShowBookPicker(false);
@@ -189,7 +211,7 @@ export default function Bible() {
   }
 
   function copyVerse(v) {
-    const text = `"${v.text.trim()}" — ${v.book_name} ${v.chapter}:${v.verse} (KJV)`;
+    const text = `"${v.text.trim()}" — ${v.book_name} ${v.chapter}:${v.verse} (${version.label})`;
     navigator.clipboard.writeText(text).catch(() => {});
     setCopied(v.verse);
     setTimeout(() => setCopied(null), 1800);
@@ -200,10 +222,7 @@ export default function Bible() {
     setSearching(true);
     setSearched(false);
     try {
-      const res = await fetch(`${BASE}/${encodeURIComponent(q)}?translation=kjv`);
-      if (!res.ok) throw new Error();
-      const data = await res.json();
-      setSearchResults(data.verses || []);
+      setSearchResults(await searchScripture(version, q));
     } catch {
       setSearchResults([]);
     }
@@ -229,7 +248,11 @@ export default function Bible() {
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className="min-h-full bg-[#FBF8F3]"
+      className="min-h-full"
+      // On the read tab the page surface IS the scripture surface, so it takes
+      // the reading theme — everything above it (hero, sticky nav, controls)
+      // paints its own app-chrome background and is unaffected.
+      style={{ background: tab === 'read' ? theme.bg : '#FBF8F3' }}
     >
       {/* Hero */}
       <WaterCard tone="blue" style={{ borderRadius: '0 0 24px 24px', padding: '16px 16px 24px' }}>
@@ -241,7 +264,7 @@ export default function Bible() {
           </button>
           <div>
             <h2 className="text-3xl leading-tight" style={{ fontFamily: "'Dancing Script', cursive", color: '#0A0A0A' }}>Holy Bible</h2>
-            <p className="text-sm" style={{ color: '#4A6674' }}>King James Version</p>
+            <p className="text-sm" style={{ color: '#4A6674' }}>{version.name}</p>
           </div>
         </div>
 
@@ -278,6 +301,14 @@ export default function Bible() {
             </div>
           </div>
 
+          {/* Version + reading-theme controls */}
+          <BibleReaderControls
+            versionId={versionId}
+            onVersionChange={changeVersion}
+            themeId={themeId}
+            onThemeChange={changeTheme}
+          />
+
           {/* Feelings entry */}
           <button
             onClick={() => navigate('/feelings')}
@@ -290,46 +321,64 @@ export default function Bible() {
             <X size={12} strokeWidth={1.6} color="#C7C7C7" style={{ transform: 'rotate(45deg)' }} />
           </button>
 
-          <div className="px-5 pt-5">
+          {/* Scripture reading area — the ONLY region the reading theme
+              repaints. Chrome above/below keeps the app's normal styling. */}
+          <div
+            className="px-5 pt-5 pb-24"
+            style={{ background: theme.bg, minHeight: '60vh', transition: 'background 0.2s ease' }}
+          >
             {error && (
-              <div className="bg-terracotta-50 border border-terracotta-200 rounded-2xl p-4 mb-4 text-sm text-terracotta-800">
+              <div className="rounded-2xl p-4 mb-4 text-sm" style={{ background: '#FEF2F2', border: '1px solid #FECACA', color: '#991B1B' }}>
                 {error}
               </div>
             )}
 
             <div className="mb-5">
-              <h3 className="font-serif text-2xl font-bold text-gray-900">{book.name} {chapter}</h3>
-              <div className="mt-2 h-[3px] w-10 bg-terracotta-500 rounded-full" />
+              <h3
+                className="text-2xl font-bold"
+                style={{ fontFamily: theme.fontFamily, color: theme.headingColor }}
+              >
+                {book.name} {chapter}
+              </h3>
+              <div className="mt-2 h-[3px] w-10 rounded-full" style={{ background: theme.verseNum }} />
             </div>
 
             {loading ? (
               <div className="space-y-3">
                 {[1,2,3,4,5].map(i => (
                   <div key={i} className="animate-pulse space-y-1.5">
-                    <div className="h-3 bg-gray-200 rounded-full w-full" />
-                    <div className="h-3 bg-gray-200 rounded-full w-4/5" />
+                    <div className="h-3 rounded-full w-full" style={{ background: theme.border }} />
+                    <div className="h-3 rounded-full w-4/5" style={{ background: theme.border }} />
                   </div>
                 ))}
               </div>
             ) : (
               <AnimatePresence mode="wait">
                 <motion.p
-                  key={`${book.id}-${chapter}`}
+                  key={`${version.id}-${book.id}-${chapter}`}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.2 }}
-                  className="font-serif text-lg text-gray-800 leading-relaxed"
+                  style={{
+                    fontFamily: theme.fontFamily,
+                    fontSize: theme.fontSize,
+                    lineHeight: theme.lineHeight,
+                    color: theme.textColor,
+                    textAlign: theme.textAlign,
+                  }}
                 >
                   {verses.map((v, i) => (
                     <span
                       key={i}
                       id={`verse-${v.verse}`}
-                      className={`group relative inline transition-colors duration-700 rounded px-1 ${
-                        activeVerse === v.verse ? 'bg-terracotta-100' : 'hover:bg-terracotta-50'
-                      }`}
+                      className="group relative inline transition-colors duration-700 rounded px-1"
+                      style={{ background: activeVerse === v.verse ? theme.highlight : 'transparent' }}
                     >
-                      <sup className="text-xs text-terracotta-600 font-sans align-top mr-1 select-none">{v.verse}</sup>
+                      <sup
+                        className="text-xs align-top mr-1 select-none font-sans"
+                        style={{ color: theme.verseNum }}
+                      >{v.verse}</sup>
                       {v.text.trim().split(/\s+/).map((w, wi) => (
                         <WordSpan
                           key={wi}
@@ -340,14 +389,15 @@ export default function Bible() {
                       ))}
                       <button
                         onClick={() => copyVerse(v)}
-                        className="opacity-0 group-hover:opacity-100 focus:opacity-100 inline-flex items-center justify-center w-5 h-5 align-middle rounded bg-gray-100 transition-opacity ml-0.5"
+                        className="opacity-0 group-hover:opacity-100 focus:opacity-100 inline-flex items-center justify-center w-5 h-5 align-middle rounded transition-opacity ml-0.5"
+                        style={{ background: theme.highlight }}
                       >
                         {copied === v.verse ? (
                           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                             <polyline points="20 6 9 17 4 12"/>
                           </svg>
                         ) : (
-                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke={theme.verseNum} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                             <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
                           </svg>
                         )}
@@ -402,6 +452,14 @@ export default function Bible() {
             </button>
           </div>
 
+          {/* bible-api.com is the only searchable source, and it doesn't carry
+              BSB — say so plainly rather than quietly returning other text. */}
+          {searchVersionFor(version).id !== version.id && (
+            <p className="text-xs mb-4 -mt-2" style={{ color: '#8E8E8E' }}>
+              Search isn't available for {version.label} — showing {searchVersionFor(version).label} results.
+            </p>
+          )}
+
           {searching && (
             <div className="flex justify-center py-8">
               <div className="w-6 h-6 border-2 border-terracotta-400 border-t-transparent rounded-full animate-spin" />
@@ -438,7 +496,7 @@ export default function Bible() {
                 </p>
                 <button
                   onClick={() => {
-                    const text = `"${v.text.trim()}" — ${v.book_name} ${v.chapter}:${v.verse} (KJV)`;
+                    const text = `"${v.text.trim()}" — ${v.book_name} ${v.chapter}:${v.verse} (${searchVersionFor(version).label})`;
                     navigator.clipboard.writeText(text).catch(() => {});
                   }}
                   className="mt-2 text-xs text-gray-400 flex items-center gap-1"
