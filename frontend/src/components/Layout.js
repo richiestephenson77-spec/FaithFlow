@@ -42,7 +42,11 @@ const SHOW_HEADER_ON = ['/'];
 // The list pages (/messages, /prayer) keep their frame.
 const HIDE_NAV_ON = ['/messages/', '/pray/'];
 // Confession wall + detail and Bible Maps hide the bottom nav (immersive, back-arrow to leave)
-const HIDE_NAV_EXACT = ['/confessions', '/bible-maps'];
+// The Messages inbox renders its OWN floating tab bar (InboxTabBar) as part of
+// its redesign, so the global bar is suppressed there to avoid two navs. Note
+// this only affects the bare inbox — every /messages/* sub-route is already
+// covered by HIDE_NAV_ON above.
+const HIDE_NAV_EXACT = ['/confessions', '/bible-maps', '/messages'];
 
 // Swipe-nav tuning: distance/velocity needed to count as an intentional swipe,
 // and the dead zone at the left screen edge reserved for iOS's system back gesture.
