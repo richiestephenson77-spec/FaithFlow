@@ -259,7 +259,13 @@ export default function Layout() {
   const hideNavConfession = HIDE_NAV_EXACT.some(p => location.pathname.startsWith(p));
   // Immersive live prayer session room (its own leave control).
   const hideNavSession = /^\/prayer-cells\/[^/]+\/(session|host|guest)$/.test(location.pathname);
-  const hideNav = hideNavThread || hideNavConfession || hideNavSession;
+  // Bible reader — its own back button, and the nav was overlapping scripture
+  // text. Exact-equality (not added to HIDE_NAV_EXACT's startsWith list)
+  // because '/bible' is a prefix of '/bible-bot', '/bible-dictionary' and
+  // '/bible-maps' too — a naive prefix match would've hidden the nav on all
+  // three of those unrelated pages as a side effect.
+  const hideNavBible = location.pathname === '/bible';
+  const hideNav = hideNavThread || hideNavConfession || hideNavSession || hideNavBible;
   const showHeader = SHOW_HEADER_ON.includes(location.pathname);
   // Pages that fill the viewport with their own flex/scroll layout (chat thread,
   // confession detail, immersive prayer, bible map) need an exact-height box so

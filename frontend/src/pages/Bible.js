@@ -322,91 +322,142 @@ export default function Bible() {
           </button>
 
           {/* Scripture reading area — the ONLY region the reading theme
-              repaints. Chrome above/below keeps the app's normal styling. */}
+              repaints. Chrome above/below keeps the app's normal styling.
+              `position: relative` (not `transform`) so the parchment-texture
+              SVG layers below can anchor to it — a transform here would
+              re-anchor any position:fixed descendant (composers, sheets,
+              nav) to this element instead of the viewport; plain relative
+              positioning carries no such risk. */}
           <div
             className="px-5 pt-5 pb-24"
-            style={{ background: theme.bg, minHeight: '60vh', transition: 'background 0.2s ease' }}
+            style={{ background: theme.bg, minHeight: '60vh', position: 'relative', transition: 'background 0.2s ease' }}
           >
-            {error && (
-              <div className="rounded-2xl p-4 mb-4 text-sm" style={{ background: '#FEF2F2', border: '1px solid #FECACA', color: '#991B1B' }}>
-                {error}
-              </div>
-            )}
-
-            <div className="mb-5">
-              <h3
-                className="text-2xl font-bold"
-                style={{ fontFamily: theme.fontFamily, color: theme.headingColor }}
-              >
-                {book.name} {chapter}
-              </h3>
-              <div className="mt-2 h-[3px] w-10 rounded-full" style={{ background: theme.verseNum }} />
-            </div>
-
-            {loading ? (
-              <div className="space-y-3">
-                {[1,2,3,4,5].map(i => (
-                  <div key={i} className="animate-pulse space-y-1.5">
-                    <div className="h-3 rounded-full w-full" style={{ background: theme.border }} />
-                    <div className="h-3 rounded-full w-4/5" style={{ background: theme.border }} />
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <AnimatePresence mode="wait">
-                <motion.p
-                  key={`${version.id}-${book.id}-${chapter}`}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.2 }}
-                  style={{
-                    fontFamily: theme.fontFamily,
-                    fontSize: theme.fontSize,
-                    lineHeight: theme.lineHeight,
-                    color: theme.textColor,
-                    textAlign: theme.textAlign,
-                  }}
+            {/* Parchment texture — Scripture theme ONLY. Two stacked SVG
+                feTurbulence layers behind the text, pointer-events:none so
+                they never intercept taps/long-press. No image assets. */}
+            {themeId === 'scripture' && (
+              <>
+                <svg
+                  aria-hidden="true"
+                  style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }}
                 >
-                  {verses.map((v, i) => (
-                    <span
-                      key={i}
-                      id={`verse-${v.verse}`}
-                      className="group relative inline transition-colors duration-700 rounded px-1"
-                      style={{ background: activeVerse === v.verse ? theme.highlight : 'transparent' }}
-                    >
-                      <sup
-                        className="text-xs align-top mr-1 select-none font-sans"
-                        style={{ color: theme.verseNum }}
-                      >{v.verse}</sup>
-                      {v.text.trim().split(/\s+/).map((w, wi) => (
-                        <WordSpan
-                          key={wi}
-                          rawWord={w}
-                          verseRef={`${book.name} ${chapter}:${v.verse}`}
-                          onLongPress={handleWordLongPress}
-                        />
-                      ))}
-                      <button
-                        onClick={() => copyVerse(v)}
-                        className="opacity-0 group-hover:opacity-100 focus:opacity-100 inline-flex items-center justify-center w-5 h-5 align-middle rounded transition-opacity ml-0.5"
-                        style={{ background: theme.highlight }}
-                      >
-                        {copied === v.verse ? (
-                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                            <polyline points="20 6 9 17 4 12"/>
-                          </svg>
-                        ) : (
-                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke={theme.verseNum} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-                          </svg>
-                        )}
-                      </button>{' '}
-                    </span>
-                  ))}
-                </motion.p>
-              </AnimatePresence>
+                  {/* Layer A — aging blotches */}
+                  <filter id="scripture-noise-a">
+                    <feTurbulence type="fractalNoise" baseFrequency="0.012" numOctaves="3" />
+                  </filter>
+                  <rect width="100%" height="100%" filter="url(#scripture-noise-a)" opacity="0.22" />
+                </svg>
+                <svg
+                  aria-hidden="true"
+                  style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }}
+                >
+                  {/* Layer B — paper fibre */}
+                  <filter id="scripture-noise-b">
+                    <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" stitchTiles="stitch" />
+                  </filter>
+                  <rect width="100%" height="100%" filter="url(#scripture-noise-b)" opacity="0.10" />
+                </svg>
+              </>
             )}
+
+            {/* Text content sits in its own relative wrapper ABOVE both
+                texture layers (DOM order + position:relative). */}
+            <div style={{ position: 'relative' }}>
+              {error && (
+                <div className="rounded-2xl p-4 mb-4 text-sm" style={{ background: '#FEF2F2', border: '1px solid #FECACA', color: '#991B1B' }}>
+                  {error}
+                </div>
+              )}
+
+              <div className="mb-5">
+                <h3
+                  className="text-2xl font-bold"
+                  style={{ fontFamily: theme.fontFamily, color: theme.headingColor }}
+                >
+                  {book.name} {chapter}
+                </h3>
+                <div className="mt-2 h-[3px] w-10 rounded-full" style={{ background: theme.verseNum }} />
+              </div>
+
+              {loading ? (
+                <div className="space-y-3">
+                  {[1,2,3,4,5].map(i => (
+                    <div key={i} className="animate-pulse space-y-1.5">
+                      <div className="h-3 rounded-full w-full" style={{ background: theme.border }} />
+                      <div className="h-3 rounded-full w-4/5" style={{ background: theme.border }} />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={`${version.id}-${book.id}-${chapter}`}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    style={{
+                      fontFamily: theme.fontFamily,
+                      fontSize: theme.fontSize,
+                      lineHeight: theme.lineHeight,
+                      color: theme.textColor,
+                      textAlign: theme.textAlign,
+                    }}
+                  >
+                    {/* One verse per block. The hanging indent (padding-left
+                        22 / text-indent -22) pulls the superscript number
+                        into the left margin on line 1 while wrapped lines
+                        align flush at 22px. */}
+                    {verses.map((v, i) => (
+                      <div
+                        key={i}
+                        id={`verse-${v.verse}`}
+                        className="group relative transition-colors duration-700 rounded"
+                        style={{
+                          background: activeVerse === v.verse ? theme.highlight : 'transparent',
+                          paddingLeft: 22,
+                          textIndent: -22,
+                          marginBottom: 11,
+                          // Belt-and-suspenders alongside the WordSpan prop
+                          // below — see WordSpan.js for why this can't just
+                          // rely on inheriting from an ancestor.
+                          fontFamily: theme.fontFamily,
+                        }}
+                      >
+                        <sup
+                          className="text-xs align-top mr-1 select-none font-sans"
+                          style={{ color: theme.verseNum }}
+                        >{v.verse}</sup>
+                        {v.text.trim().split(/\s+/).map((w, wi) => (
+                          <WordSpan
+                            key={wi}
+                            rawWord={w}
+                            verseRef={`${book.name} ${chapter}:${v.verse}`}
+                            onLongPress={handleWordLongPress}
+                            fontFamily={theme.fontFamily}
+                          />
+                        ))}
+                        <button
+                          onClick={() => copyVerse(v)}
+                          className="opacity-0 group-hover:opacity-100 focus:opacity-100 inline-flex items-center justify-center w-5 h-5 align-middle rounded transition-opacity ml-0.5"
+                          style={{ background: theme.highlight }}
+                        >
+                          {copied === v.verse ? (
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="20 6 9 17 4 12"/>
+                            </svg>
+                          ) : (
+                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke={theme.verseNum} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                            </svg>
+                          )}
+                        </button>
+                      </div>
+                    ))}
+                  </motion.div>
+                </AnimatePresence>
+              )}
+            </div>
           </div>
 
           {/* Bottom chapter nav */}
