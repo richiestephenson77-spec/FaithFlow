@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { track } from '../utils/analytics';
 import Logo from '../components/Logo';
+import PasswordInput from '../components/PasswordInput';
 
 export default function Signup() {
   const [step, setStep] = useState(1);
@@ -103,15 +104,21 @@ export default function Signup() {
 }
 
 function Field({ label, ...props }) {
-  const { onChange, ...rest } = props;
+  const { onChange, type, ...rest } = props;
+  const handleChange = e => onChange(e.target.value);
   return (
     <div>
       <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
-      <input
-        {...rest}
-        onChange={e => onChange(e.target.value)}
-        className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-faith-500"
-      />
+      {type === 'password' ? (
+        <PasswordInput {...rest} onChange={handleChange} />
+      ) : (
+        <input
+          {...rest}
+          type={type}
+          onChange={handleChange}
+          className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-faith-500"
+        />
+      )}
     </div>
   );
 }

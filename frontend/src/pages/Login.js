@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { track } from '../utils/analytics';
 import Logo from '../components/Logo';
+import PasswordInput from '../components/PasswordInput';
 
 export default function Login() {
   const [form, setForm] = useState({ email: '', password: '' });
@@ -54,12 +55,10 @@ export default function Login() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-              <input
-                type="password"
+              <PasswordInput
                 required
                 value={form.password}
                 onChange={e => setForm(p => ({ ...p, password: e.target.value }))}
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-faith-500"
                 placeholder="••••••••"
               />
             </div>
