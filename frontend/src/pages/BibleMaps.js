@@ -62,7 +62,7 @@ function hideModernLayers(map) {
 // against either the old grey or this new parchment tone.
 const BASEMAP_PAINT = {
   land: { 'background-color': '#EDE2C8' },
-  water: { 'fill-color': '#C9BFA3' },
+  water: { 'fill-color': '#9C8F6E' },
   waterway: { 'line-color': '#A8823C', 'line-opacity': 0.35 },
 };
 
@@ -301,7 +301,11 @@ export default function BibleMaps() {
             <Layer
               id="territory-outline"
               type="line"
-              paint={{ 'line-color': ['get', 'color'], 'line-width': 1, 'line-opacity': 0.8 }}
+              // Static maroon (not the data-driven ['get','color'] fill
+              // uses) — the outline needs the palette's darkest, most
+              // legible color against the new warm land, independent of
+              // whatever gold/ochre a given territory's fill is.
+              paint={{ 'line-color': '#7A2E2E', 'line-width': 1.5, 'line-opacity': 0.8 }}
             />
           </Source>
 
