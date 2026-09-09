@@ -261,7 +261,7 @@ export default function Profile() {
 
           {/* Name + meta */}
           <div className="mt-3.5">
-            <p className="text-xl font-bold leading-tight" style={{ color: '#0A0A0A', fontFamily: "'Fraunces', serif" }}>{profile.name}</p>
+            <p className="text-xl type-heading">{profile.name}</p>
             {profile.churchName && <p className="text-sm font-medium mt-0.5" style={{ color: '#2C4055' }}>{profile.churchName}</p>}
             {profile.location && <p className="text-xs mt-0.5" style={{ color: '#8E8E8E' }}>{profile.location}</p>}
             {profile.bio && <p className="text-sm mt-1.5 leading-snug" style={{ color: '#3D4A57' }}>{profile.bio}</p>}

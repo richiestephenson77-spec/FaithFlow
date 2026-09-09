@@ -157,8 +157,8 @@ export default function Search() {
     <div className="bg-gray-50 min-h-full">
       {/* Header */}
       <motion.div {...fadeUp} className="px-5 pt-5 pb-4">
-        <h2 className="text-2xl font-bold text-gray-900">Search</h2>
-        <p className="text-sm text-gray-400 mt-0.5">People, prayers, churches & confessions</p>
+        <h2 className="text-2xl type-heading">Search</h2>
+        <p className="text-sm mt-0.5 type-subtitle">People, prayers, churches & confessions</p>
       </motion.div>
 
       {/* Search input */}

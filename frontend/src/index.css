@@ -132,3 +132,23 @@ body {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+
+/* Shared type system — sourced from Explore.js's page/tile headings, the
+   first place this treatment was used. Change the values here once rather
+   than repeating font-family/weight/tracking/color per page.
+   Font size is NOT part of this — each page keeps its own text-* size so
+   swapping in these classes can't reflow a layout by itself. Does not apply
+   to the Bible reader's Modern/Paper/Scripture themes or Bible Maps, which
+   have their own deliberate typography. */
+.type-heading {
+  font-family: 'Fraunces', serif;
+  font-weight: 400;
+  letter-spacing: -0.35px;
+  line-height: 1.15;
+  color: #0A0A0A;
+}
+.type-subtitle {
+  font-family: 'Inter', sans-serif;
+  color: #66717b;
+  line-height: 1.4;
+}

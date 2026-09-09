@@ -22,8 +22,8 @@ export default function ChurchesHub() {
             <ChevronLeft size={22} color="#111827" strokeWidth={2} />
           </button>
           <div>
-            <h2 className="text-lg font-bold text-gray-900 leading-tight">Churches</h2>
-            <p className="text-xs text-gray-400">Find local · Join community</p>
+            <h2 className="text-lg type-heading">Churches</h2>
+            <p className="text-xs type-subtitle">Find local · Join community</p>
           </div>
         </div>
 

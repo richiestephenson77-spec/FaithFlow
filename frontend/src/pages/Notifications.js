@@ -213,8 +213,8 @@ export default function Notifications() {
     <div className="bg-gray-50 min-h-full">
       <div className="flex items-center justify-between px-5 pt-5 pb-4">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Notifications</h2>
-          <p className="text-sm text-gray-400 mt-0.5">Your faith community activity</p>
+          <h2 className="text-2xl type-heading">Notifications</h2>
+          <p className="text-sm mt-0.5 type-subtitle">Your faith community activity</p>
         </div>
         <AnimatePresence>
           {hasUnread && (

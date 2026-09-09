@@ -189,8 +189,8 @@ export default function Messages() {
 
           <button className="flex items-center gap-1 min-w-0 flex-1" aria-label="Account">
             <span
-              className="truncate"
-              style={{ fontSize: 16, fontWeight: 600, color: INK, letterSpacing: '-0.2px' }}
+              className="truncate type-heading"
+              style={{ fontSize: 16 }}
             >
               {user?.name || 'Account'}
             </span>

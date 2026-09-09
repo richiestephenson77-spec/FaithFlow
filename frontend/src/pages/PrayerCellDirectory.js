@@ -124,8 +124,8 @@ export default function PrayerCellDirectory() {
           <ChevronLeft size={22} color="#0A0A0A" strokeWidth={2} />
         </button>
         <div className="flex-1">
-          <h1 className="text-xl font-bold leading-tight" style={{ color: '#0A0A0A', fontFamily: "'Fraunces', serif" }}>Prayer Cells</h1>
-          <p className="text-xs mt-0.5" style={{ color: '#8E8E8E' }}>Group communities that pray together</p>
+          <h1 className="text-xl type-heading">Prayer Cells</h1>
+          <p className="text-xs mt-0.5 type-subtitle">Group communities that pray together</p>
         </div>
         <button
           onClick={() => { hapticLight(); navigate('/prayer-cells/create'); }}

@@ -363,7 +363,7 @@ export default function PrayerPage() {
           initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, ease: 'easeOut' }}
           className="flex items-center gap-3 mb-2.5"
         >
-          <h2 className="text-xl font-bold leading-tight" style={{ color: '#0A0A0A', fontFamily: "'Fraunces', serif" }}>
+          <h2 className="text-xl type-heading">
             Who will you pray for today?
           </h2>
           <div className="flex items-center gap-1.5 flex-shrink-0 self-start mt-0.5">

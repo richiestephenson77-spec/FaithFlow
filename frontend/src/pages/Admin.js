@@ -104,8 +104,8 @@ export default function Admin() {
   return (
     <div className="bg-gray-50 min-h-full">
       <div className="bg-white px-4 pt-5 pb-3" style={{ borderBottom: '1px solid #EFEFEF' }}>
-        <h1 className="text-lg font-bold" style={{ color: '#0A0A0A', fontFamily: "'Fraunces', serif" }}>Moderation</h1>
-        <p className="text-xs mt-0.5" style={{ color: '#8E8E8E' }}>Pending reports</p>
+        <h1 className="text-lg type-heading">Moderation</h1>
+        <p className="text-xs mt-0.5 type-subtitle">Pending reports</p>
       </div>
 
       <div className="px-4 py-4 space-y-3">

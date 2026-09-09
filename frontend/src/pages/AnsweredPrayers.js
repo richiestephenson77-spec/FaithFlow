@@ -128,8 +128,8 @@ export default function AnsweredPrayers() {
           <ChevronLeft size={22} color="#0A0A0A" strokeWidth={2} />
         </button>
         <div>
-          <h2 className="text-xl font-bold leading-tight" style={{ color: '#0A0A0A', fontFamily: "'Fraunces', serif" }}>Answered</h2>
-          <p className="text-xs mt-0.5" style={{ color: '#8E8E8E' }}>Prayers answered and grace shared</p>
+          <h2 className="text-xl type-heading">Answered</h2>
+          <p className="text-xs mt-0.5 type-subtitle">Prayers answered and grace shared</p>
         </div>
       </div>
 
