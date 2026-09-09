@@ -14,10 +14,12 @@ const HAIRLINE = '#EFEFEF';
 
 const SLATE_ART = { ink: SLATE, wash: '#e7ecee', solid: SLATE, accent: SLATE };
 const ANTIQUE_ART = { ink: '#A8823C', wash: '#DED2B0', solid: '#7A2E2E', accent: '#7A2E2E' };
-// Confession Wall keeps a purple accent so it stays recognisable, but now in
-// the same white-card system as every other tile rather than a solid block.
-const CONFESSION = '#7C5CBF';
-const CONFESSION_ART = { ink: CONFESSION, wash: '#EDE7F8', solid: CONFESSION, accent: CONFESSION };
+// Confession Wall keeps a purple accent so it stays recognisable, but at the
+// same muted intensity SLATE_ART uses (same saturation/lightness, hue turned
+// toward violet) rather than a saturated, brighter purple that stood apart
+// from the other tiles' flat, muted treatment.
+const CONFESSION = '#4A3D63';
+const CONFESSION_ART = { ink: CONFESSION, wash: '#E7E4EC', solid: CONFESSION, accent: CONFESSION };
 
 // index.css carries a universal `* { font-family: Inter }` rule, which beats a
 // presentation attribute and any inherited value. SVG label fonts therefore
@@ -164,11 +166,14 @@ const ConfessionArt = (t) => (
     </defs>
     <path fill={t.wash} stroke="none" d="M40 92V40H210V92ZM290 92V40H460V92Z" />
     <path fill={t.wash} stroke="none" d="M212 92V54Q212 16 250 16Q288 16 288 54V92Z" />
-    <g clipPath="url(#confession-arch)" opacity="0.5">
+    {/* Flat fill, full opacity — same treatment as the other tiles' figures.
+        The lattice drawn over it is what reads as "seen but not identified",
+        not a transparency trick. */}
+    <g clipPath="url(#confession-arch)">
       <circle fill={t.solid} stroke="none" cx="250" cy="48" r="13" />
       <path fill={t.solid} stroke="none" d="M226 92Q229 68 250 66Q271 68 274 92Z" />
     </g>
-    <g clipPath="url(#confession-arch)" strokeWidth="1.1">
+    <g clipPath="url(#confession-arch)">
       <path d="M226 8V96M238 8V96M250 8V96M262 8V96M274 8V96" />
       <path d="M206 36H294M206 54H294M206 72H294" />
     </g>
