@@ -2,7 +2,7 @@
 'use strict';
 const D=window.ATLAS_DATA,E=window.AtlasEngine,S=D.snapshots,$=id=>document.getElementById(id),NS='http://www.w3.org/2000/svg';
 const reduced=matchMedia('(prefers-reduced-motion: reduce)');
-let value=Math.min(18,S.length-1),playing=false,lastTime=0,frame=0,lastPair=-1,paired=[],lastStory=-1,dirty=true,selected=null;
+let value=0,playing=false,lastTime=0,frame=0,lastPair=-1,paired=[],lastStory=-1,dirty=true,selected=null;
 let camera={x:495,y:385,zoom:1.45},view={x:0,y:0,w:960,h:720},pointers=new Map(),gesture=null;
 const svg=$('map'),regionNodes=new Map();
 function element(name,attrs={},text){const el=document.createElementNS(NS,name);for(const [k,v]of Object.entries(attrs))el.setAttribute(k,v);if(text!=null)el.textContent=text;return el;}
@@ -55,7 +55,7 @@ $('zoom-in').onclick=()=>zoom(1.35);$('zoom-out').onclick=()=>zoom(1/1.35);$('re
 // Chapter ranges are clamped to the data actually shipped and any chapter
 // starting past the end is dropped, so truncating the timeline can't leave
 // a button pointing at a snapshot that no longer exists.
-const chapters=[['Origins',0,4],['Exodus & settlement',5,7],['Kings & prophets',8,11],['Exile & return',12,13],['Between Testaments',14,17],['The world of Jesus',18,18]]
+const chapters=[['Origins',0,4],['Exodus & settlement',5,7],['Kings & prophets',8,11],['Exile & return',12,13],['Between Testaments',14,17],['Jesus & early Church',18,21]]
  .filter(([,start])=>start<=S.length-1).map(([name,start,end])=>[name,start,Math.min(end,S.length-1)]);
 for(const [name,start,end]of chapters){const btn=document.createElement('button');btn.textContent=name;btn.dataset.start=start;btn.dataset.end=end;btn.onclick=()=>{setValue(start);announce();};$('eras').append(btn);}
 // Ticks are derived from the snapshot count rather than hardcoded indices —
