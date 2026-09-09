@@ -9,6 +9,50 @@ import { BIBLE_ERAS, BIBLE_LOCATIONS, BIBLE_TERRITORIES, BIBLE_FIGURES } from '.
 
 const MAPBOX_TOKEN = process.env.REACT_APP_MAPBOX_TOKEN;
 
+// Modern-reference layer categories to strip from the base style for the
+// ancient-atlas feel — settlements, borders, roads, POIs. Matched against
+// each layer's id + source-layer (normalized to underscores) rather than
+// hardcoded ids, since the light-v11 style groups real-world features
+// under different source-layer names than the classic Streets v8 tileset
+// these category names come from (e.g. country/state/settlement text all
+// live under one "place_label" source-layer here, not separate ones).
+const HIDDEN_LAYER_KEYWORDS = [
+  'place_label',
+  'settlement',
+  'country_label',
+  'state_label',
+  'admin',
+  'boundary',
+  'road',
+  'transit',
+  'poi_label',
+  'airport_label',
+  'water_label',
+];
+
+// light-v11 names its water-name labels "waterway-label" / "water-line-
+// label" / "water-point-label" under source-layer "natural_label" — none
+// of which contains "water_label" as a substring, so they need listing
+// explicitly rather than loosening the keyword match (which would risk
+// also catching the "water" FILL layer that must stay visible).
+const HIDDEN_WATER_LABEL_IDS = ['waterway-label', 'water-line-label', 'water-point-label'];
+
+// Land, water/sea fill, and the coastline they form together are never
+// matched by the above and always stay visible.
+function hideModernLayers(map) {
+  const style = map.getStyle();
+  if (!style?.layers) return;
+  style.layers.forEach(layer => {
+    const haystack = `${layer.id}_${layer['source-layer'] || ''}`.toLowerCase().replace(/-/g, '_');
+    const isModernRef =
+      HIDDEN_LAYER_KEYWORDS.some(keyword => haystack.includes(keyword)) ||
+      HIDDEN_WATER_LABEL_IDS.includes(layer.id);
+    if (isModernRef && map.getLayer(layer.id)) {
+      map.setLayoutProperty(layer.id, 'visibility', 'none');
+    }
+  });
+}
+
 function polygonCentroid(coords) {
   const n = coords.length;
   const [sumLng, sumLat] = coords.reduce(([a, b], [lng, lat]) => [a + lng, b + lat], [0, 0]);
@@ -105,21 +149,11 @@ export default function BibleMaps() {
   function handleMapLoad(evt) {
     const map = evt.target;
     map.resize();
-    const layersToHide = [
-      'country-label',
-      'state-label',
-      'admin-0-boundary',
-      'admin-0-boundary-disputed',
-      'admin-1-boundary',
-      'admin-1-boundary-bg',
-      'settlement-label',
-      'settlement-subdivision-label',
-    ];
-    layersToHide.forEach(id => {
-      if (map.getLayer(id)) {
-        map.setLayoutProperty(id, 'visibility', 'none');
-      }
-    });
+    hideModernLayers(map);
+    // style.load re-fires on any style (re)load — e.g. a future setStyle
+    // call — so the hidden state isn't lost if that ever happens, even
+    // though the current light-v11 style never changes after mount.
+    map.on('style.load', () => hideModernLayers(map));
   }
 
   function changeEra(i) {
