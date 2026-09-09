@@ -63,38 +63,6 @@ html, body { height: 100%; overflow: hidden; }
 .font-cinzel { font-family: 'Cinzel', serif; }
 .font-cinzel-decorative { font-family: 'Cinzel Decorative', serif; }
 
-.bible-maps-slider {
-  -webkit-appearance: none;
-  appearance: none;
-  height: 4px;
-  border-radius: 2px;
-  background: linear-gradient(90deg, #7A2E2E 0%, #7A2E2E var(--slider-progress, 0%), #DED2B0 var(--slider-progress, 0%), #DED2B0 100%);
-}
-.bible-maps-slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: #FCFAF3;
-  border: 2px solid #A8823C;
-  cursor: pointer;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
-}
-.bible-maps-slider::-moz-range-thumb {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: #FCFAF3;
-  border: 2px solid #A8823C;
-  cursor: pointer;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
-}
-.bible-maps-slider::-moz-range-track {
-  height: 4px;
-  border-radius: 2px;
-  background: #DED2B0;
-}
-
 body {
   background-color: #f8f7f4;
   color: #1a1a2e;
