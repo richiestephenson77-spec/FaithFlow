@@ -1,46 +1,40 @@
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
-// Each tile previews the interface it opens, drawn as inline SVG — no image
-// assets, no embeds, and deliberately NOT the real page components (importing
-// those would pull their data fetching and routing into this page). These are
-// abstractions of each destination, not live renders, so they are decorative:
-// aria-hidden with no text nodes, leaving the tile's visible label as the
-// button's accessible name.
+// Explore tiles carry a small illustrated scene of the feature they open,
+// drawn as inline SVG. The artwork is decorative — aria-hidden with
+// focusable="false" — so each tile announces only its heading and blurb.
 //
-// Palette: the two Bible tiles use the antique-atlas family the reader and
-// atlas actually paint with; everything else uses the app's slate accent.
+// Two palettes, matching the destinations: the two scripture tiles use the
+// antique-atlas family the reader and map actually paint with, everything
+// else uses the app's slate accent.
 const SLATE = '#2C4055';
-const PARCHMENT = '#E8DCC0';
-const PARCHMENT_EDGE = '#DED2B0';
-const ATLAS_OCHRE = '#A8823C';
-const ATLAS_MAROON = '#7A2E2E';
-const VERSE_NUM = '#9C7B3F';
-const INK = '#33291B';
-const LIVE_RED = '#ED4956';
+const INK = '#0A0A0A';
+const BLURB = '#61707a';
+const HAIRLINE = '#EFEFEF';
 
-// The ground is the wrapper's background and the artwork is `meet`-fitted
-// inside it. Tile width varies with screen width, so a `slice` fit would crop
-// whichever shapes sat nearest the edges on a narrow phone; letting the
-// artwork letterbox against a wrapper that always fills keeps every shape
-// whole and every circle circular at any tile aspect.
-function Preview({ height, viewBox, bg, border, children }) {
+const SLATE_ART = { ink: SLATE, wash: '#e7ecee', solid: SLATE, accent: SLATE };
+const ANTIQUE_ART = { ink: '#A8823C', wash: '#DED2B0', solid: '#7A2E2E', accent: '#7A2E2E' };
+
+// index.css carries a universal `* { font-family: Inter }` rule, which beats a
+// presentation attribute and any inherited value. SVG label fonts therefore
+// have to be set as inline styles to survive it.
+const SANS = "Inter, Arial, Helvetica, sans-serif";
+const SERIF = "Georgia, 'Times New Roman', serif";
+const label = (size, spacing) => ({ fontFamily: SANS, fontSize: size, letterSpacing: spacing });
+const display = (size) => ({ fontFamily: SERIF, fontSize: size });
+
+function Art({ height, theme, margin = '8px 6px 0', children }) {
   return (
-    <div
-      aria-hidden="true"
-      style={{
-        width: '100%',
-        height,
-        borderRadius: 10,
-        overflow: 'hidden',
-        background: bg,
-        border: border ? `1px solid ${border}` : undefined,
-      }}
-    >
+    <div aria-hidden="true" style={{ height, overflow: 'hidden', margin, position: 'relative', pointerEvents: 'none' }}>
       <svg
         focusable="false"
-        viewBox={viewBox}
-        preserveAspectRatio="xMidYMid meet"
+        viewBox="0 0 195 150"
         style={{ display: 'block', width: '100%', height: '100%' }}
+        fill="none"
+        stroke={theme.ink}
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
       >
         {children}
       </svg>
@@ -48,265 +42,232 @@ function Preview({ height, viewBox, bg, border, children }) {
   );
 }
 
-// Head + shoulders inside a circle — the shape Avatar.js falls back to.
-function AvatarGlyph({ cx, cy, r, fill, opacity = 1, ring = '#FFFFFF' }) {
+// An open book, a psalm and a ribbon marker.
+const BibleArt = (t) => (
+  <>
+    <path fill={t.wash} stroke="none" d="M22 39Q58 19 96 37Q133 18 170 36V120Q132 104 96 124Q55 108 22 124Z" />
+    <path d="M22 39Q58 19 96 37Q133 18 170 36V120Q132 104 96 124Q55 108 22 124ZM96 37V124M28 130Q64 115 96 131Q136 113 176 127" />
+    <path fill={t.accent} stroke="none" d="M131 27V85L140 77L148 82V26Z" />
+    <text x="38" y="62" fill={t.ink} stroke="none" style={label(10, '1px')}>PSALMS</text>
+    <text x="40" y="83" fill={t.ink} stroke="none" style={label(9)}>Be still,</text>
+    <text x="40" y="98" fill={t.ink} stroke="none" style={label(9)}>and know.</text>
+    <path d="M112 99Q131 91 157 101M112 108Q133 100 157 110" />
+  </>
+);
+
+// Three people gathered around a table.
+const CellsArt = (t) => (
+  <>
+    <ellipse fill={t.wash} stroke="none" cx="97" cy="105" rx="76" ry="26" />
+    <path fill={t.solid} stroke="none" d="M31 98Q24 71 44 65Q62 68 65 96ZM132 98Q137 65 155 67Q176 75 165 103Z" />
+    <circle fill="#fff" stroke={t.ink} cx="44" cy="53" r="12" />
+    <circle fill="#fff" stroke={t.ink} cx="153" cy="55" r="12" />
+    <path fill={t.wash} stroke="none" d="M77 68Q72 45 96 43Q118 48 115 75Z" />
+    <circle fill="#fff" stroke={t.ink} cx="96" cy="30" r="11" />
+    <ellipse fill="#fff" cx="98" cy="92" rx="48" ry="17" />
+    <path d="M66 93L87 80L99 84L108 78L130 91L106 102ZM99 84V99M64 105L57 128M131 106L139 129M84 69L95 76L106 66" />
+  </>
+);
+
+// A coastline, a dotted journey between two named places, hills and a compass.
+const MapsArt = (t) => (
+  <>
+    <path fill={t.wash} stroke="none" d="M40 8L122 8L117 25L129 39L118 53L126 70L113 86L107 110L91 140H15V8Z" />
+    <path d="M122 8L117 25L129 39L118 53L126 70L113 86L107 110L91 140" />
+    <path stroke="#7A2E2E" strokeDasharray="3 4" d="M146 22Q101 46 139 73Q147 90 110 119" />
+    <circle fill={t.accent} stroke="none" cx="146" cy="22" r="4" />
+    <circle fill={t.accent} stroke="none" cx="110" cy="119" r="4" />
+    <path d="M144 99L152 83L161 99M157 105L169 85L181 105M135 58L143 45L153 58M36 83V119M19 101H53M29 94L44 110M43 94L29 110" />
+    <text x="138" y="17" fill={t.ink} stroke="none" style={label(9)}>Haran</text>
+    <text x="115" y="135" fill={t.ink} stroke="none" style={label(9)}>Jerusalem</text>
+    <text x="24" y="58" fill={t.ink} stroke="none" style={label(6, '1px')}>THE GREAT SEA</text>
+  </>
+);
+
+// A chapel on a rise, with trees.
+const ChurchesArt = (t) => (
+  <>
+    <path fill={t.wash} stroke="none" d="M9 128Q54 104 93 123Q143 102 188 126V143H9Z" />
+    <path fill="#fff" d="M46 123V65L94 30L143 65V123ZM81 41V17H107V40" />
+    <path fill={t.solid} stroke="none" d="M81 123V93Q94 72 108 93V123Z" />
+    <path d="M94 7V27M88 13H100M42 65L94 27L148 65M59 83V100H71V83ZM117 83V100H129V83ZM93 132V144M155 120V80M171 127V101" />
+    <path fill={t.wash} stroke="none" d="M155 64Q129 80 155 99Q181 83 155 64ZM171 85Q153 100 171 114Q190 101 171 85Z" />
+    <circle cx="95" cy="60" r="9" />
+  </>
+);
+
+// Two chairs drawn up to a small table, a window and a cross.
+const PastorArt = (t) => (
+  <>
+    <path fill={t.wash} stroke="none" d="M27 20H169V123H27ZM40 31V82Q72 89 89 66V31Z" />
+    <path fill={t.solid} stroke="none" d="M29 89H67V111H29ZM128 89H165V111H128Z" />
+    <path d="M28 75V117M66 83V120M128 83V120M166 73V118M38 112V131M155 112V131M94 99V130M84 130H106" />
+    <ellipse fill="#fff" cx="98" cy="91" rx="24" ry="8" />
+    <path fill="#fff" d="M81 83L94 76L110 81L106 90L94 86L83 89Z" />
+    <path d="M94 76V86M119 24V44M111 31H127" />
+    <path d="M43 65Q54 52 65 65M132 65Q143 52 154 65" />
+  </>
+);
+
+// An open entry with a headword and its definition.
+const DictionaryArt = (t) => (
+  <>
+    <path fill={t.wash} stroke="none" d="M35 23H141V129H35Z" />
+    <path fill="#fff" d="M49 14H154V120H49Z" />
+    <path fill={t.solid} stroke="none" d="M154 28H168V48H154ZM154 59H168V78H154ZM154 89H168V108H154Z" />
+    <text x="62" y="58" fill={t.ink} stroke="none" style={display(28)}>Aa</text>
+    <text x="62" y="81" fill={t.ink} stroke="none" style={label(10, '1px')}>GRACE</text>
+    <text x="62" y="99" fill={t.ink} stroke="none" style={label(9)}>A gift freely given.</text>
+    <path d="M62 108H131" />
+  </>
+);
+
+// Two people walking a path together.
+const PartnersArt = (t) => (
+  <>
+    <path fill={t.wash} stroke="none" d="M22 139Q45 93 93 103Q131 111 176 70L187 97Q147 139 110 129Q60 115 57 146Z" />
+    <circle fill="#fff" stroke={t.ink} cx="76" cy="35" r="11" />
+    <circle fill="#fff" stroke={t.ink} cx="119" cy="45" r="11" />
+    <path fill={t.solid} stroke="none" d="M64 52Q76 43 87 57L89 88H60ZM108 64Q121 54 131 67L135 100H105Z" />
+    <path d="M66 87L64 112L56 128M80 87L85 108L91 116M112 100L109 126M127 99L135 119M87 62L100 78L109 70M60 61L49 82M135 74L146 89M157 45V81" />
+    <path fill={t.wash} stroke="none" d="M157 31Q138 43 157 58Q177 45 157 31Z" />
+  </>
+);
+
+// A note of thanks, with a heart.
+const AnsweredArt = (t) => (
+  <>
+    <path fill={t.wash} stroke="none" d="M29 31H145V135H29Z" />
+    <path fill="#fff" d="M43 20H157V123H43Z" />
+    <path d="M51 30V114M65 102H132" />
+    <text x="66" y="59" fill={t.ink} stroke="none" style={display(28)}>Thank</text>
+    <text x="77" y="83" fill={t.ink} stroke="none" style={display(28)}>You.</text>
+    <path fill={t.accent} stroke="none" d="M141 12Q145 1 154 7Q164 1 168 12Q170 23 154 33Q138 22 141 12Z" />
+    <path d="M20 74Q17 55 7 47M19 65Q7 64 7 54M175 117Q184 98 179 78M180 100Q194 90 189 80" />
+  </>
+);
+
+// Border colour is the only thing hover changes — no transform, which on an
+// ancestor would re-anchor the fixed bottom nav and any open composer/sheet.
+const TILE_CLASS =
+  'block bg-white rounded-2xl overflow-hidden min-w-0 relative border border-[#EFEFEF] ' +
+  'hover:border-[#a4afb9] transition-colors ' +
+  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#2C4055] focus-visible:outline-offset-[3px]';
+
+function TileCopy({ title, blurb, titleSize = 18, padding = '12px 13px 16px', children }) {
   return (
-    <g opacity={opacity}>
-      <circle cx={cx} cy={cy} r={r} fill={fill} stroke={ring} strokeWidth={r * 0.16} />
-      <circle cx={cx} cy={cy - r * 0.22} r={r * 0.3} fill={ring} opacity={0.9} />
-      <path
-        d={`M${cx - r * 0.5} ${cy + r * 0.62} a ${r * 0.5} ${r * 0.46} 0 0 1 ${r} 0 Z`}
-        fill={ring}
-        opacity={0.9}
-      />
-    </g>
+    <div style={{ padding, position: 'relative' }}>
+      <h3
+        className="font-fraunces"
+        style={{ fontSize: titleSize, lineHeight: 1.15, margin: '0 0 6px', letterSpacing: '-0.35px', color: INK }}
+      >
+        {title}
+      </h3>
+      <p style={{ fontSize: 11, lineHeight: 1.4, color: BLURB, margin: 0 }}>{blurb}</p>
+      {children}
+    </div>
   );
 }
 
-// A fragment of the parchment reader: warm ground, verse-numbered serif lines.
-function BiblePreview({ height }) {
-  const lines = [
-    { y: 12, w: 150, indent: 14 },
-    { y: 21, w: 168, indent: 4 },
-    { y: 30, w: 158, indent: 4 },
-    { y: 39, w: 96, indent: 4 },
-  ];
-  return (
-    <Preview height={height} viewBox="0 0 186 48" bg={PARCHMENT} border={PARCHMENT_EDGE}>
-      <circle cx="8" cy="9" r="2.1" fill={VERSE_NUM} />
-      {lines.map(({ y, w, indent }) => (
-        <rect key={y} x={indent} y={y} width={w} height="3.4" rx="1.7" fill={INK} opacity="0.5" />
-      ))}
-    </Preview>
-  );
-}
+// The six standard tiles, in the order the design lays them out.
+const STANDARD_TILES = [
+  { title: 'Prayer Cells', blurb: 'Find your prayer circle', to: '/prayer-cells', art: CellsArt, theme: SLATE_ART },
+  { title: 'Bible Maps', blurb: 'Walk through the biblical world', to: '/bible-maps', art: MapsArt, theme: ANTIQUE_ART },
+];
 
-// A fragment of the atlas: parchment ground, one illustrative territory, one place.
-function MapsPreview({ height }) {
-  return (
-    <Preview height={height} viewBox="0 0 166 40" bg={PARCHMENT} border={PARCHMENT_EDGE}>
-      <path
-        d="M96 4 C124 2 152 10 156 20 C160 31 140 38 118 36 C100 34 88 26 88 17 C88 10 90 5 96 4 Z"
-        fill={ATLAS_OCHRE}
-        fillOpacity="0.3"
-        stroke={ATLAS_OCHRE}
-        strokeOpacity="0.75"
-        strokeWidth="1.2"
-        strokeDasharray="4 3"
-      />
-      <path
-        d="M6 30 C18 22 30 26 44 18 C56 11 64 14 74 8"
-        fill="none"
-        stroke={PARCHMENT_EDGE}
-        strokeWidth="1.6"
-      />
-      <circle cx="112" cy="22" r="3" fill={ATLAS_MAROON} stroke="#FFF9E9" strokeWidth="1.4" />
-    </Preview>
-  );
-}
+const LOWER_TILES = [
+  { title: 'Churches', blurb: 'Find a place to belong', to: '/churches-hub', art: ChurchesArt, theme: SLATE_ART },
+  { title: 'Pray w/ Pastor', blurb: 'A moment of personal prayer', to: '/pastors', art: PastorArt, theme: SLATE_ART },
+  { title: 'Bible Dictionary', blurb: 'Discover meaning in every word', to: '/bible-dictionary', art: DictionaryArt, theme: SLATE_ART },
+  { title: 'Prayer Partners', blurb: 'Walk in faith, together', to: '/prayer-partners', art: PartnersArt, theme: SLATE_ART },
+];
 
-// Overlapping participants with the live indicator the session room uses.
-function CellsPreview({ height }) {
+function StandardTile({ title, blurb, to, art, theme }) {
   return (
-    <Preview height={height} viewBox="0 0 166 40" bg="#F4F7F9">
-      {[30, 56, 82, 108].map((cx, i) => (
-        <AvatarGlyph key={cx} cx={cx} cy={20} r={13} fill={SLATE} opacity={1 - i * 0.14} />
-      ))}
-      <circle cx="130" cy="12" r="4.6" fill={LIVE_RED} stroke="#FFFFFF" strokeWidth="1.6" />
-    </Preview>
-  );
-}
-
-// A pin dropped over a suggestion of streets.
-function ChurchesPreview({ height }) {
-  return (
-    <Preview height={height} viewBox="0 0 170 34" bg="#F4F7F9">
-      <g stroke="#DDE3E8" strokeWidth="1.6">
-        <path d="M0 11 H170 M0 24 H170 M34 0 V34 M112 0 V34" />
-      </g>
-      <path d="M136 6 h34 v10 h-34 Z" fill="#E7EDF1" />
-      <path
-        d="M85 5 c6.2 0 11.2 5 11.2 11.2 C96.2 24 85 32 85 32 s-11.2-8-11.2-15.8 C73.8 10 78.8 5 85 5 Z"
-        fill={SLATE}
-      />
-      <circle cx="85" cy="16" r="4.1" fill="#FFFFFF" />
-    </Preview>
-  );
-}
-
-// Two people turned toward each other.
-function PastorPreview({ height }) {
-  return (
-    <Preview height={height} viewBox="0 0 170 34" bg="#F4F7F9">
-      <AvatarGlyph cx={68} cy={17} r={12} fill={SLATE} />
-      <AvatarGlyph cx={102} cy={17} r={12} fill={SLATE} opacity={0.72} />
-    </Preview>
-  );
-}
-
-// Stacked entry lines with the headword picked out.
-function DictionaryPreview({ height }) {
-  return (
-    <Preview height={height} viewBox="0 0 170 34" bg="#F4F7F9">
-      <rect x="16" y="5" width="42" height="7" rx="3.5" fill={SLATE} opacity="0.85" />
-      <rect x="63" y="7" width="60" height="3.4" rx="1.7" fill={SLATE} opacity="0.26" />
-      <rect x="16" y="17" width="138" height="3.4" rx="1.7" fill={SLATE} opacity="0.26" />
-      <rect x="16" y="25" width="104" height="3.4" rx="1.7" fill={SLATE} opacity="0.26" />
-    </Preview>
-  );
-}
-
-// Two people joined by a link.
-function PartnersPreview({ height }) {
-  return (
-    <Preview height={height} viewBox="0 0 170 34" bg="#F4F7F9">
-      <AvatarGlyph cx={62} cy={17} r={11.5} fill={SLATE} />
-      <AvatarGlyph cx={108} cy={17} r={11.5} fill={SLATE} opacity={0.72} />
-      <g stroke={SLATE} strokeWidth="2.6" strokeLinecap="round" opacity="0.55">
-        <path d="M78 17 h6" />
-        <path d="M86 17 h6" />
-      </g>
-    </Preview>
-  );
-}
-
-// A heart resting over answered-prayer cards.
-function AnsweredPreview({ height }) {
-  return (
-    <Preview height={height} viewBox="0 0 170 34" bg="#F4F7F9">
-      <g fill="#FFFFFF" stroke={SLATE} strokeOpacity="0.3" strokeWidth="1.4">
-        <rect x="44" y="3" width="82" height="12" rx="4" />
-        <rect x="36" y="13" width="98" height="16" rx="4" />
-      </g>
-      <path
-        d="M85 27 c-8.6-6-13.8-10.2-13.8-15.2 C71.2 8.4 74.4 5.4 78.2 5.4 c2.6 0 5.1 1.4 6.8 3.6 c1.7-2.2 4.2-3.6 6.8-3.6 c3.8 0 7 3 7 6.4 C98.8 16.8 93.6 21 85 27 Z"
-        fill={SLATE}
-        stroke="#F4F7F9"
-        strokeWidth="2.2"
-        strokeLinejoin="round"
-      />
-    </Preview>
+    <Link to={to} className={`${TILE_CLASS} flex flex-col`}>
+      <Art height={136} theme={theme}>{art(theme)}</Art>
+      <TileCopy title={title} blurb={blurb} />
+    </Link>
   );
 }
 
 export default function Explore() {
-  const navigate = useNavigate();
-
   return (
-    <div className="min-h-full" style={{ background: '#EEF3F5' }}>
-      {/* Header */}
-      <div className="px-4 pt-6 pb-5">
-        <h2 className="text-2xl font-semibold" style={{ color: '#1A1A1A' }}>Explore</h2>
-        <p className="text-sm mt-1" style={{ color: '#6B7680' }}>Deepen your faith journey</p>
-      </div>
+    <div className="min-h-full" style={{ background: '#FFFFFF' }}>
+      <div className="px-4 pt-6">
+        <h2 className="font-fraunces" style={{ fontSize: 30, margin: '4px 0', color: INK, lineHeight: 1.1 }}>Explore</h2>
+        <p style={{ margin: '3px 0 24px', color: '#66717b', fontSize: 14 }}>Deepen your faith journey</p>
 
-      <div className="px-4 space-y-3">
-
-        {/* 1. Bible — full-width hero tile */}
-        <button
-          className="water-tile water-tile-blue w-full text-left"
-          style={{ animation: 'float1 4s ease-in-out infinite', padding: 22 }}
-          onClick={() => navigate('/bible')}
-        >
-          <div style={{ position: 'relative', zIndex: 1 }}>
-            <BiblePreview height={52} />
-            <p className="font-semibold text-lg leading-tight mt-3" style={{ color: '#0A0A0A' }}>Bible</p>
-            <p className="text-xs mt-0.5" style={{ color: '#4A6674' }}>Read and search scripture</p>
-          </div>
-        </button>
-
-        {/* 2. Prayer Cells + Bible Maps — 2-col medium tiles */}
         <div className="grid grid-cols-2 gap-3">
-          <button
-            className="water-tile water-tile-blue text-left"
-            style={{ animation: 'float2 4.5s ease-in-out infinite', minHeight: 116, padding: 18 }}
-            onClick={() => navigate('/prayer-cells')}
-          >
-            <div style={{ position: 'relative', zIndex: 1 }} className="flex flex-col gap-2 h-full">
-              <CellsPreview height={40} />
-              <p className="font-semibold text-[15px] leading-snug" style={{ color: '#0A0A0A' }}>Prayer Cells</p>
-              <p className="text-[12px] leading-snug" style={{ color: '#4A6674' }}>Live audio prayer</p>
-            </div>
-          </button>
 
-          <button
-            className="water-tile water-tile-blue text-left relative"
-            style={{ animation: 'float3 5s ease-in-out infinite', minHeight: 116, padding: 18 }}
-            onClick={() => navigate('/bible-maps')}
+          {/* Bible — wide tile, copy beside the scene */}
+          <Link
+            to="/bible"
+            className={`${TILE_CLASS} col-span-2 grid items-center`}
+            style={{ gridTemplateColumns: '1fr 1.12fr', minHeight: 174 }}
+          >
+            <div style={{ gridColumn: 1, gridRow: 1 }}>
+              <TileCopy title="Bible" blurb="Read. Reflect. Begin again." titleSize={29} padding="20px">
+                <span style={{ display: 'block', color: SLATE, fontSize: 11, marginTop: 18, whiteSpace: 'nowrap' }}>Open scripture ↗</span>
+              </TileCopy>
+            </div>
+            <div style={{ gridColumn: 2, gridRow: 1 }}>
+              <Art height={162} theme={ANTIQUE_ART} margin="0">{BibleArt(ANTIQUE_ART)}</Art>
+            </div>
+          </Link>
+
+          {STANDARD_TILES.map(tile => <StandardTile key={tile.to} {...tile} />)}
+
+          {/* Confession Wall — the app's existing purple card, unchanged */}
+          <Link
+            to="/confessions"
+            className={`col-span-2 water-tile water-tile-violet w-full text-left block ${
+              'focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#2C4055] focus-visible:outline-offset-[3px]'
+            }`}
+            style={{ padding: '20px 22px 18px' }}
           >
             <span
-              className="absolute top-3 right-3 text-[10px] font-semibold px-2 py-0.5 rounded-full"
-              style={{ background: 'rgba(255,255,255,0.7)', color: '#0A0A0A', zIndex: 2 }}
+              className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
+              style={{ background: 'rgba(255,255,255,0.25)', color: 'rgba(80,30,120,0.85)', position: 'relative', zIndex: 1 }}
             >
-              New
+              ANONYMOUS SPACE
             </span>
-            <div style={{ position: 'relative', zIndex: 1 }} className="flex flex-col gap-2 h-full">
-              <MapsPreview height={40} />
-              <p className="font-semibold text-[15px] leading-snug" style={{ color: '#0A0A0A' }}>Bible Maps</p>
-              <p className="text-[12px] leading-snug" style={{ color: '#4A6674' }}>Explore the Biblical world</p>
-            </div>
-          </button>
-        </div>
-
-        {/* 3. Confession Wall — full-width violet tile */}
-        <button
-          className="water-tile water-tile-violet w-full text-left"
-          style={{ animation: 'float2 4.8s ease-in-out infinite', padding: '20px 22px 18px' }}
-          onClick={() => navigate('/confessions')}
-        >
-          <span
-            className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
-            style={{ background: 'rgba(255,255,255,0.25)', color: 'rgba(80,30,120,0.85)', position: 'relative', zIndex: 1 }}
-          >
-            ANONYMOUS SPACE
-          </span>
-          <div style={{ position: 'relative', zIndex: 1 }} className="mt-3">
-            <p className="font-bold text-base leading-tight" style={{ color: '#2D1050' }}>Confession Wall</p>
-            <p className="text-xs mt-1 leading-relaxed" style={{ color: 'rgba(60,20,100,0.65)' }}>
-              Share your heart without fear. Completely anonymous.
-            </p>
-            <div className="flex justify-end mt-3">
-              <span className="text-sm font-medium" style={{ color: 'rgba(60,20,100,0.7)' }}>Enter →</span>
-            </div>
-          </div>
-        </button>
-
-        {/* 4. Small 2×2 grid: Churches, Pray w/ Pastor, Bible Dictionary, Prayer Partners */}
-        <div className="grid grid-cols-2 gap-3">
-          {[
-            { label: 'Churches',         Art: ChurchesPreview,   route: '/churches-hub',     anim: 'float1 4.2s ease-in-out infinite' },
-            { label: 'Pray w/ Pastor',   Art: PastorPreview,     route: '/pastors',          anim: 'float3 4.7s ease-in-out infinite' },
-            { label: 'Bible Dictionary', Art: DictionaryPreview, route: '/bible-dictionary', anim: 'float2 4.4s ease-in-out infinite' },
-            { label: 'Prayer Partners',  Art: PartnersPreview,   route: '/prayer-partners',  anim: 'float1 5.1s ease-in-out infinite' },
-            { label: 'Answered',         Art: AnsweredPreview,   route: '/answered',         anim: 'float3 4.9s ease-in-out infinite' },
-          ].map(({ label, Art, route, anim }) => (
-            <button
-              key={label}
-              className="water-tile water-tile-blue text-left"
-              style={{ animation: anim, minHeight: 96, padding: 16 }}
-              onClick={() => navigate(route)}
-            >
-              <div style={{ position: 'relative', zIndex: 1 }} className="flex flex-col justify-between h-full" >
-                <Art height={34} />
-                <p className="font-semibold text-[13px] leading-snug mt-3" style={{ color: '#0A0A0A' }}>{label}</p>
+            <div style={{ position: 'relative', zIndex: 1 }} className="mt-3">
+              <p className="font-bold text-base leading-tight" style={{ color: '#2D1050' }}>Confession Wall</p>
+              <p className="text-xs mt-1 leading-relaxed" style={{ color: 'rgba(60,20,100,0.65)' }}>
+                Share your heart without fear. Completely anonymous.
+              </p>
+              <div className="flex justify-end mt-3">
+                <span className="text-sm font-medium" style={{ color: 'rgba(60,20,100,0.7)' }}>Enter →</span>
               </div>
-            </button>
-          ))}
+            </div>
+          </Link>
+
+          {LOWER_TILES.map(tile => <StandardTile key={tile.to} {...tile} />)}
+
+          {/* Answered Prayers — wide tile, scene beside the copy */}
+          <Link
+            to="/answered"
+            className={`${TILE_CLASS} col-span-2 grid items-center`}
+            style={{ gridTemplateColumns: '1fr 1fr' }}
+          >
+            <Art height={120} theme={SLATE_ART}>{AnsweredArt(SLATE_ART)}</Art>
+            <TileCopy title="Answered Prayers" blurb="Make room for gratitude" />
+          </Link>
+
         </div>
 
         {/* Coming Soon pills */}
-        <div className="pt-2">
+        <div className="pt-5">
           <p className="text-[11px] font-semibold uppercase tracking-wide mb-2" style={{ color: '#8E8E8E' }}>Coming Soon</p>
           <div className="flex gap-2">
-            {[
-              { label: 'Find Believers' },
-            ].map(({ label }) => (
+            {[{ label: 'Find Believers' }].map(({ label: pill }) => (
               <div
-                key={label}
-                className="flex items-center rounded-full px-4 bg-white/60"
-                style={{ height: 36, opacity: 0.6, border: '1px solid rgba(255,255,255,0.8)' }}
+                key={pill}
+                className="flex items-center rounded-full px-4"
+                style={{ height: 36, opacity: 0.6, border: `1px solid ${HAIRLINE}`, background: '#FBFAF8' }}
               >
-                <span className="text-xs whitespace-nowrap" style={{ color: '#6B7680' }}>{label}</span>
+                <span className="text-xs whitespace-nowrap" style={{ color: '#6B7680' }}>{pill}</span>
               </div>
             ))}
           </div>
