@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo } from 'react';
+import { useState, useRef, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import Map, { Marker, Source, Layer } from 'react-map-gl/mapbox';
@@ -91,8 +91,20 @@ export default function BibleMaps() {
     };
   }, [currentEra]);
 
+  // The map's true size is the mobile-column container's, not the browser
+  // viewport's — mapbox-gl measures its container at construction time, so
+  // if that box wasn't at its final size yet (or the window/orientation
+  // changes afterward), the canvas goes stale: clipped or blurry until
+  // resize() re-measures and repaints it.
+  useEffect(() => {
+    function onResize() { mapRef.current?.getMap()?.resize(); }
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+
   function handleMapLoad(evt) {
     const map = evt.target;
+    map.resize();
     const layersToHide = [
       'country-label',
       'state-label',
@@ -147,7 +159,7 @@ export default function BibleMaps() {
 
   if (!MAPBOX_TOKEN) {
     return (
-      <div className="fixed inset-0 z-40 flex flex-col items-center justify-center px-8" style={{ background: '#F6F1E4' }}>
+      <div className="absolute inset-0 z-40 flex flex-col items-center justify-center px-8" style={{ background: '#F6F1E4' }}>
         <button
           onClick={() => navigate(-1)}
           aria-label="Back"
@@ -173,7 +185,17 @@ export default function BibleMaps() {
   }
 
   return (
-    <div className="fixed inset-0 z-40 flex flex-col" style={{ background: '#F6F1E4' }}>
+    // `absolute inset-0` (not `fixed`) — `fixed` is contained only by a
+    // transform/filter/perspective ancestor, so it ignores the Layout
+    // wrapper's `max-w-md mx-auto relative` mobile column entirely and
+    // anchors to the real browser viewport instead, which is the bug:
+    // the map fills the whole browser window on web instead of staying
+    // inside the app's centered mobile-width column. `absolute` resolves
+    // against the nearest positioned ancestor — here that's the
+    // AnimatedOutlet's `position: absolute; inset: 0` wrapper, which
+    // itself sits inside Layout's `relative` column — so this page now
+    // stays correctly clipped to the same column every other page uses.
+    <div className="absolute inset-0 z-40 flex flex-col" style={{ background: '#F6F1E4' }}>
       {/* Map area */}
       <div className="relative" style={{ height: '68vh' }}>
         <Map

@@ -7,14 +7,31 @@ import { hapticLight } from '../utils/haptics';
 
 const ACCENT = '#2C4055';
 
-// Version + reading-theme controls for the Bible reader. Deliberately styled
-// with the app's normal chrome (white surface, #EFEFEF borders, near-black
-// text) rather than the active reading theme, so the controls stay legible
-// whichever background the scripture area is using.
-export default function BibleReaderControls({ versionId, onVersionChange, themeId, onThemeChange }) {
+// Version + reading-theme controls for the Bible reader, plus (when passed)
+// the chapter prev/next chevrons on the same row. The pills are deliberately
+// styled with the app's normal chrome (near-black text on a faint tint)
+// rather than the active reading theme's own palette — except in Scripture,
+// which gets its own parchment-matched tint so the row reads as part of the
+// same header sheet rather than a mismatched white bar. No background/border
+// of its own otherwise: the parent header owns that paint.
+export default function BibleReaderControls({
+  versionId,
+  onVersionChange,
+  themeId,
+  onThemeChange,
+  onPrevChapter,
+  onNextChapter,
+  prevDisabled,
+  nextDisabled,
+}) {
   const [open, setOpen] = useState(null); // 'version' | 'theme' | null
   const version = BIBLE_VERSIONS.find(v => v.id === versionId) || BIBLE_VERSIONS[0];
   const theme = READING_THEMES[themeId] || READING_THEMES.modern;
+  const scripture = themeId === 'scripture';
+  const chipBg = scripture ? '#E4D8BE' : 'rgba(44,64,85,0.08)';
+  const chipText = scripture ? '#4A3D28' : '#0A0A0A';
+  const chevronColor = scripture ? '#4A3D28' : '#5C6672';
+  const navColor = scripture ? '#4A3D28' : '#9CA3AF';
 
   function pick(kind, value) {
     hapticLight();
@@ -24,32 +41,51 @@ export default function BibleReaderControls({ versionId, onVersionChange, themeI
   }
 
   return (
-    <div
-      className="relative flex items-center gap-2 px-4 py-2.5 bg-white"
-      style={{ borderBottom: '1px solid #EFEFEF' }}
-    >
-      {/* Version pill */}
-      <button
-        onClick={() => { hapticLight(); setOpen(o => (o === 'version' ? null : 'version')); }}
-        aria-label="Change Bible version"
-        className="flex items-center gap-1.5 rounded-full px-3 py-1.5"
-        style={{ background: 'rgba(44,64,85,0.08)' }}
-      >
-        <span className="text-xs font-bold tracking-wide" style={{ color: '#0A0A0A' }}>{version.label}</span>
-        <ChevronDown size={13} strokeWidth={2.4} color="#5C6672" />
-      </button>
+    <div className="relative flex items-center justify-between gap-2 px-4 py-2.5">
+      <div className="flex items-center gap-2">
+        {/* Version pill */}
+        <button
+          onClick={() => { hapticLight(); setOpen(o => (o === 'version' ? null : 'version')); }}
+          aria-label="Change Bible version"
+          className="flex items-center gap-1.5 rounded-full px-3 py-1.5"
+          style={{ background: chipBg }}
+        >
+          <span className="text-xs font-bold tracking-wide" style={{ color: chipText }}>{version.label}</span>
+          <ChevronDown size={13} strokeWidth={2.4} color={chevronColor} />
+        </button>
 
-      {/* Reading-theme pill */}
-      <button
-        onClick={() => { hapticLight(); setOpen(o => (o === 'theme' ? null : 'theme')); }}
-        aria-label="Change reading theme"
-        className="flex items-center gap-1.5 rounded-full px-3 py-1.5"
-        style={{ background: 'rgba(44,64,85,0.08)' }}
-      >
-        <Type size={13} strokeWidth={2.2} color="#0A0A0A" />
-        <span className="text-xs font-semibold" style={{ color: '#0A0A0A' }}>{theme.name}</span>
-        <ChevronDown size={13} strokeWidth={2.4} color="#5C6672" />
-      </button>
+        {/* Reading-theme pill */}
+        <button
+          onClick={() => { hapticLight(); setOpen(o => (o === 'theme' ? null : 'theme')); }}
+          aria-label="Change reading theme"
+          className="flex items-center gap-1.5 rounded-full px-3 py-1.5"
+          style={{ background: chipBg }}
+        >
+          <Type size={13} strokeWidth={2.2} color={chipText} />
+          <span className="text-xs font-semibold" style={{ color: chipText }}>{theme.name}</span>
+          <ChevronDown size={13} strokeWidth={2.4} color={chevronColor} />
+        </button>
+      </div>
+
+      {/* Chapter prev/next */}
+      {(onPrevChapter || onNextChapter) && (
+        <div className="flex items-center gap-1 flex-shrink-0">
+          <button
+            onClick={onPrevChapter}
+            disabled={prevDisabled}
+            aria-label="Previous chapter"
+            className="w-8 h-8 flex items-center justify-center text-xl disabled:opacity-30"
+            style={{ color: navColor }}
+          >‹</button>
+          <button
+            onClick={onNextChapter}
+            disabled={nextDisabled}
+            aria-label="Next chapter"
+            className="w-8 h-8 flex items-center justify-center text-xl disabled:opacity-30"
+            style={{ color: navColor }}
+          >›</button>
+        </div>
+      )}
 
       <AnimatePresence>
         {open && (

@@ -1,13 +1,12 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Compass } from 'lucide-react';
+import { X, Compass, ChevronDown, Search } from 'lucide-react';
 import BookPicker from '../components/BookPicker';
 import ChapterVersePicker from '../components/ChapterVersePicker';
 import WordSpan from '../components/WordSpan';
 import BibleReaderControls from '../components/BibleReaderControls';
 import api from '../utils/api';
-import { WaterCard, WaterPill } from '../components/water';
 import { getVersion, fetchChapter, searchScripture, searchVersionFor, DEFAULT_VERSION_ID } from '../utils/bibleVersions';
 import { getReadingTheme, DEFAULT_READING_THEME_ID } from '../utils/bibleThemes';
 
@@ -250,118 +249,124 @@ export default function Bible() {
       transition={{ duration: 0.3 }}
       className="min-h-full"
       // On the read tab the page surface IS the scripture surface, so it takes
-      // the reading theme — everything above it (hero, sticky nav, controls)
-      // paints its own app-chrome background and is unaffected.
+      // the reading theme — everything above it (header, controls) paints
+      // its own app-chrome background and is unaffected.
       style={{ background: tab === 'read' ? theme.bg : '#FBF8F3' }}
     >
-      {/* Hero */}
-      <WaterCard tone="blue" style={{ borderRadius: '0 0 24px 24px', padding: '16px 16px 24px' }}>
-        <div className="flex items-center gap-3 mb-4">
-          <button onClick={() => navigate(-1)} className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: 'rgba(22,52,73,0.1)' }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0A0A0A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      {/* Header — compact 2-row header, sticky, shown on both tabs so the
+          back/title/search/mood row stays reachable from Search too.
+          Scripture theme tints it to read as the same sheet of paper as
+          the reading surface below; Modern/Paper keep plain white. */}
+      <div
+        className={`sticky top-0 z-30 transition-shadow ${scrolled ? 'shadow-sm' : ''}`}
+        style={
+          themeId === 'scripture'
+            ? { background: '#F3EBDA', borderBottom: '1px solid #DDD0B4' }
+            : { background: '#FFFFFF', borderBottom: '1px solid #EFEFEF' }
+        }
+      >
+        {/* Row 1 — identity + nav */}
+        <div className="px-4 py-3 flex items-center gap-2">
+          <button
+            onClick={() => navigate(-1)}
+            aria-label="Back"
+            className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+            style={{ background: themeId === 'scripture' ? 'rgba(51,41,27,0.08)' : 'rgba(10,10,10,0.06)' }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={themeId === 'scripture' ? '#33291B' : '#0A0A0A'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="15 18 9 12 15 6"/>
             </svg>
           </button>
-          <div>
-            <h2 className="text-3xl leading-tight" style={{ fontFamily: "'Dancing Script', cursive", color: '#0A0A0A' }}>Holy Bible</h2>
-            <p className="text-sm" style={{ color: '#4A6674' }}>{version.name}</p>
-          </div>
-        </div>
 
-        <div className="inline-flex gap-2">
-          {['read', 'search'].map(t => (
-            <WaterPill key={t} active={tab === t} onClick={() => setTab(t)}>
-              {t === 'read' ? 'Read' : 'Search'}
-            </WaterPill>
-          ))}
-        </div>
-      </WaterCard>
+          {/* Book + chapter merged into one tappable title. Opens the same
+              BookPicker → ChapterVersePicker chain the old two separate
+              buttons used, so both book and chapter stay choosable. */}
+          <button
+            onClick={() => setShowBookPicker(true)}
+            className="flex items-center gap-1 min-w-0"
+          >
+            <span className="text-base font-semibold truncate" style={{ color: themeId === 'scripture' ? '#33291B' : '#0A0A0A' }}>
+              {book.name} {chapter}
+            </span>
+            <ChevronDown size={16} strokeWidth={2.4} color={themeId === 'scripture' ? '#33291B' : '#5C6672'} />
+          </button>
 
-      {tab === 'read' && (
-        <>
-          {/* Sticky nav bar */}
-          <div className={`sticky top-0 z-30 bg-white px-4 py-3 flex items-center gap-3 transition-shadow ${scrolled ? 'shadow-sm' : ''}`}>
-            <button onClick={() => setShowBookPicker(true)} className="text-base font-semibold text-gray-900">
-              {book.name}
+          <div className="flex-1 flex items-center justify-end gap-1">
+            <button
+              onClick={() => setTab(t => (t === 'search' ? 'read' : 'search'))}
+              aria-label="Search"
+              className="w-9 h-9 flex items-center justify-center flex-shrink-0"
+            >
+              <Search size={18} strokeWidth={2} color={themeId === 'scripture' ? '#33291B' : '#0A0A0A'} />
             </button>
-            <div className="flex-1 flex items-center justify-end gap-3">
-              <button
-                onClick={() => chapter > 1 && setChapter(c => c - 1)}
-                disabled={chapter <= 1}
-                className="w-9 h-9 flex items-center justify-center text-gray-400 text-xl disabled:opacity-30"
-              >‹</button>
-              <button onClick={() => setShowChapterVersePicker(true)} className="text-sm font-medium text-gray-700">
-                Chapter {chapter}
-              </button>
-              <button
-                onClick={() => chapter < book.chapters && setChapter(c => c + 1)}
-                disabled={chapter >= book.chapters}
-                className="w-9 h-9 flex items-center justify-center text-gray-400 text-xl disabled:opacity-30"
-              >›</button>
-            </div>
+            <button
+              onClick={() => navigate('/feelings')}
+              aria-label="Find a verse for how you feel"
+              className="w-9 h-9 flex items-center justify-center flex-shrink-0"
+            >
+              <Compass size={18} strokeWidth={2} color={themeId === 'scripture' ? '#33291B' : '#0A0A0A'} />
+            </button>
           </div>
+        </div>
 
-          {/* Version + reading-theme controls */}
+        {/* Row 2 — translation/theme chips + chapter nav — read tab only */}
+        {tab === 'read' && (
           <BibleReaderControls
             versionId={versionId}
             onVersionChange={changeVersion}
             themeId={themeId}
             onThemeChange={changeTheme}
+            onPrevChapter={() => chapter > 1 && setChapter(c => c - 1)}
+            onNextChapter={() => chapter < book.chapters && setChapter(c => c + 1)}
+            prevDisabled={chapter <= 1}
+            nextDisabled={chapter >= book.chapters}
           />
+        )}
+      </div>
 
-          {/* Feelings entry */}
-          <button
-            onClick={() => navigate('/feelings')}
-            className="w-full flex items-center justify-between px-5 py-2.5 bg-white border-b border-[#EFEFEF]"
-          >
-            <span className="flex items-center gap-2 text-[13px] text-[#8E8E8E]">
-              <Compass size={14} strokeWidth={1.6} color="#0A0A0A" />
-              Find a verse for how you feel
-            </span>
-            <X size={12} strokeWidth={1.6} color="#C7C7C7" style={{ transform: 'rotate(45deg)' }} />
-          </button>
-
+      {tab === 'read' && (
+        <>
           {/* Scripture reading area — the ONLY region the reading theme
               repaints. Chrome above/below keeps the app's normal styling.
-              `position: relative` (not `transform`) so the parchment-texture
-              SVG layers below can anchor to it — a transform here would
-              re-anchor any position:fixed descendant (composers, sheets,
-              nav) to this element instead of the viewport; plain relative
-              positioning carries no such risk. */}
+              `position: relative` (not `transform`) is kept for the text
+              wrapper below — a transform here would re-anchor any
+              position:fixed descendant (composers, sheets, nav) to this
+              element instead of the viewport; plain relative positioning
+              carries no such risk. The Scripture theme's parchment texture
+              is painted via background-image data URIs on this element
+              directly (see below), not via absolutely-positioned children,
+              so it has no height-resolution dependency on this box at all. */}
           <div
             className="px-5 pt-5 pb-24"
-            style={{ background: theme.bg, minHeight: '60vh', position: 'relative', transition: 'background 0.2s ease' }}
+            style={
+              themeId === 'scripture'
+                ? {
+                    // Parchment texture as CSS background-image data URIs
+                    // (not absolutely-positioned SVG elements) — the old SVG
+                    // layers used height:100%, which only resolves against a
+                    // containing block with an explicit `height`; this parent
+                    // only had `minHeight`, so the layers collapsed to 0
+                    // height and never painted. background-image has no such
+                    // requirement — it paints across this box's own content
+                    // area regardless of how that height was determined.
+                    // %23 = # and %25 = % — required URL-escapes inside the
+                    // data URI, do not "fix" them.
+                    backgroundColor: '#E8DCC0',
+                    // feColorMatrix (saturate 0) desaturates the feTurbulence
+                    // noise to greyscale — without it the RGB noise channels
+                    // mottle the parchment with visible pink/lavender/green.
+                    backgroundImage:
+                      'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'300\' height=\'300\'%3E%3Cfilter id=\'f\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3CfeColorMatrix type=\'saturate\' values=\'0\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23f)\' opacity=\'0.13\'/%3E%3C/svg%3E"), url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'600\' height=\'600\'%3E%3Cfilter id=\'b\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.012\' numOctaves=\'3\'/%3E%3CfeColorMatrix type=\'saturate\' values=\'0\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23b)\' opacity=\'0.20\'/%3E%3C/svg%3E")',
+                    backgroundRepeat: 'repeat, repeat',
+                    minHeight: '60vh',
+                    position: 'relative',
+                    transition: 'background 0.2s ease',
+                  }
+                : { background: theme.bg, minHeight: '60vh', position: 'relative', transition: 'background 0.2s ease' }
+            }
           >
-            {/* Parchment texture — Scripture theme ONLY. Two stacked SVG
-                feTurbulence layers behind the text, pointer-events:none so
-                they never intercept taps/long-press. No image assets. */}
-            {themeId === 'scripture' && (
-              <>
-                <svg
-                  aria-hidden="true"
-                  style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }}
-                >
-                  {/* Layer A — aging blotches */}
-                  <filter id="scripture-noise-a">
-                    <feTurbulence type="fractalNoise" baseFrequency="0.012" numOctaves="3" />
-                  </filter>
-                  <rect width="100%" height="100%" filter="url(#scripture-noise-a)" opacity="0.22" />
-                </svg>
-                <svg
-                  aria-hidden="true"
-                  style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }}
-                >
-                  {/* Layer B — paper fibre */}
-                  <filter id="scripture-noise-b">
-                    <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="4" stitchTiles="stitch" />
-                  </filter>
-                  <rect width="100%" height="100%" filter="url(#scripture-noise-b)" opacity="0.10" />
-                </svg>
-              </>
-            )}
-
-            {/* Text content sits in its own relative wrapper ABOVE both
-                texture layers (DOM order + position:relative). */}
+            {/* Text content sits in its own relative wrapper. No background
+                set here, so the parchment texture on the parent shows through. */}
             <div style={{ position: 'relative' }}>
               {error && (
                 <div className="rounded-2xl p-4 mb-4 text-sm" style={{ background: '#FEF2F2', border: '1px solid #FECACA', color: '#991B1B' }}>

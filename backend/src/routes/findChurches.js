@@ -17,6 +17,7 @@ router.get('/nearby', authenticate, async (req, res) => {
     const data = await response.json();
 
     if (data.status !== 'OK' && data.status !== 'ZERO_RESULTS') {
+      console.error('[PLACES]', data.status, data.error_message);
       return res.status(500).json({ error: data.status, message: data.error_message });
     }
 
