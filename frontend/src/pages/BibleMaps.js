@@ -29,7 +29,7 @@ export default function BibleMaps() {
     <iframe
       ref={frame}
       src="/bible-atlas/index.html"
-      title="Bible Maps: historical atlas from 3000 BC to AD 30"
+      title="Bible Maps: historical atlas from 3000 BC to AD 1600"
       style={{ display: 'block', width: '100%', height: '100%', border: 0 }}
     />
   );
