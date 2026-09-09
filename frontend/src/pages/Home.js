@@ -96,7 +96,7 @@ function PostCard({ post, onLike, onUserClick, currentUserId, onOptions }) {
           </svg>
           {post._count?.likes > 0 && post._count.likes}
         </motion.button>
-        <div className="flex items-center gap-1.5 text-sm h-11 px-2" style={{ color: '#9AA6AD' }}>
+        <div className="flex items-center gap-1.5 text-sm h-11 px-2" style={{ color: '#8E8E8E' }}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
           </svg>
@@ -187,11 +187,6 @@ export default function Home() {
     return () => window.removeEventListener('post_created', handler);
   }, []);
 
-  const greeting = (() => {
-    const h = new Date().getHours();
-    return h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
-  })();
-
   // The create-post modal lives in Layout (opened from the header avatar); ask
   // it to open so the empty-state CTA reuses the same flow.
   function openCreatePost() {
@@ -212,7 +207,7 @@ export default function Home() {
   }
 
   return (
-    <div className="bg-gray-50 min-h-full">
+    <div className="bg-white min-h-full">
       {/* Prayer-started toast */}
       {prayerToast && (
         <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-sm">
@@ -223,14 +218,6 @@ export default function Home() {
       )}
 
       <div className="px-4 pt-3">
-        {/* Greeting — gives Home a purposeful focal identity */}
-        <motion.div {...fadeUp} className="mb-4">
-          <h1 className="text-[22px] font-bold leading-tight" style={{ color: '#0A0A0A', fontFamily: "'Fraunces', serif" }}>
-            {greeting}{user?.name ? `, ${user.name.split(' ')[0]}` : ''}
-          </h1>
-          <p className="text-sm mt-0.5" style={{ color: '#8E8E8E' }}>Here's your community today</p>
-        </motion.div>
-
         {/* Prayer Room entry — flat premium hero, the primary action */}
         <motion.button
           {...fadeUp}
@@ -240,7 +227,7 @@ export default function Home() {
           style={{ border: '1px solid #EFEFEF' }}
         >
           <div className="flex items-center justify-between">
-            <span className="font-bold text-base" style={{ color: '#0A0A0A', fontFamily: "'Fraunces', serif" }}>Prayer Room</span>
+            <span className="text-base type-heading">Prayer Room</span>
             <div className="flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-[#2C4055] animate-pulse" />
               <span className="text-[11px] font-semibold" style={{ color: '#0A0A0A' }}>
@@ -260,7 +247,7 @@ export default function Home() {
               ].map(({ Icon, label }) => (
                 <div key={label} className="flex items-center gap-1.5">
                   <Icon size={14} strokeWidth={1.7} color="#0A0A0A" />
-                  <span style={{ fontSize: 11, color: '#6B7680' }}>{label}</span>
+                  <span style={{ fontSize: 11, color: '#8E8E8E' }}>{label}</span>
                 </div>
               ))}
             </div>
