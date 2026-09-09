@@ -53,6 +53,48 @@ function hideModernLayers(map) {
   });
 }
 
+// Basemap recoloring — swaps light-v11's default grey/white land+water for
+// parchment tones so the antique-atlas palette lives in the map itself, not
+// just the chrome around it. 'land' is a `background`-type layer (paint
+// property `background-color`); 'water' is a `fill` layer (`fill-color`).
+// Territory overlays are drawn separately (see territoryGeoJSON) at
+// fill-opacity 0.12 with a solid-opacity outline, so they stay readable
+// against either the old grey or this new parchment tone.
+const BASEMAP_PAINT = {
+  land: { 'background-color': '#EDE2C8' },
+  water: { 'fill-color': '#C9BFA3' },
+  waterway: { 'line-color': '#A8823C', 'line-opacity': 0.35 },
+};
+
+// Modern artifacts that add nothing at this zoom and would otherwise sit,
+// full-color, on top of the recolored parchment.
+const BASEMAP_HIDDEN_IDS = [
+  'landuse',
+  'national-park',
+  'building',
+  'aeroway-polygon',
+  'aeroway-line',
+  'land-structure-polygon',
+  'land-structure-line',
+];
+
+// Natural-feature text (deserts, mountains, seas) is period-appropriate and
+// stays — just recolored to the parchment ink tone instead of default grey.
+const BASEMAP_LABEL_IDS = ['natural-line-label', 'natural-point-label', 'continent-label'];
+
+function recolorBasemap(map) {
+  Object.entries(BASEMAP_PAINT).forEach(([id, paint]) => {
+    if (!map.getLayer(id)) return; // skip silently if this style ever drops the layer
+    Object.entries(paint).forEach(([prop, value]) => map.setPaintProperty(id, prop, value));
+  });
+  BASEMAP_HIDDEN_IDS.forEach(id => {
+    if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', 'none');
+  });
+  BASEMAP_LABEL_IDS.forEach(id => {
+    if (map.getLayer(id)) map.setPaintProperty(id, 'text-color', '#7A5A32');
+  });
+}
+
 function polygonCentroid(coords) {
   const n = coords.length;
   const [sumLng, sumLat] = coords.reduce(([a, b], [lng, lat]) => [a + lng, b + lat], [0, 0]);
@@ -150,10 +192,15 @@ export default function BibleMaps() {
     const map = evt.target;
     map.resize();
     hideModernLayers(map);
+    recolorBasemap(map);
     // style.load re-fires on any style (re)load — e.g. a future setStyle
-    // call — so the hidden state isn't lost if that ever happens, even
-    // though the current light-v11 style never changes after mount.
-    map.on('style.load', () => hideModernLayers(map));
+    // call — so the hidden/recolored state isn't lost if that ever
+    // happens, even though the current light-v11 style never changes
+    // after mount.
+    map.on('style.load', () => {
+      hideModernLayers(map);
+      recolorBasemap(map);
+    });
   }
 
   function changeEra(i) {
@@ -300,6 +347,19 @@ export default function BibleMaps() {
             );
           })}
         </Map>
+
+        {/* Page vignette — an inset box-shadow overlay sitting above the
+            map canvas (not a transform/filter, which would re-anchor
+            position:fixed descendants or repaint the whole subtree) so the
+            map reads as a page with worn/darkened edges rather than a flat
+            screen. pointer-events:none keeps it from blocking map drags;
+            z-index sits above the canvas but below the floating controls
+            (z-10+) so buttons stay fully legible. */}
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 pointer-events-none"
+          style={{ zIndex: 5, boxShadow: 'inset 0 0 70px rgba(58,42,20,0.35), inset 0 0 18px rgba(58,42,20,0.25)' }}
+        />
 
         {/* Attribution */}
         <div className="absolute bottom-7 left-0 right-0 flex flex-col items-center gap-0.5 z-10 pointer-events-none px-2">
