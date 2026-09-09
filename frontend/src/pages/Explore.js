@@ -23,7 +23,7 @@ const SERIF = "Georgia, 'Times New Roman', serif";
 const label = (size, spacing) => ({ fontFamily: SANS, fontSize: size, letterSpacing: spacing });
 const display = (size) => ({ fontFamily: SERIF, fontSize: size });
 
-function Art({ height, theme, margin = '8px 6px 0', children }) {
+function Art({ height, theme, margin = '7px 6px 0', children }) {
   return (
     <div aria-hidden="true" style={{ height, overflow: 'hidden', margin, position: 'relative', pointerEvents: 'none' }}>
       <svg
@@ -154,12 +154,12 @@ const TILE_CLASS =
   'hover:border-[#a4afb9] transition-colors ' +
   'focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#2C4055] focus-visible:outline-offset-[3px]';
 
-function TileCopy({ title, blurb, titleSize = 18, padding = '12px 13px 16px', children }) {
+function TileCopy({ title, blurb, titleSize = 18, padding = '8px 12px 10px', children }) {
   return (
     <div style={{ padding, position: 'relative' }}>
       <h3
         className="font-fraunces"
-        style={{ fontSize: titleSize, lineHeight: 1.15, margin: '0 0 6px', letterSpacing: '-0.35px', color: INK }}
+        style={{ fontSize: titleSize, lineHeight: 1.15, margin: '0 0 4px', letterSpacing: '-0.35px', color: INK }}
       >
         {title}
       </h3>
@@ -185,7 +185,7 @@ const LOWER_TILES = [
 function StandardTile({ title, blurb, to, art, theme }) {
   return (
     <Link to={to} className={`${TILE_CLASS} flex flex-col`}>
-      <Art height={136} theme={theme}>{art(theme)}</Art>
+      <Art height={70} theme={theme}>{art(theme)}</Art>
       <TileCopy title={title} blurb={blurb} />
     </Link>
   );
@@ -194,9 +194,9 @@ function StandardTile({ title, blurb, to, art, theme }) {
 export default function Explore() {
   return (
     <div className="min-h-full" style={{ background: '#FFFFFF' }}>
-      <div className="px-4 pt-6">
+      <div className="px-4 pt-4">
         <h2 className="font-fraunces" style={{ fontSize: 30, margin: '4px 0', color: INK, lineHeight: 1.1 }}>Explore</h2>
-        <p style={{ margin: '3px 0 24px', color: '#66717b', fontSize: 14 }}>Deepen your faith journey</p>
+        <p style={{ margin: '2px 0 12px', color: '#66717b', fontSize: 14 }}>Deepen your faith journey</p>
 
         <div className="grid grid-cols-2 gap-3">
 
@@ -204,15 +204,15 @@ export default function Explore() {
           <Link
             to="/bible"
             className={`${TILE_CLASS} col-span-2 grid items-center`}
-            style={{ gridTemplateColumns: '1fr 1.12fr', minHeight: 174 }}
+            style={{ gridTemplateColumns: '1fr 1.12fr', minHeight: 104 }}
           >
             <div style={{ gridColumn: 1, gridRow: 1 }}>
-              <TileCopy title="Bible" blurb="Read. Reflect. Begin again." titleSize={29} padding="20px">
-                <span style={{ display: 'block', color: SLATE, fontSize: 11, marginTop: 18, whiteSpace: 'nowrap' }}>Open scripture ↗</span>
+              <TileCopy title="Bible" blurb="Read. Reflect. Begin again." titleSize={24} padding="12px 8px 12px 16px">
+                <span style={{ display: 'block', color: SLATE, fontSize: 11, marginTop: 8, whiteSpace: 'nowrap' }}>Open scripture ↗</span>
               </TileCopy>
             </div>
             <div style={{ gridColumn: 2, gridRow: 1 }}>
-              <Art height={162} theme={ANTIQUE_ART} margin="0">{BibleArt(ANTIQUE_ART)}</Art>
+              <Art height={86} theme={ANTIQUE_ART} margin="0">{BibleArt(ANTIQUE_ART)}</Art>
             </div>
           </Link>
 
@@ -251,7 +251,7 @@ export default function Explore() {
             className={`${TILE_CLASS} col-span-2 grid items-center`}
             style={{ gridTemplateColumns: '1fr 1fr' }}
           >
-            <Art height={120} theme={SLATE_ART}>{AnsweredArt(SLATE_ART)}</Art>
+            <Art height={64} theme={SLATE_ART}>{AnsweredArt(SLATE_ART)}</Art>
             <TileCopy title="Answered Prayers" blurb="Make room for gratitude" />
           </Link>
 
