@@ -14,6 +14,10 @@ const HAIRLINE = '#EFEFEF';
 
 const SLATE_ART = { ink: SLATE, wash: '#e7ecee', solid: SLATE, accent: SLATE };
 const ANTIQUE_ART = { ink: '#A8823C', wash: '#DED2B0', solid: '#7A2E2E', accent: '#7A2E2E' };
+// Confession Wall keeps a purple accent so it stays recognisable, but now in
+// the same white-card system as every other tile rather than a solid block.
+const CONFESSION = '#7C5CBF';
+const CONFESSION_ART = { ink: CONFESSION, wash: '#EDE7F8', solid: CONFESSION, accent: CONFESSION };
 
 // index.css carries a universal `* { font-family: Inter }` rule, which beats a
 // presentation attribute and any inherited value. SVG label fonts therefore
@@ -23,12 +27,12 @@ const SERIF = "Georgia, 'Times New Roman', serif";
 const label = (size, spacing) => ({ fontFamily: SANS, fontSize: size, letterSpacing: spacing });
 const display = (size) => ({ fontFamily: SERIF, fontSize: size });
 
-function Art({ height, theme, margin = '7px 6px 0', children }) {
+function Art({ height, theme, margin = '7px 6px 0', viewBox = '0 0 195 150', children }) {
   return (
     <div aria-hidden="true" style={{ height, overflow: 'hidden', margin, position: 'relative', pointerEvents: 'none' }}>
       <svg
         focusable="false"
-        viewBox="0 0 195 150"
+        viewBox={viewBox}
         style={{ display: 'block', width: '100%', height: '100%' }}
         fill="none"
         stroke={theme.ink}
@@ -147,6 +151,34 @@ const AnsweredArt = (t) => (
   </>
 );
 
+// A screen wall with a lit arch: someone is present behind the lattice, seen
+// but not identified. Shelter rather than secrecy — the figure is upright and
+// calm, not hidden or hunched. Drawn on a wide viewBox because this tile spans
+// both columns, so a 195x150 frame would leave the art marooned in white.
+const ConfessionArt = (t) => (
+  <>
+    <defs>
+      <clipPath id="confession-arch">
+        <path d="M212 92V54Q212 16 250 16Q288 16 288 54V92Z" />
+      </clipPath>
+    </defs>
+    <path fill={t.wash} stroke="none" d="M40 92V40H210V92ZM290 92V40H460V92Z" />
+    <path fill={t.wash} stroke="none" d="M212 92V54Q212 16 250 16Q288 16 288 54V92Z" />
+    <g clipPath="url(#confession-arch)" opacity="0.5">
+      <circle fill={t.solid} stroke="none" cx="250" cy="48" r="13" />
+      <path fill={t.solid} stroke="none" d="M226 92Q229 68 250 66Q271 68 274 92Z" />
+    </g>
+    <g clipPath="url(#confession-arch)" strokeWidth="1.1">
+      <path d="M226 8V96M238 8V96M250 8V96M262 8V96M274 8V96" />
+      <path d="M206 36H294M206 54H294M206 72H294" />
+    </g>
+    <path d="M212 92V54Q212 16 250 16Q288 16 288 54V92" />
+    <path d="M40 92V40H210M290 40H460V92" />
+    <path d="M80 40V92M120 40V92M160 40V92M330 40V92M370 40V92M410 40V92" />
+    <path d="M18 92H482" />
+  </>
+);
+
 // Border colour is the only thing hover changes — no transform, which on an
 // ancestor would re-anchor the fixed bottom nav and any open composer/sheet.
 const TILE_CLASS =
@@ -194,7 +226,10 @@ function StandardTile({ title, blurb, to, art, theme }) {
 export default function Explore() {
   return (
     <div className="min-h-full" style={{ background: '#FFFFFF' }}>
-      <div className="px-4 pt-4">
+      {/* The bottom nav is a floating row of 52px icons with no background of
+          its own, so it sits directly over whatever it passes. Clear it here
+          rather than relying only on the outlet's padding. */}
+      <div className="px-4 pt-4" style={{ paddingBottom: 'calc(4.5rem + env(safe-area-inset-bottom))' }}>
         <h2 className="font-fraunces" style={{ fontSize: 30, margin: '4px 0', color: INK, lineHeight: 1.1 }}>Explore</h2>
         <p style={{ margin: '2px 0 12px', color: '#66717b', fontSize: 14 }}>Deepen your faith journey</p>
 
@@ -218,28 +253,33 @@ export default function Explore() {
 
           {STANDARD_TILES.map(tile => <StandardTile key={tile.to} {...tile} />)}
 
-          {/* Confession Wall — the app's existing purple card, unchanged */}
-          <Link
-            to="/confessions"
-            className={`col-span-2 water-tile water-tile-violet w-full text-left block ${
-              'focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#2C4055] focus-visible:outline-offset-[3px]'
-            }`}
-            style={{ padding: '20px 22px 18px' }}
-          >
-            <span
-              className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
-              style={{ background: 'rgba(255,255,255,0.25)', color: 'rgba(80,30,120,0.85)', position: 'relative', zIndex: 1 }}
-            >
-              ANONYMOUS SPACE
-            </span>
-            <div style={{ position: 'relative', zIndex: 1 }} className="mt-3">
-              <p className="font-bold text-base leading-tight" style={{ color: '#2D1050' }}>Confession Wall</p>
-              <p className="text-xs mt-1 leading-relaxed" style={{ color: 'rgba(60,20,100,0.65)' }}>
-                Share your heart without fear. Completely anonymous.
-              </p>
-              <div className="flex justify-end mt-3">
-                <span className="text-sm font-medium" style={{ color: 'rgba(60,20,100,0.7)' }}>Enter →</span>
-              </div>
+          {/* Confession Wall — same card system as its neighbours, held apart
+              by the purple accent rather than by a solid block. */}
+          <Link to="/confessions" className={`${TILE_CLASS} col-span-2 flex flex-col`}>
+            <Art height={70} theme={CONFESSION_ART} viewBox="0 0 500 100">{ConfessionArt(CONFESSION_ART)}</Art>
+            <div style={{ padding: '8px 12px 10px', position: 'relative' }}>
+              <span
+                style={{
+                  display: 'inline-block',
+                  fontSize: 9,
+                  fontWeight: 600,
+                  letterSpacing: '0.06em',
+                  color: CONFESSION,
+                  background: 'rgba(124,92,191,0.10)',
+                  borderRadius: 999,
+                  padding: '2px 7px',
+                  marginBottom: 5,
+                }}
+              >
+                ANONYMOUS SPACE
+              </span>
+              <h3
+                className="font-fraunces"
+                style={{ fontSize: 18, lineHeight: 1.15, margin: '0 0 4px', letterSpacing: '-0.35px', color: INK }}
+              >
+                Confession Wall
+              </h3>
+              <p style={{ fontSize: 11, lineHeight: 1.4, color: BLURB, margin: 0 }}>Share your heart without fear</p>
             </div>
           </Link>
 
