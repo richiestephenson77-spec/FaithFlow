@@ -1,6 +1,9 @@
 import { useRef } from 'react';
 
-export default function WordSpan({ rawWord, verseRef, onLongPress, fontFamily }) {
+// `displayText` shows something other than the word itself while lookup still
+// uses the full `rawWord` — the Scripture theme's drawn capital stands in for
+// a verse's first letter, and the word must stay long-pressable underneath it.
+export default function WordSpan({ rawWord, verseRef, onLongPress, fontFamily, displayText }) {
   const pressTimer = useRef(null);
   const fired = useRef(false);
   const cleanWord = rawWord.replace(/[^a-zA-Z]/g, '');
@@ -37,7 +40,7 @@ export default function WordSpan({ rawWord, verseRef, onLongPress, fontFamily })
       // reader's own heading already does, is what makes it stick.
       style={fontFamily ? { fontFamily } : undefined}
     >
-      {rawWord}{' '}
+      {displayText != null ? displayText : rawWord}{' '}
     </span>
   );
 }

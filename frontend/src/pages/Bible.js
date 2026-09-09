@@ -6,6 +6,7 @@ import BookPicker from '../components/BookPicker';
 import ChapterVersePicker from '../components/ChapterVersePicker';
 import WordSpan from '../components/WordSpan';
 import BibleReaderControls from '../components/BibleReaderControls';
+import ScriptureReader from '../components/scripture/ScriptureReader';
 import api from '../utils/api';
 import { getVersion, fetchChapter, searchScripture, searchVersionFor, DEFAULT_VERSION_ID } from '../utils/bibleVersions';
 import { getReadingTheme, DEFAULT_READING_THEME_ID } from '../utils/bibleThemes';
@@ -337,30 +338,16 @@ export default function Bible() {
               directly (see below), not via absolutely-positioned children,
               so it has no height-resolution dependency on this box at all. */}
           <div
-            className="px-5 pt-5 pb-24"
+            className={themeId === 'scripture' ? 'pb-24' : 'px-5 pt-5 pb-24'}
             style={
               themeId === 'scripture'
                 ? {
-                    // Parchment texture as CSS background-image data URIs
-                    // (not absolutely-positioned SVG elements) — the old SVG
-                    // layers used height:100%, which only resolves against a
-                    // containing block with an explicit `height`; this parent
-                    // only had `minHeight`, so the layers collapsed to 0
-                    // height and never painted. background-image has no such
-                    // requirement — it paints across this box's own content
-                    // area regardless of how that height was determined.
-                    // %23 = # and %25 = % — required URL-escapes inside the
-                    // data URI, do not "fix" them.
-                    backgroundColor: '#E8DCC0',
-                    // feColorMatrix (saturate 0) desaturates the feTurbulence
-                    // noise to greyscale — without it the RGB noise channels
-                    // mottle the parchment with visible pink/lavender/green.
-                    backgroundImage:
-                      'url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'300\' height=\'300\'%3E%3Cfilter id=\'f\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3CfeColorMatrix type=\'saturate\' values=\'0\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23f)\' opacity=\'0.13\'/%3E%3C/svg%3E"), url("data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'600\' height=\'600\'%3E%3Cfilter id=\'b\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.012\' numOctaves=\'3\'/%3E%3CfeColorMatrix type=\'saturate\' values=\'0\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23b)\' opacity=\'0.20\'/%3E%3C/svg%3E")',
-                    backgroundRepeat: 'repeat, repeat',
+                    // The manuscript treatment paints its own worn sheet as an
+                    // inline SVG inside the article, so this box stays bare —
+                    // stacking the old CSS parchment behind it would double the
+                    // texture, which the package explicitly warns against.
                     minHeight: '60vh',
                     position: 'relative',
-                    transition: 'background 0.2s ease',
                   }
                 : { background: theme.bg, minHeight: '60vh', position: 'relative', transition: 'background 0.2s ease' }
             }
@@ -374,15 +361,19 @@ export default function Bible() {
                 </div>
               )}
 
-              <div className="mb-5">
-                <h3
-                  className="text-2xl font-bold"
-                  style={{ fontFamily: theme.fontFamily, color: theme.headingColor }}
-                >
-                  {book.name} {chapter}
-                </h3>
-                <div className="mt-2 h-[3px] w-10 rounded-full" style={{ background: theme.verseNum }} />
-              </div>
+              {/* Scripture supplies its own manuscript heading inside the
+                  article, so the app's chapter title is skipped there. */}
+              {themeId !== 'scripture' && (
+                <div className="mb-5">
+                  <h3
+                    className="text-2xl font-bold"
+                    style={{ fontFamily: theme.fontFamily, color: theme.headingColor }}
+                  >
+                    {book.name} {chapter}
+                  </h3>
+                  <div className="mt-2 h-[3px] w-10 rounded-full" style={{ background: theme.verseNum }} />
+                </div>
+              )}
 
               {loading ? (
                 <div className="space-y-3">
@@ -393,6 +384,23 @@ export default function Bible() {
                     </div>
                   ))}
                 </div>
+              ) : themeId === 'scripture' ? (
+                // Rendered outside the AnimatePresence wrapper on purpose:
+                // Framer sets will-change while animating, and the package
+                // forbids will-change/transform/filter on any ancestor of the
+                // manuscript. A plain keyed element carries none of that.
+                <ScriptureReader
+                  key={`${version.id}-${book.id}-${chapter}`}
+                  book={book}
+                  chapter={chapter}
+                  verses={verses}
+                  versionLabel={version.name}
+                  activeVerse={activeVerse}
+                  copied={copied}
+                  onCopyVerse={copyVerse}
+                  onWordLongPress={handleWordLongPress}
+                  highlight={theme.highlight}
+                />
               ) : (
                 <AnimatePresence mode="wait">
                   <motion.div
