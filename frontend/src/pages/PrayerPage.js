@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Globe, MapPin, RefreshCw, Flame, BookOpen, Users, Plus, Bookmark, Play, Target, Settings, TrendingUp, Pencil, Lock, Cross, Sparkles, HeartHandshake, Sun, Cloud, CloudRain, Heart, Zap, X } from 'lucide-react';
+import { Globe, MapPin, Flame, BookOpen, Users, Plus, Bookmark, Play, Target, Settings, Pencil, Lock, Cross, Sparkles, HeartHandshake, Sun, Cloud, CloudRain, Heart, Zap, X } from 'lucide-react';
 import api from '../utils/api';
-import { fadeUp, fadeIn, scaleIn, slideInRight, slideUp, staggerContainer, staggerContainerFast, staggerItem } from '../utils/animations';
+import { fadeIn, staggerContainerFast, staggerItem } from '../utils/animations';
 import { useAuth } from '../contexts/AuthContext';
 import { useSocket } from '../contexts/SocketContext';
 import Avatar from '../components/Avatar';
@@ -11,14 +11,13 @@ import PrayerSession from '../components/PrayerSession';
 import NewPrayerRequestModal from '../components/NewPrayerRequestModal';
 import TestimonyModal from '../components/TestimonyModal';
 import MyPrayerRequestsDrawer from '../components/MyPrayerRequestsDrawer';
-import TopPrayerCard from '../components/TopPrayerCard';
-import LocationBanner from '../components/LocationBanner';
-import { hapticMedium, hapticSuccess } from '../utils/haptics';
+import { hapticMedium, hapticSuccess, hapticLight } from '../utils/haptics';
 import PullToRefresh from '../components/PullToRefresh';
 import PrayerReceipts from '../components/PrayerReceipts';
 import WeeklyRecap from '../components/WeeklyRecap';
 import ContentModeration from '../components/ContentModeration';
 import { useToast } from '../contexts/ToastContext';
+import '../styles/prayer.css';
 
 const FILTER_TABS = [
   { id: 'ALL',          label: 'All' },
@@ -59,6 +58,7 @@ function PrayerCard({ request, currentUserId, onOpen, onPray, onUserClick, onMar
   const isOwner = request.isOwner ?? (request.user?.id === currentUserId);
   const catLabel = request.category && request.category !== 'GENERAL' ? CATEGORY_LABELS[request.category] : null;
   const stop = (fn) => (e) => { e.stopPropagation(); fn && fn(); };
+  const total = request.totalPrayerCount || 0;
 
   return (
     <div onClick={onOpen} className={`bg-white rounded-2xl p-4 border fade-in cursor-pointer active:scale-[0.99] transition-transform ${
@@ -85,7 +85,7 @@ function PrayerCard({ request, currentUserId, onOpen, onPray, onUserClick, onMar
               ) : (
                 <button onClick={stop(onUserClick)} className="font-semibold text-gray-900 text-sm leading-tight text-left hover:underline">{request.user?.name}</button>
               )}
-              {!request.isAnonymous && request.user?.churchName && <p className="text-xs text-faith-500 mt-0.5">{request.user.churchName}</p>}
+              {!request.isAnonymous && request.user?.churchName && <p className="text-xs text-faith-500 mt-0.5" style={{ overflowWrap: 'anywhere' }}>{request.user.churchName}</p>}
             </div>
             <div className="flex items-center gap-1.5 flex-shrink-0">
               {request.visibility && request.visibility !== 'PUBLIC' && (
@@ -107,22 +107,24 @@ function PrayerCard({ request, currentUserId, onOpen, onPray, onUserClick, onMar
             </div>
           </div>
           <div className="flex items-center gap-2 mt-2 mb-1">
-            <h4 className="font-bold text-gray-900 text-sm" style={{ fontFamily: "'Fraunces', serif" }}>{request.title}</h4>
+            <h4 className="font-bold text-gray-900 text-sm" style={{ fontFamily: "'Fraunces', serif", overflowWrap: 'anywhere' }}>{request.title}</h4>
             {showDistance && request.distanceKm != null && <span className="flex items-center gap-0.5 text-[10px] text-gray-400 whitespace-nowrap"><MapPin size={10} strokeWidth={2} />{request.distanceKm} km</span>}
           </div>
-          <p className="text-sm text-gray-500 leading-relaxed line-clamp-3">{request.body}</p>
+          <p className="text-sm text-gray-500 leading-relaxed line-clamp-3" style={{ overflowWrap: 'anywhere' }}>{request.body}</p>
           {request.isAnswered && request.testimonyMessage && (
             <button onClick={stop(onViewTestimony)} className="mt-2 text-xs font-semibold text-emerald-600 hover:underline">View Testimony →</button>
           )}
-          <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-50">
-            <div className="flex items-center gap-1.5">
-              {request.currentlyPrayingCount > 0
-                ? <span className="text-xs text-emerald-600 font-semibold bg-emerald-50 px-2 py-1 rounded-full">{request.currentlyPrayingCount} praying now</span>
-                : (request.totalPrayerCount || 0) === 0
-                  ? <span className="text-xs font-semibold" style={{ color: '#0A0A0A' }}>Be the first to pray for this</span>
-                  : <span className="text-xs text-gray-400 flex items-center gap-1"><Users size={11} strokeWidth={1.5} /> {request.totalPrayerCount} prayed</span>}
+          <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-50 gap-2">
+            <div className="flex items-center gap-1.5 min-w-0">
+              {request.currentlyPrayingCount > 0 ? (
+                <span className="text-xs text-emerald-600 font-semibold bg-emerald-50 px-2 py-1 rounded-full">{request.currentlyPrayingCount} praying now</span>
+              ) : total === 0 ? (
+                <span className="text-xs font-semibold" style={{ color: '#0A0A0A' }}>Be the first to pray.</span>
+              ) : (
+                <span className="text-xs text-gray-400 flex items-center gap-1"><Users size={11} strokeWidth={1.5} /> {total} {total === 1 ? 'person praying.' : 'people praying.'}</span>
+              )}
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-shrink-0">
               {isOwner && !request.isAnswered && (
                 <button onClick={stop(onMarkAnswered)} className="text-xs font-semibold text-emerald-600 border border-emerald-200 bg-emerald-50 rounded-xl px-3 py-1.5">✓ Answered</button>
               )}
@@ -158,7 +160,6 @@ export default function PrayerPage() {
   const [top3, setTop3] = useState([]);
   const [restPrayers, setRestPrayers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
   const [activeCategory, setActiveCategory] = useState('ALL');
   const [activeSession, setActiveSession] = useState(null);
   const [showNewRequest, setShowNewRequest] = useState(false);
@@ -166,6 +167,10 @@ export default function PrayerPage() {
   const [testimonyRequest, setTestimonyRequest] = useState(null);
   const [showMyRequests, setShowMyRequests] = useState(false);
   const [newRequestPrefill, setNewRequestPrefill] = useState('');
+
+  // Everything secondary — geography, category, personal activity, live
+  // rooms, saved requests — lives in this one sheet now.
+  const [showOptions, setShowOptions] = useState(false);
 
   // Gratitude journal state
   const [todayGratitude, setTodayGratitude] = useState(undefined); // undefined=loading, null=none, obj=done
@@ -179,17 +184,19 @@ export default function PrayerPage() {
 
   const [nearMe, setNearMe] = useState(false);
   const [radius, setRadius] = useState(25);
+  const [locatingNearMe, setLocatingNearMe] = useState(false);
+  const [locationNote, setLocationNote] = useState('');
   const [userCoords, setUserCoords] = useState(() => {
     const lat = localStorage.getItem('user_lat');
     const lng = localStorage.getItem('user_lng');
     return lat && lng ? { latitude: parseFloat(lat), longitude: parseFloat(lng) } : null;
   });
-  const [showLocationBanner, setShowLocationBanner] = useState(() =>
-    !localStorage.getItem('user_lat') && !localStorage.getItem('location_denied')
-  );
 
   const loadFeed = useCallback(async (isRefresh = false, opts = {}) => {
-    if (isRefresh) setRefreshing(true); else setLoading(true);
+    // PullToRefresh shows its own spinner while it awaits onRefresh, so a
+    // pull-triggered reload skips the full skeleton screen; every other
+    // reload (initial load, category/scope change) still shows it.
+    if (!isRefresh) setLoading(true);
     try {
       const params = {};
       const coords = opts.coords !== undefined ? opts.coords : userCoords;
@@ -200,8 +207,8 @@ export default function PrayerPage() {
       setTop3(res.data.top3 || []);
       setRestPrayers(res.data.rest || []);
     } catch {}
-    if (isRefresh) setRefreshing(false); else setLoading(false);
-  }, [userCoords, nearMe, radius]);
+    setLoading(false);
+      }, [userCoords, nearMe, radius]); // eslint-disable-line
 
   useEffect(() => { loadFeed(); }, [loadFeed]);
 
@@ -236,7 +243,13 @@ export default function PrayerPage() {
     loadQuota();
     api.get('/users/me/dashboard').then(res => { setStreak(res.data.streak || 0); setGratitudeStreak(res.data.gratitudeStreak || 0); setGraceDays(res.data.graceDaysAvailable || 0); }).catch(() => {});
     api.get('/gratitude/today').then(res => setTodayGratitude(res.data)).catch(() => setTodayGratitude(null));
-    api.get('/prayer-cells').then(res => setLiveCells(res.data || [])).catch(() => {});
+    // Live Now must render ONLY real active rooms: the directory endpoint
+    // returns every cell (not just live ones), and its field is `creator`,
+    // not `host` — rendering `cell.host` unconditionally was the source of
+    // the grey "?" avatars, since Avatar.js falls back to "?" when given no
+    // user object at all. Filtering to liveNow here means an empty result
+    // is a genuine "nothing is live", not a data mismatch.
+    api.get('/prayer-cells').then(res => setLiveCells((res.data || []).filter(c => c.liveNow))).catch(() => {});
   }, [loadQuota]);
 
   // Handle navigate-with-state from Feelings page
@@ -246,7 +259,7 @@ export default function PrayerPage() {
       setShowNewRequest(true);
       window.history.replaceState({}, '');
     }
-  }, []);
+  }, []); // eslint-disable-line
 
   // Live prayer count updates
   useEffect(() => {
@@ -273,6 +286,12 @@ export default function PrayerPage() {
     setSavingTarget(false);
   }
 
+  // Opening the prayer session only STARTS it (needed for the live "praying
+  // now" indicator and to notify the requester) — it must not itself count
+  // as a completed prayer. The backend now only counts a session toward
+  // totalPrayerCount once it has actually run for the same 15s minimum the
+  // "Finish Prayer" button gates on, so tapping Pray Now and immediately
+  // cancelling never inflates the count.
   async function startPraying(request) {
     hapticMedium();
     try {
@@ -318,21 +337,68 @@ export default function PrayerPage() {
     setSavingGratitude(false);
   }
 
+  // Geolocation fires ONLY here — the moment the user picks "Near me" in the
+  // sheet — never on page open. Refusal (or no geolocation support at all)
+  // falls back to Worldwide with a short explanation instead of failing silently.
+  function chooseNearMe() {
+    hapticLight();
+    if (userCoords) {
+      setNearMe(true);
+      setLocationNote('');
+      loadFeed(false, { nearMe: true, radius, coords: userCoords });
+      return;
+    }
+    if (!navigator.geolocation) {
+      setLocationNote('Location isn’t available on this device. Showing Worldwide.');
+      return;
+    }
+    setLocatingNearMe(true);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const { latitude, longitude } = pos.coords;
+        try { await api.patch('/users/location', { latitude, longitude }); } catch {}
+        try { localStorage.setItem('user_lat', latitude); localStorage.setItem('user_lng', longitude); } catch {}
+        setUserCoords({ latitude, longitude });
+        setNearMe(true);
+        setLocationNote('');
+        setLocatingNearMe(false);
+        loadFeed(false, { nearMe: true, radius, coords: { latitude, longitude } });
+      },
+      () => {
+        try { localStorage.setItem('location_denied', 'true'); } catch {}
+        setLocatingNearMe(false);
+        setNearMe(false);
+        setLocationNote('Location access was declined. Showing Worldwide instead.');
+      },
+      { timeout: 10000 }
+    );
+  }
+  function chooseWorldwide() {
+    hapticLight();
+    setNearMe(false);
+    setLocationNote('');
+    loadFeed(false, { nearMe: false });
+  }
+
   const pct = quota ? Math.min((quota.completed / quota.target) * 100, 100) : 0;
 
   const filteredTop3 = activeCategory === 'ALL' ? top3 : top3.filter(p => p.category === activeCategory);
   const filteredRest = activeCategory === 'ALL' ? restPrayers : restPrayers.filter(p => p.category === activeCategory);
+  // Requests appear immediately, as ONE feed — top3 first then rest, exactly
+  // the order the server returns (do not resort client-side): no separate
+  // "Top Prayers"/rank-medal section above it. The server's own ordering
+  // (urgent, then fewest prayers, then newest, with its own tie/pagination
+  // behavior) is untouched; this just stops decorating it with a leaderboard.
+  const combined = [...filteredTop3, ...filteredRest];
 
   // Open the immersive prayer flow, carrying the current (filtered) queue + quota
   function openImmersive(request) {
-    const q = [...filteredTop3, ...filteredRest];
-    navigate(`/pray/${request.id}`, { state: { queue: q, quota } });
+    navigate(`/pray/${request.id}`, { state: { queue: combined, quota } });
   }
   function startImmersive() {
-    const q = [...filteredTop3, ...filteredRest];
-    if (q.length === 0) return;
+    if (combined.length === 0) return;
     hapticMedium();
-    navigate(`/pray/${q[0].id}`, { state: { queue: q, quota } });
+    navigate(`/pray/${combined[0].id}`, { state: { queue: combined, quota } });
   }
 
   const hideRequest = (id) => {
@@ -350,320 +416,61 @@ export default function PrayerPage() {
     onHide: () => hideRequest(request.id),
   });
 
+  const scopeLabel = `${nearMe ? `Near me · ${radius} km` : 'Worldwide'} · ${activeCategory === 'ALL' ? 'All requests' : FILTER_TABS.find(t => t.id === activeCategory)?.label}`;
+
   return (
     <PullToRefresh onRefresh={() => loadFeed(true)}>
-    <div className="bg-gray-50 min-h-full">
-      {/* Hero — flat white */}
-      <div className="bg-white" style={{ padding: '14px 16px 16px', borderBottom: '1px solid #EFEFEF' }}>
-        <button onClick={() => navigate(-1)} className="w-8 h-8 rounded-full flex items-center justify-center mb-2.5" style={{ background: 'rgba(22,52,73,0.1)' }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0A0A0A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    <div className="prayer-app bg-white min-h-full">
+      {/* Compact header — title + Share, hooked to the existing composer */}
+      <header className="header">
+        <div>
+          <h1>Who will you pray for today?</h1>
+          <p className="subtitle">Pause for someone today.</p>
+        </div>
+        <button className="icon-button" aria-label="Share a prayer request" onClick={() => { hapticLight(); setShowNewRequest(true); }}>
+          <Plus size={20} strokeWidth={1.9} />
         </button>
+      </header>
 
-        <motion.div
-          initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, ease: 'easeOut' }}
-          className="flex items-center gap-3 mb-2.5"
-        >
-          <h2 className="text-xl type-heading">
-            Who will you pray for today?
-          </h2>
-          <div className="flex items-center gap-1.5 flex-shrink-0 self-start mt-0.5">
-            {streak !== null && streak > 0 && (
-              <motion.span
-                initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.15, duration: 0.3 }}
-                className="flex items-center gap-1 px-2 py-1 rounded-full"
-                style={{ background: 'rgba(44,64,85,0.15)' }}
-              >
-                <Flame size={11} strokeWidth={2} color="#0A0A0A" />
-                <span className="text-[11px] font-semibold" style={{ color: '#0A0A0A' }}>{streak}</span>
-              </motion.span>
-            )}
-            {graceDays > 0 && (
-              <motion.span
-                initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2, duration: 0.3 }}
-                className="flex items-center gap-1 px-2 py-1 rounded-full"
-                style={{ background: 'rgba(44,64,85,0.08)' }}
-                title="Grace days — each can save your streak once"
-              >
-                <span className="text-[11px]">❄️</span>
-                <span className="text-[11px] font-semibold" style={{ color: '#0A0A0A' }}>{graceDays}</span>
-              </motion.span>
-            )}
-          </div>
-        </motion.div>
-
-        {/* Daily Goal — flat card */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.35, ease: 'easeOut' }}
-          className="bg-white rounded-2xl px-4 py-3"
-          style={{ border: '1px solid #EFEFEF' }}
-        >
-          <div className="flex items-center justify-between mb-2.5">
-            <div className="flex items-center gap-2">
-              <Target size={15} strokeWidth={1.5} color="#0A0A0A" />
-              <p className="text-xs font-medium" style={{ color: '#0A0A0A' }}>Daily Goal</p>
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="font-bold text-sm" style={{ color: '#0A0A0A' }}>{quota?.completed ?? 0} / {quota?.target ?? '–'}</span>
-              <button onClick={() => setShowSettings(true)} style={{ color: '#9AA6AD' }} className="hover:opacity-70 transition-opacity">
-                <Settings size={14} strokeWidth={1.5} />
-              </button>
-            </div>
-          </div>
-          <div className="w-full h-1 rounded-full overflow-hidden" style={{ background: '#EFEFEF' }}>
-            <motion.div
-              initial={{ width: 0 }}
-              animate={{ width: `${pct}%` }}
-              transition={{ duration: 0.8, ease: 'easeOut', delay: 0.3 }}
-              className="h-full rounded-full"
-              style={{ background: '#2C4055' }}
-            />
-          </div>
-          {quota?.isComplete && <p className="text-xs font-medium mt-2" style={{ color: '#6B7680' }}>Goal complete for today</p>}
-        </motion.div>
-
-        {/* Start praying — opens the immersive drill-in flow with the current list */}
-        <motion.button
-          initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25, duration: 0.35, ease: 'easeOut' }}
-          whileTap={{ scale: 0.98 }}
-          onClick={startImmersive}
-          className="w-full mt-3 flex items-center justify-center gap-2 text-white font-semibold text-[15px]"
-          style={{ background: '#2C4055', borderRadius: 14, height: 52 }}
-        >
-          <Play size={16} strokeWidth={2.2} fill="#fff" /> Start praying
-        </motion.button>
-
-        {/* Today's Grace + Need a verse — compact side-by-side rows */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 0.35, ease: 'easeOut' }}
-          className="flex gap-2.5 mt-3"
-        >
-          <button
-            onClick={() => !todayGratitude && setShowGratitudeSheet(true)}
-            className="bg-white rounded-2xl flex-1 text-left px-3 py-2.5 flex items-center gap-2"
-            style={{ border: '1px solid #EFEFEF' }}
-          >
-            <Sparkles size={15} strokeWidth={1.8} color="#0A0A0A" className="flex-shrink-0" />
-            <span className="font-semibold text-xs" style={{ color: '#0A0A0A' }}>Today's Grace</span>
-            {gratitudeStreak > 0 && (
-              <span className="flex items-center gap-0.5 text-[10px] ml-auto" style={{ color: '#6B7680' }}>
-                <Flame size={9} strokeWidth={2} color="#6B7680" />{gratitudeStreak}d
-              </span>
-            )}
-          </button>
-
-          <button
-            onClick={() => navigate('/feelings')}
-            className="bg-white rounded-2xl flex-1 text-left px-3 py-2.5 flex items-center gap-2"
-            style={{ border: '1px solid #EFEFEF' }}
-          >
-            <HeartHandshake size={15} strokeWidth={1.8} color="#0A0A0A" className="flex-shrink-0" />
-            <span className="font-semibold text-xs" style={{ color: '#0A0A0A' }}>Need a verse</span>
-          </button>
-        </motion.div>
-
-        {/* See answered prayers */}
-        <motion.button
-          initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.33, duration: 0.35, ease: 'easeOut' }}
-          onClick={() => navigate('/answered')}
-          className="w-full mt-3 flex items-center justify-center gap-1.5 text-xs font-semibold h-9"
-          style={{ color: '#0A0A0A' }}
-        >
-          <Sparkles size={13} strokeWidth={1.8} /> See answered prayers
-        </motion.button>
+      {/* Worldwide / Filter & more — the one row between header and requests */}
+      <div className="feedbar">
+        <span>{scopeLabel}</span>
+        <button className="text-button" aria-haspopup="dialog" onClick={() => { hapticLight(); setShowOptions(true); }}>Filter &amp; more ↓</button>
       </div>
 
-      {/* Feed */}
-      <div className="bg-gray-50 px-4 pt-4">
-        {/* Weekly recap — shows Sundays / first open after, once per week */}
-        <WeeklyRecap />
-
-        {/* "Prayed for you" receipts — hides itself when there's no activity */}
-        <PrayerReceipts />
-
-        {/* Action buttons */}
-        <motion.div {...fadeUp} transition={{ delay: 0.05, duration: 0.3 }} className="flex gap-2 mb-3">
-          <button
-            onClick={() => setShowNewRequest(true)}
-            className="flex-1 flex items-center justify-center gap-2 text-sm font-semibold bg-white rounded-xl"
-            style={{ height: 40, border: '1px solid #EFEFEF', color: '#0A0A0A' }}
-          >
-            <Plus size={14} strokeWidth={2} />
-            Share Request
-          </button>
-          <button
-            onClick={() => setShowMyRequests(true)}
-            className="flex items-center justify-center flex-shrink-0 bg-white rounded-xl"
-            style={{ height: 40, width: 40, border: '1px solid #EFEFEF' }}
-          >
-            <Bookmark size={17} strokeWidth={1.5} color="#0A0A0A" />
-          </button>
-        </motion.div>
-
-        {/* Draft banner */}
-        <AnimatePresence>
-          {hasDraft && !showNewRequest && (
-            <motion.div
-              {...fadeUp}
-              className="mb-3 rounded-2xl px-4 py-3 flex items-start gap-3"
-            style={{ background: '#FAFAFA', border: '1px solid #EFEFEF' }}
-            >
-              <Pencil size={16} color="#262626" className="flex-shrink-0 mt-0.5" />
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-800">You have an unfinished prayer draft</p>
-                <div className="flex gap-3 mt-2">
-                  <button
-                    onClick={() => setShowNewRequest(true)}
-                    className="text-xs font-semibold px-3 py-1 rounded-full"
-                    style={{ border: '1px solid #DBDBDB', color: '#262626' }}
-                  >
-                    Continue Draft
-                  </button>
-                  <button
-                    onClick={async () => {
-                      await api.delete('/prayers/draft').catch(() => {});
-                      setHasDraft(false);
-                    }}
-                    className="text-xs"
-                    style={{ color: '#8E8E8E' }}
-                  >
-                    Discard
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Location banner */}
-        {showLocationBanner && (
-          <LocationBanner onLocationGranted={(coords) => {
-            setShowLocationBanner(false);
-            if (coords) setUserCoords(coords);
-          }} />
-        )}
-
-        {/* Worldwide / Near Me toggle */}
-        <motion.div {...scaleIn} transition={{ delay: 0.1, duration: 0.25 }} className="mb-2">
-          <div className="flex gap-2 mb-2">
-            <button
-              onClick={() => { setNearMe(false); loadFeed(false, { nearMe: false }); }}
-              className="flex-1 flex items-center justify-center gap-1.5 rounded-full text-sm transition-colors"
-              style={{
-                height: 34,
-                background: !nearMe ? 'rgba(0,0,0,0.04)' : 'transparent',
-                color: !nearMe ? '#0A0A0A' : '#8E8E8E',
-                fontWeight: !nearMe ? 500 : 400,
-              }}
-            >
-              <Globe size={13} strokeWidth={1.8} /> Worldwide
-            </button>
-            <button
-              onClick={() => {
-                if (!userCoords) { setShowLocationBanner(true); return; }
-                setNearMe(true); loadFeed(false, { nearMe: true, radius, coords: userCoords });
-              }}
-              className="flex-1 flex items-center justify-center gap-1.5 rounded-full text-sm transition-colors"
-              style={{
-                height: 34,
-                background: nearMe ? 'rgba(0,0,0,0.04)' : 'transparent',
-                color: nearMe ? '#0A0A0A' : '#8E8E8E',
-                fontWeight: nearMe ? 500 : 400,
-              }}
-            >
-              <MapPin size={13} strokeWidth={1.8} /> Near Me
-            </button>
-          </div>
-          <AnimatePresence>
-            {nearMe && (
-              <motion.div {...slideUp} className="bg-white border border-gray-100 rounded-2xl px-4 py-3">
-                <div className="flex justify-between items-center mb-1">
-                  <p className="text-xs font-semibold text-gray-600">Radius</p>
-                  <p className="text-xs font-bold text-faith-600">{radius} km</p>
-                </div>
-                <input type="range" min="5" max="100" step="5" value={radius}
-                  onChange={e => setRadius(Number(e.target.value))} className="w-full accent-faith-600" />
-                <div className="flex justify-between text-[10px] text-gray-400 mt-0.5"><span>5 km</span><span>100 km</span></div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </motion.div>
-
-        {/* Live Now — Stories-style row */}
-        {liveCells.length > 0 && (
+      {/* Draft banner — an in-progress compose the user hasn't finished, not
+          decorative chrome, so it stays in the primary view. */}
+      <AnimatePresence>
+        {hasDraft && !showNewRequest && (
           <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.25 }}
-            className="mb-4"
+            initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+            className="mx-4 mb-3 rounded-2xl px-4 py-3 flex items-start gap-3"
+            style={{ background: '#FAFAFA', border: '1px solid #EFEFEF' }}
           >
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2">Live Now</p>
-            <div className="flex gap-4 overflow-x-auto pb-1 no-scrollbar">
-              {/* Host button */}
-              <button
-                onClick={() => navigate('/prayer-cells')}
-                className="flex flex-col items-center flex-shrink-0"
-              >
-                <div
-                  className="w-14 h-14 rounded-full flex items-center justify-center"
-                  style={{ border: '2px dashed #262626' }}
-                >
-                  <Plus size={20} strokeWidth={2} color="#262626" />
-                </div>
-                <span className="text-[10px] text-gray-400 mt-1 w-16 text-center truncate">Host</span>
-              </button>
-
-              {/* Live cell avatars */}
-              {liveCells.map(cell => (
-                <button
-                  key={cell.id}
-                  onClick={() => navigate(`/prayer-cells/${cell.id}/guest`)}
-                  className="flex flex-col items-center flex-shrink-0"
-                >
-                  <div className="rounded-full p-[2.5px]" style={{ background: '#ED4956' }}>
-                    <div className="rounded-full p-[2px] bg-white">
-                      <div className="w-12 h-12 rounded-full overflow-hidden">
-                        <Avatar user={cell.host} size="md" />
-                      </div>
-                    </div>
-                  </div>
-                  <span className="text-[10px] text-gray-600 mt-1 w-16 text-center truncate">{cell.host?.name?.split(' ')[0]}</span>
+            <Pencil size={16} color="#262626" className="flex-shrink-0 mt-0.5" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-gray-800">You have an unfinished prayer draft</p>
+              <div className="flex gap-3 mt-2">
+                <button onClick={() => setShowNewRequest(true)} className="text-xs font-semibold px-3 py-1 rounded-full" style={{ border: '1px solid #DBDBDB', color: '#262626' }}>
+                  Continue Draft
                 </button>
-              ))}
+                <button
+                  onClick={async () => { await api.delete('/prayers/draft').catch(() => {}); setHasDraft(false); }}
+                  className="text-xs" style={{ color: '#8E8E8E' }}
+                >
+                  Discard
+                </button>
+              </div>
             </div>
           </motion.div>
         )}
+      </AnimatePresence>
 
-        {/* Category filter chips */}
-        <motion.div {...slideInRight} transition={{ delay: 0.15, duration: 0.3 }} className="flex gap-2 overflow-x-auto pb-1.5 mb-3 no-scrollbar -mx-4 px-4">
-          {FILTER_TABS.map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveCategory(tab.id)}
-              className="flex-shrink-0 px-4 py-1.5 rounded-full text-sm whitespace-nowrap transition-colors"
-              style={{
-                background: activeCategory === tab.id ? 'rgba(0,0,0,0.04)' : 'transparent',
-                color: activeCategory === tab.id ? '#0A0A0A' : '#8E8E8E',
-                fontWeight: activeCategory === tab.id ? 500 : 400,
-              }}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </motion.div>
-
-        {/* Refresh */}
-        <button onClick={() => loadFeed(true)}
-          className="w-full text-center text-xs text-gray-400 mb-2 py-1 active:text-gray-600 transition-colors">
-          <span className="flex items-center justify-center gap-1.5">
-            <RefreshCw size={11} strokeWidth={2} className={refreshing ? 'animate-spin' : ''} />
-            {refreshing ? 'Refreshing...' : 'Refresh rankings'}
-          </span>
-        </button>
-
-        {/* Prayer feed */}
+      {/* Prayer feed — appears immediately, no hero/stats/rankings above it */}
+      <section className="feed" aria-label="Prayer requests">
         {loading ? (
-          <div className="space-y-3">{[1,2,3].map(i => <SkeletonCard key={i} />)}</div>
-        ) : filteredTop3.length === 0 && filteredRest.length === 0 ? (
+          <div className="space-y-3">{[1, 2, 3].map(i => <SkeletonCard key={i} />)}</div>
+        ) : combined.length === 0 ? (
           <motion.div {...fadeIn} className="text-center py-16 px-8">
             <div className="bg-white" style={{ width: 64, height: 64, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', border: '1px solid #EFEFEF' }}>
               <BookOpen size={26} strokeWidth={1.5} color="#0A0A0A" />
@@ -682,43 +489,17 @@ export default function PrayerPage() {
             )}
           </motion.div>
         ) : (
-          <>
-            {filteredTop3.length > 0 && (
-              <>
-                <motion.div {...fadeIn} className="flex items-start gap-2 mb-3">
-                  <TrendingUp size={14} strokeWidth={1.8} className="text-gray-400 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="font-bold text-gray-900 text-base" style={{ fontFamily: "'Fraunces', serif" }}>{nearMe ? 'Top Prayers Near You' : 'Top Prayers Worldwide'}</p>
-                    <p className="text-xs text-gray-400 mt-0.5">{nearMe ? `Within ${radius} km · sorted by most prayed` : 'Updated live · sorted by most prayed'}</p>
-                  </div>
-                </motion.div>
-                <motion.div className="space-y-3 mb-6" variants={{ animate: { transition: { staggerChildren: 0.1 } } }} initial="initial" animate="animate">
-                  {filteredTop3.map((request, i) => (
-                    <motion.div key={request.id} variants={staggerItem}>
-                      <TopPrayerCard {...cardProps(request)} rank={i + 1} showDistance={nearMe} />
-                    </motion.div>
-                  ))}
-                </motion.div>
-              </>
-            )}
-            {filteredRest.length > 0 && (
-              <>
-                <div className="mb-3">
-                  <p className="font-bold text-gray-900 text-base" style={{ fontFamily: "'Fraunces', serif" }}>Needs prayer most</p>
-                  <p className="text-xs text-gray-400 mt-0.5">Urgent first, then the least prayed for</p>
-                </div>
-                <motion.div className="space-y-3" {...staggerContainerFast} initial="initial" animate="animate">
-                  {filteredRest.map(request => (
-                    <motion.div key={request.id} variants={staggerItem}>
-                      <PrayerCard {...cardProps(request)} showDistance={nearMe} />
-                    </motion.div>
-                  ))}
-                </motion.div>
-              </>
-            )}
-          </>
+          <motion.div className="space-y-3" {...staggerContainerFast} initial="initial" animate="animate">
+            {combined.map(request => (
+              <motion.div key={request.id} variants={staggerItem}>
+                <PrayerCard {...cardProps(request)} showDistance={nearMe} />
+              </motion.div>
+            ))}
+          </motion.div>
         )}
-      </div>
+      </section>
+
+      {combined.length > 0 && <p className="order-note">Urgent first. Then those with fewer prayers.</p>}
 
       {/* Modals */}
       {showNewRequest && (
@@ -730,6 +511,193 @@ export default function PrayerPage() {
       )}
       {testimonyRequest && <TestimonyModal request={testimonyRequest} onSave={handleTestimonySaved} onClose={() => setTestimonyRequest(null)} />}
       {showMyRequests && <MyPrayerRequestsDrawer onClose={() => setShowMyRequests(false)} />}
+
+      {/* Options sheet — geography, category, personal activity, live rooms,
+          saved requests. Fixed overlay in the page's own tree (same pattern
+          as QuotaSettingsSheet below), so .prayer-app already reaches it —
+          no portal needed. No transform anywhere (mx-auto, not
+          left-1/2 -translate-x-1/2), no shadow. */}
+      <AnimatePresence>
+        {showOptions && (
+          <>
+            <div className="sheet-backdrop" onClick={() => setShowOptions(false)} />
+            <motion.div
+              initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
+              transition={{ type: 'spring', stiffness: 320, damping: 32 }}
+              className="sheet"
+              role="dialog" aria-modal="true" aria-labelledby="prayer-options-title"
+            >
+              <div className="sheet-head">
+                <h2 id="prayer-options-title">Prayer, your way</h2>
+                <button className="icon-button" type="button" aria-label="Close" onClick={() => setShowOptions(false)}>
+                  <X size={18} strokeWidth={1.9} />
+                </button>
+              </div>
+
+              <fieldset>
+                <legend>Where</legend>
+                <div className="choices">
+                  <label><input type="radio" name="scope" checked={!nearMe} onChange={chooseWorldwide} /><span><Globe size={13} strokeWidth={1.8} style={{ marginRight: 6 }} />Worldwide</span></label>
+                  <label><input type="radio" name="scope" checked={nearMe} disabled={locatingNearMe} onChange={chooseNearMe} /><span><MapPin size={13} strokeWidth={1.8} style={{ marginRight: 6 }} />{locatingNearMe ? 'Locating…' : 'Near me'}</span></label>
+                </div>
+                {locationNote && <p className="muted" style={{ marginTop: 8 }}>{locationNote}</p>}
+                {nearMe && (
+                  <div className="mt-3">
+                    <div className="flex justify-between items-center mb-1">
+                      <p className="text-xs font-semibold text-gray-600">Radius</p>
+                      <p className="text-xs font-bold" style={{ color: 'var(--slate)' }}>{radius} km</p>
+                    </div>
+                    <input type="range" min="5" max="100" step="5" value={radius}
+                      onChange={e => setRadius(Number(e.target.value))} className="w-full" style={{ accentColor: 'var(--slate)' }} />
+                  </div>
+                )}
+              </fieldset>
+
+              <fieldset>
+                <legend>Category</legend>
+                <div className="choices">
+                  {FILTER_TABS.map(tab => (
+                    <label key={tab.id}>
+                      <input type="radio" name="category" checked={activeCategory === tab.id} onChange={() => { hapticLight(); setActiveCategory(tab.id); }} />
+                      <span>{tab.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+
+              <details>
+                <summary>Your prayer activity</summary>
+                <div className="pt-3">
+                  {/* Daily Goal */}
+                  <div className="bg-white rounded-2xl px-4 py-3 mb-3" style={{ border: '1px solid #EFEFEF' }}>
+                    <div className="flex items-center justify-between mb-2.5">
+                      <div className="flex items-center gap-2">
+                        <Target size={15} strokeWidth={1.5} color="#0A0A0A" />
+                        <p className="text-xs font-medium" style={{ color: '#0A0A0A' }}>Daily Goal</p>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="font-bold text-sm" style={{ color: '#0A0A0A' }}>{quota?.completed ?? 0} / {quota?.target ?? '–'}</span>
+                        <button onClick={() => setShowSettings(true)} style={{ color: '#9AA6AD' }} aria-label="Change daily goal">
+                          <Settings size={14} strokeWidth={1.5} />
+                        </button>
+                      </div>
+                    </div>
+                    <div className="w-full h-1 rounded-full overflow-hidden" style={{ background: '#EFEFEF' }}>
+                      <div className="h-full rounded-full" style={{ width: `${pct}%`, background: '#2C4055' }} />
+                    </div>
+                    {quota?.isComplete && <p className="text-xs font-medium mt-2" style={{ color: '#6B7680' }}>Goal complete for today</p>}
+                  </div>
+
+                  {(streak > 0 || graceDays > 0) && (
+                    <div className="flex items-center gap-2 mb-3">
+                      {streak > 0 && (
+                        <span className="flex items-center gap-1 px-2.5 py-1.5 rounded-full" style={{ background: 'rgba(44,64,85,0.1)' }}>
+                          <Flame size={13} strokeWidth={2} color="#0A0A0A" /><span className="text-xs font-semibold" style={{ color: '#0A0A0A' }}>{streak} day streak</span>
+                        </span>
+                      )}
+                      {graceDays > 0 && (
+                        <span className="flex items-center gap-1 px-2.5 py-1.5 rounded-full" style={{ background: 'rgba(44,64,85,0.08)' }} title="Grace days — each can save your streak once">
+                          <span className="text-xs">❄️</span><span className="text-xs font-semibold" style={{ color: '#0A0A0A' }}>{graceDays} grace</span>
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="flex gap-2.5 mb-3">
+                    <button
+                      onClick={() => !todayGratitude && setShowGratitudeSheet(true)}
+                      className="bg-white rounded-2xl flex-1 text-left px-3 py-2.5 flex items-center gap-2"
+                      style={{ border: '1px solid #EFEFEF' }}
+                    >
+                      <Sparkles size={15} strokeWidth={1.8} color="#0A0A0A" className="flex-shrink-0" />
+                      <span className="font-semibold text-xs" style={{ color: '#0A0A0A' }}>Today's Grace</span>
+                      {gratitudeStreak > 0 && (
+                        <span className="flex items-center gap-0.5 text-[10px] ml-auto" style={{ color: '#6B7680' }}>
+                          <Flame size={9} strokeWidth={2} color="#6B7680" />{gratitudeStreak}d
+                        </span>
+                      )}
+                    </button>
+                    <button
+                      onClick={() => navigate('/feelings')}
+                      className="bg-white rounded-2xl flex-1 text-left px-3 py-2.5 flex items-center gap-2"
+                      style={{ border: '1px solid #EFEFEF' }}
+                    >
+                      <HeartHandshake size={15} strokeWidth={1.8} color="#0A0A0A" className="flex-shrink-0" />
+                      <span className="font-semibold text-xs" style={{ color: '#0A0A0A' }}>Need a verse</span>
+                    </button>
+                  </div>
+
+                  {/* Self-contained: each renders null / its own summary+detail */}
+                  <WeeklyRecap />
+                  <PrayerReceipts />
+                </div>
+              </details>
+
+              <details>
+                <summary>Live prayer rooms</summary>
+                <div className="pt-3">
+                  <button
+                    onClick={() => { setShowOptions(false); navigate('/prayer-cells'); }}
+                    className="flex items-center gap-2 text-sm font-semibold mb-3"
+                    style={{ color: 'var(--slate)' }}
+                  >
+                    <Plus size={15} strokeWidth={2} /> Host a live prayer room
+                  </button>
+                  {liveCells.length === 0 ? (
+                    <p className="muted">No live prayer rooms right now.</p>
+                  ) : (
+                    <div className="flex gap-4 overflow-x-auto pb-1 no-scrollbar">
+                      {liveCells.map(cell => (
+                        <button
+                          key={cell.id}
+                          onClick={() => { setShowOptions(false); navigate(`/prayer-cells/${cell.id}/guest`); }}
+                          className="flex flex-col items-center flex-shrink-0"
+                        >
+                          <div className="rounded-full p-[2.5px]" style={{ background: '#ED4956' }}>
+                            <div className="rounded-full p-[2px] bg-white">
+                              <div className="w-12 h-12 rounded-full overflow-hidden">
+                                <Avatar user={cell.creator} size="md" />
+                              </div>
+                            </div>
+                          </div>
+                          <span className="text-[10px] text-gray-600 mt-1 w-16 text-center truncate">{cell.creator?.name?.split(' ')[0] || 'Believer'}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </details>
+
+              <details>
+                <summary>Saved requests &amp; more</summary>
+                <div className="pt-3 space-y-2">
+                  <button
+                    onClick={() => { setShowOptions(false); setShowMyRequests(true); }}
+                    className="w-full flex items-center gap-2 text-sm font-semibold px-3 py-2.5 rounded-xl bg-white"
+                    style={{ border: '1px solid #EFEFEF', color: '#0A0A0A' }}
+                  >
+                    <Bookmark size={15} strokeWidth={1.6} /> Your saved requests
+                  </button>
+                  <button
+                    onClick={() => { setShowOptions(false); startImmersive(); }}
+                    className="w-full flex items-center gap-2 text-sm font-semibold px-3 py-2.5 rounded-xl text-white"
+                    style={{ background: '#2C4055' }}
+                  >
+                    <Play size={14} strokeWidth={2.2} fill="#fff" /> Start praying
+                  </button>
+                  <button
+                    onClick={() => navigate('/answered')}
+                    className="w-full flex items-center gap-2 text-sm font-semibold px-3 py-2.5 rounded-xl bg-white"
+                    style={{ border: '1px solid #EFEFEF', color: '#0A0A0A' }}
+                  >
+                    <Sparkles size={14} strokeWidth={1.8} /> See answered prayers
+                  </button>
+                </div>
+              </details>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       {/* Gratitude bottom sheet */}
       <AnimatePresence>
@@ -743,7 +711,7 @@ export default function PrayerPage() {
             <motion.div
               initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
               transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-              className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white rounded-t-3xl z-50 px-5 pt-4 pb-10"
+              className="fixed bottom-0 w-full max-w-md mx-auto left-0 right-0 bg-white rounded-t-3xl z-50 px-5 pt-4 pb-10"
             >
               <div className="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-5" />
               <div className="flex items-center justify-between mb-4">
@@ -794,12 +762,12 @@ export default function PrayerPage() {
                 className="flex items-center gap-2 mt-4"
               >
                 <div
-                  className="w-10 h-5 rounded-full transition-colors flex items-center px-0.5"
+                  className="w-10 h-5 rounded-full flex items-center px-0.5"
                   style={{ background: gratitudePublic ? '#262626' : '#DBDBDB' }}
                 >
                   <div
-                    className="w-4 h-4 bg-white rounded-full shadow transition-transform"
-                    style={{ transform: gratitudePublic ? 'translateX(20px)' : 'translateX(0)' }}
+                    className="w-4 h-4 bg-white rounded-full"
+                    style={{ marginLeft: gratitudePublic ? 20 : 0, transition: 'margin-left 0.15s ease' }}
                   />
                 </div>
                 <span className="text-[13px] text-gray-600">Share as testimony</span>

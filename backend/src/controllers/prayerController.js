@@ -5,6 +5,19 @@ const { getBlockedUserIds } = require('../utils/blocks');
 
 const prisma = require('../db');
 
+// Merely opening "Pray Now" creates a PrayerSession row immediately (see
+// startSession below) — that's needed for the live "praying now" indicator
+// and notification, but counting every such row toward the displayed/ranked
+// prayer count meant the count was inflated the instant someone tapped Pray
+// Now, before any confirmation, and stayed inflated even if they cancelled
+// straight back out. A session only reflects an actual completed prayer once
+// its duration clears the same 15s minimum the client's "Finish Prayer"
+// button gates on (see MIN_SECONDS in PrayerSession.js) — endSession sets
+// durationSeconds only when a session ends, so anything still in progress or
+// cancelled early is excluded automatically.
+const MIN_PRAYER_SECONDS = 15;
+const COMPLETED_SESSIONS_COUNT = { select: { sessions: { where: { durationSeconds: { gte: MIN_PRAYER_SECONDS } } } } };
+
 function haversineKm(lat1, lon1, lat2, lon2) {
   const R = 6371;
   const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -66,7 +79,7 @@ async function getFeed(req, res) {
       where,
       include: {
         user: { select: { id: true, name: true, profilePhoto: true, churchName: true, location: true, latitude: true, longitude: true } },
-        _count: { select: { sessions: true } },
+        _count: COMPLETED_SESSIONS_COUNT,
         sessions: { select: { userId: true } },
       },
     });
@@ -402,7 +415,7 @@ async function getMyRequests(req, res) {
       orderBy: { createdAt: 'desc' },
       include: {
         user: { select: { id: true, name: true, profilePhoto: true, churchName: true } },
-        _count: { select: { sessions: true } },
+        _count: COMPLETED_SESSIONS_COUNT,
       },
     });
 
@@ -448,7 +461,7 @@ async function bumpRequest(req, res) {
     const updated = await prisma.prayerRequest.update({
       where: { id },
       data: { lastActivityAt: new Date() },
-      include: { _count: { select: { sessions: true } } },
+      include: { _count: COMPLETED_SESSIONS_COUNT },
     });
     res.json({ ...updated, totalPrayerCount: updated._count.sessions, isStale: false, _count: undefined });
   } catch {
@@ -474,7 +487,7 @@ async function editRequest(req, res) {
     const updated = await prisma.prayerRequest.update({
       where: { id },
       data,
-      include: { user: { select: { id: true, name: true, profilePhoto: true, churchName: true } }, _count: { select: { sessions: true } } },
+      include: { user: { select: { id: true, name: true, profilePhoto: true, churchName: true } }, _count: COMPLETED_SESSIONS_COUNT },
     });
     res.json({ ...updated, totalPrayerCount: updated._count.sessions });
   } catch {
@@ -493,7 +506,7 @@ async function addUpdate(req, res) {
     const updated = await prisma.prayerRequest.update({
       where: { id },
       data: { updateMessage: updateMessage.trim() },
-      include: { user: { select: { id: true, name: true, profilePhoto: true, churchName: true } }, _count: { select: { sessions: true } } },
+      include: { user: { select: { id: true, name: true, profilePhoto: true, churchName: true } }, _count: COMPLETED_SESSIONS_COUNT },
     });
     res.json({ ...updated, totalPrayerCount: updated._count.sessions });
   } catch {
@@ -518,7 +531,7 @@ async function markAnswered(req, res) {
         // Default ON; only false when the author explicitly unticks "Share publicly"
         answeredIsPublic: isPublic === false ? false : true,
       },
-      include: { user: { select: { id: true, name: true, profilePhoto: true, churchName: true } }, _count: { select: { sessions: true } } },
+      include: { user: { select: { id: true, name: true, profilePhoto: true, churchName: true } }, _count: COMPLETED_SESSIONS_COUNT },
     });
 
     // Notify everyone who prayed for this request (except the author)
@@ -565,7 +578,7 @@ async function getAnsweredFeed(req, res) {
         take: limit,
         include: {
           user: { select: { id: true, name: true, profilePhoto: true, churchName: true } },
-          _count: { select: { sessions: true } },
+          _count: COMPLETED_SESSIONS_COUNT,
         },
       }),
       prisma.prayerRequest.count({ where }),
@@ -660,7 +673,7 @@ async function getRequest(req, res) {
       where: { id },
       include: {
         user: { select: { id: true, name: true, profilePhoto: true, churchName: true, location: true } },
-        _count: { select: { sessions: true } },
+        _count: COMPLETED_SESSIONS_COUNT,
         pastorAccess: { select: { pastorId: true } },
       },
     });

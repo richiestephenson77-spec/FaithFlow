@@ -1,0 +1,229 @@
+/* Prayer page redesign — ported from the Prayer-Requests-First package's
+   prayer.css, scoped to .prayer-app exactly as the handoff specifies.
+
+   Deliberately NOT ported: the package's @font-face (480KB of embedded
+   Fraunces bytes) and its .nav/.request/.person/.identity/.avatar/.badge/
+   .count/.card-foot rules. The app already loads Fraunces (see index.html's
+   Google Fonts link, and the "'Fraunces', serif" inline usage throughout
+   the codebase) and already has a working nav (Layout.js) and prayer card
+   (PrayerCard in PrayerPage.js, styled with Tailwind) — this file only
+   supplies the chrome this redesign adds around them: the compact header,
+   the Worldwide/Filter bar, and the options/pray sheets.
+
+   index.css carries a universal `* { font-family: 'Inter' }` rule, which
+   has higher specificity than inheriting from `.prayer-app`'s own
+   font-family — so, same as the package did for its own font, every
+   text-bearing element needs its own scoped rule here rather than relying
+   on inheritance from the container. */
+
+.prayer-app {
+  --nav-height: 52px; /* matches Layout.js's actual 52px nav button height */
+  --slate: #2C4055;
+  color: #0A0A0A;
+  font: 14px/1.5 'Inter', -apple-system, sans-serif;
+  -webkit-text-size-adjust: 100%;
+}
+.prayer-app * { box-sizing: border-box; }
+.prayer-app h1, .prayer-app h2, .prayer-app h3 {
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 400;
+}
+.prayer-app button, .prayer-app select, .prayer-app textarea, .prayer-app input {
+  font: inherit;
+}
+.prayer-app button { cursor: pointer; min-height: 44px; }
+.prayer-app button:focus-visible,
+.prayer-app input:focus-visible,
+.prayer-app textarea:focus-visible {
+  outline: 2px solid var(--slate);
+  outline-offset: 3px;
+}
+.prayer-app button:disabled { cursor: default; opacity: .55; }
+
+.prayer-app .header {
+  padding: 20px 16px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.prayer-app .header h1 { font-size: 22px; line-height: 1.2; margin: 0; }
+.prayer-app .subtitle { color: #68727b; font-size: 12px; margin: 5px 0 0; font-family: 'Inter', sans-serif; }
+.prayer-app .icon-button {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid #EFEFEF;
+  border-radius: 16px;
+  background: #fff;
+  color: var(--slate);
+  flex: none;
+}
+.prayer-app .icon-button svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.prayer-app .feedbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 16px;
+  margin: 0 0 12px;
+  font-size: 12px;
+  font-family: 'Inter', sans-serif;
+  color: #66717b;
+}
+.prayer-app .text-button {
+  border: 0;
+  background: transparent;
+  color: var(--slate);
+  padding: 8px 0;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+}
+
+.prayer-app .feed { padding: 0 16px; }
+.prayer-app .empty {
+  padding: 32px 12px;
+  text-align: center;
+  color: #68727b;
+  font-family: 'Inter', sans-serif;
+}
+.prayer-app .order-note {
+  font-size: 11px;
+  color: #707880;
+  margin: 22px 16px 5px;
+  font-family: 'Inter', sans-serif;
+}
+
+/* Sheets — the app's own established fixed-overlay pattern (see
+   QuotaSettingsSheet in this same file), not the package's <dialog>: no
+   transform anywhere (mx-auto centers instead of left-1/2 -translate-x-1/2),
+   no shadow, no gradient. Backdrop + sheet are both position:fixed, mounted
+   as plain children in the page's own React tree — the same way every other
+   sheet on this page (MyPrayerRequestsDrawer, PostOptionsSheet,
+   QuotaSettingsSheet) already works without a portal, so .prayer-app on the
+   page root already reaches them; they need no separate class of their own. */
+.prayer-app .sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 10, 10, .34);
+  z-index: 50;
+}
+.prayer-app .sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 51;
+  max-width: 448px;
+  margin: 0 auto;
+  max-height: 85vh;
+  max-height: 85dvh;
+  padding: 18px 20px calc(24px + env(safe-area-inset-bottom, 0px));
+  border: 1px solid #EFEFEF;
+  border-radius: 20px 20px 0 0;
+  background: #fff;
+  color: #0A0A0A;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.prayer-app .sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.prayer-app .sheet-head h2 { font-size: 22px; margin: 0; }
+
+.prayer-app fieldset { border: 0; padding: 0; margin: 18px 0; }
+.prayer-app legend {
+  font-weight: 600;
+  font-size: 12px;
+  margin-bottom: 10px;
+  font-family: 'Inter', sans-serif;
+  padding: 0;
+}
+.prayer-app .choices { display: flex; flex-wrap: wrap; gap: 8px; }
+.prayer-app .choices label { position: relative; }
+.prayer-app .choices input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.prayer-app .choices span {
+  display: block;
+  padding: 10px 13px;
+  border: 1px solid #EFEFEF;
+  border-radius: 12px;
+  font-size: 12px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  font-family: 'Inter', sans-serif;
+}
+.prayer-app .choices input:checked + span {
+  background: var(--slate);
+  color: white;
+  border-color: var(--slate);
+}
+.prayer-app .choices input:focus-visible + span {
+  outline: 2px solid var(--slate);
+  outline-offset: 3px;
+}
+
+.prayer-app details { border-top: 1px solid #EFEFEF; padding: 13px 0; }
+.prayer-app summary {
+  cursor: pointer;
+  font-size: 13px;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+}
+.prayer-app .muted { font-size: 12px; color: #69737c; line-height: 1.6; font-family: 'Inter', sans-serif; }
+
+.prayer-app .primary {
+  background: var(--slate);
+  color: white;
+  border: 1px solid var(--slate);
+  border-radius: 12px;
+  padding: 10px 15px;
+  font-weight: 600;
+  font-size: 13px;
+  font-family: 'Inter', sans-serif;
+}
+.prayer-app .secondary {
+  background: white;
+  color: var(--slate);
+  border: 1px solid #EFEFEF;
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-family: 'Inter', sans-serif;
+}
+.prayer-app .wide { width: 100%; margin-top: 12px; }
+
+.prayer-app .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 360px) {
+  .prayer-app .header { padding-left: 12px; padding-right: 12px; }
+  .prayer-app .feedbar { padding-left: 12px; padding-right: 12px; }
+  .prayer-app .feed { padding-left: 12px; padding-right: 12px; }
+  .prayer-app .header h1 { font-size: 20px; }
+}
