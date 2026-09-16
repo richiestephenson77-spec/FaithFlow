@@ -216,6 +216,9 @@ body {
 }
 .type-subtitle {
   font-family: 'Inter', sans-serif;
-  color: #66717b;
+  /* Neutral grey on purpose. The blue-cast greys (#66717b / #61707a) that used
+     to be scattered around read as a second, colder accent next to #2C4055;
+     this is the app's one secondary-text value. */
+  color: #8E8E8E;
   line-height: 1.4;
 }

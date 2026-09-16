@@ -12,7 +12,7 @@ import { chatCache } from '../utils/chatCache';
 import NotesRow from '../components/inbox/NotesRow';
 import FilterPills from '../components/inbox/FilterPills';
 import ThreadRow from '../components/inbox/ThreadRow';
-import { TINT_BY_ID, ACCENT, BORDER, CLAY, FAINT, INK, MUTED, RECESS, SURFACE } from '../utils/inboxTints';
+import { TINT_BY_ID, ACCENT, BORDER, CLAY, DIVIDER, FAINT, INK, MUTED, RECESS, SURFACE } from '../utils/inboxTints';
 import { buildStubNotes, stubNoteUserIds, stubOnlineUserIds } from '../utils/inboxStubs';
 
 const COLUMN_WIDTH = 430;
@@ -344,7 +344,7 @@ export default function Messages() {
               onClick={() => setActiveFilter('requests')}
               className="w-full flex items-center gap-3 text-left"
               style={{ padding: '9px 16px', transition: 'background 140ms ease' }}
-              onMouseEnter={e => { e.currentTarget.style.background = '#FFFFFF'; }}
+              onMouseEnter={e => { e.currentTarget.style.background = DIVIDER; }}
               onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
             >
               {/* 40px circle centred in the same 58px column as the avatars */}

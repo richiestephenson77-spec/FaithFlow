@@ -22,14 +22,17 @@ export function tintFor(key = '') {
 
 // Tokens that aren't person-specific but are needed as runtime values
 // (inline styles on ring/cutout colours, etc.).
+// The ramp is deliberately NEUTRAL grey, not the warm off-whites this file
+// started with — on a pure-white page those read as a faint beige cast rather
+// than as neutral chrome. Mirrored in tailwind.config.js.
 export const INK = '#0A0A0A';
-export const MUTED = '#8A857E';
-export const FAINT = '#A5A09A';
+export const MUTED = '#8E8E8E';   // secondary body text, app-wide
+export const FAINT = '#AFAFAF';   // timestamps, inactive icons — one tier lighter
 export const ACCENT = '#2C4055';
-export const SURFACE = '#FBFAF8';
+export const SURFACE = '#FFFFFF';
 export const CARD = '#FFFFFF';
 export const BORDER = '#EFEFEF';
-export const DIVIDER = '#F4F3F1';
-export const RECESS = '#F1EFEB';
+export const DIVIDER = '#F5F5F5'; // row separators, hover fill
+export const RECESS = '#F5F5F5';  // neutral input surface (search field, chips)
 export const OLIVE = '#5F8465'; // online dot
 export const CLAY = '#B8705A';  // unread / badge dot

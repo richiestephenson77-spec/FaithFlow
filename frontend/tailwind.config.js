@@ -15,17 +15,17 @@ module.exports = {
         // --- Inbox design tokens -------------------------------------------
         // Neutral ramp for the Messages inbox (and available app-wide). Use
         // these instead of literal hex so the palette stays consistent.
-        page: '#F4F2EE',      // app bg outside the column
-        surface: '#FBFAF8',   // screen background
+        page: '#F5F5F5',      // app bg outside the column
+        surface: '#FFFFFF',   // screen background
         card: '#FFFFFF',      // cards, search field, pills, tab bar
         line: '#EFEFEF',      // every 1px border  (aliased as `border` below)
         border: '#EFEFEF',    // spec name — enables `border-border`
-        divider: '#F4F3F1',   // row separators, hover fill
+        divider: '#F5F5F5',   // row separators, hover fill
         ink: '#0A0A0A',       // headings, unread text
-        muted: '#8A857E',     // secondary text
-        faint: '#A5A09A',     // timestamps, inactive icons
+        muted: '#8E8E8E',     // secondary text
+        faint: '#AFAFAF',     // timestamps, inactive icons
         accent: '#2C4055',    // active pill, unread dot, links
-        recess: '#F1EFEB',    // recessed search field / active tab chip
+        recess: '#F5F5F5',    // recessed search field / active tab chip
 
         // Accent tint pairs (ring + fill). Used ONLY on avatars, note bubbles
         // and labels. The same values are mirrored in utils/inboxTints.js for

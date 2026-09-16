@@ -1,6 +1,6 @@
 import { Heart, Video } from 'lucide-react';
 import TintAvatar from './TintAvatar';
-import { tintFor, ACCENT, CARD, FAINT, INK, MUTED, SURFACE } from '../../utils/inboxTints';
+import { tintFor, ACCENT, DIVIDER, FAINT, INK, MUTED, SURFACE } from '../../utils/inboxTints';
 
 // One conversation row. `unread` is the single source of truth that drives
 // three things in sync, exactly as specified: the preview's weight, the
@@ -19,7 +19,9 @@ export default function ThreadRow({ convo, onOpen }) {
         background: 'transparent',
         transition: 'background 140ms ease',
       }}
-      onMouseEnter={e => { e.currentTarget.style.background = CARD; }}
+      // The page is white now, so the hover fill has to be the divider grey —
+      // a white fill on a white row would be invisible.
+      onMouseEnter={e => { e.currentTarget.style.background = DIVIDER; }}
       onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
     >
       <TintAvatar

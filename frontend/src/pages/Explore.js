@@ -9,7 +9,7 @@ import { Link } from 'react-router-dom';
 // else uses the app's slate accent.
 const SLATE = '#2C4055';
 const INK = '#0A0A0A';
-const BLURB = '#61707a';
+const BLURB = '#8E8E8E'; // the app's one secondary-text grey (see .type-subtitle)
 const HAIRLINE = '#EFEFEF';
 
 const SLATE_ART = { ink: SLATE, wash: '#e7ecee', solid: SLATE, accent: SLATE };
@@ -235,7 +235,7 @@ export default function Explore() {
           nav island's footprint via --fs-nav-reserve (see index.css). */}
       <div className="px-4 pt-4">
         <h2 className="font-fraunces" style={{ fontSize: 30, margin: '4px 0', color: INK, lineHeight: 1.1 }}>Explore</h2>
-        <p style={{ margin: '2px 0 12px', color: '#66717b', fontSize: 14 }}>Deepen your faith journey</p>
+        <p className="type-subtitle" style={{ margin: '2px 0 12px', fontSize: 14 }}>Deepen your faith journey</p>
 
         <div className="grid grid-cols-2 gap-3">
 
@@ -311,7 +311,7 @@ export default function Explore() {
                 className="flex items-center rounded-full px-4"
                 style={{ height: 36, opacity: 0.6, border: `1px solid ${HAIRLINE}`, background: '#FBFAF8' }}
               >
-                <span className="text-xs whitespace-nowrap" style={{ color: '#6B7680' }}>{pill}</span>
+                <span className="text-xs whitespace-nowrap" style={{ color: BLURB }}>{pill}</span>
               </div>
             ))}
           </div>
