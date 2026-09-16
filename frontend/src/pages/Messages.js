@@ -13,7 +13,6 @@ import NotesRow from '../components/inbox/NotesRow';
 import FilterPills from '../components/inbox/FilterPills';
 import ThreadRow from '../components/inbox/ThreadRow';
 import { TINT_BY_ID, ACCENT, BORDER, CLAY, DIVIDER, FAINT, INK, MUTED, RECESS, SURFACE } from '../utils/inboxTints';
-import { buildStubNotes, stubNoteUserIds, stubOnlineUserIds } from '../utils/inboxStubs';
 
 const COLUMN_WIDTH = 430;
 
@@ -74,13 +73,25 @@ export default function Messages() {
       .catch(() => {});
   }, []);
 
-  // ---- STUBBED (see utils/inboxStubs.js) ----
-  const notes = useMemo(() => buildStubNotes(user, convos), [user, convos]);
-  const noteUserIds = useMemo(() => stubNoteUserIds(notes), [notes]);
-  const onlineUserIds = useMemo(() => stubOnlineUserIds(convos), [convos]);
+  // Notes have no backend yet — no Note model, route or socket event anywhere
+  // in the app. So the row carries only YOUR slot (the "Share a note…" prompt),
+  // which is the genuine empty state: nobody has posted a note, because nobody
+  // can yet. It used to be filled with invented note text pinned onto real
+  // people from your threads, which made strangers look like they'd written
+  // things they hadn't.
+  const notes = useMemo(() => [{
+    id: 'own',
+    isOwn: true,
+    user,
+    text: '',                 // empty -> renders the "Share a note…" prompt
+    subLabel: 'Add to story',
+    online: false,
+  }], [user]);
 
-  // Map raw conversations -> the shape ThreadRow renders. Everything here is
-  // real except `hasNote` / `online`, which come from the stub sets above.
+  // Map raw conversations -> the shape ThreadRow renders. `hasNote` and
+  // `online` stay false: presence IS tracked server-side (connectedUsers in
+  // socketService.js) but is never exposed over a route or socket event, so
+  // there is nothing real to show. Both props stay wired for when it is.
   const rows = useMemo(() => convos.map(c => ({
     id: c.id,
     other: c.other,
@@ -91,10 +102,10 @@ export default function Messages() {
     label: c.other?.id && c.other.id === partnerId
       ? { text: 'Prayer partner', color: TINT_BY_ID.gold.ring }
       : null,
-    hasNote: noteUserIds.has(c.other?.id),
-    online: onlineUserIds.has(c.other?.id),
+    hasNote: false,
+    online: false,
     allowsVideo: true, // every 1:1 thread supports calling (see CallOverlay)
-  })), [convos, partnerId, noteUserIds, onlineUserIds]);
+  })), [convos, partnerId]);
 
   // Filters operate on the real list; each count is its own filtered length.
   const byFilter = useMemo(() => ({

@@ -796,7 +796,11 @@ export default function ChatThread() {
         })}
         {typingUser && (
           <div className="flex items-end gap-2">
-            <div className="bg-white border border-[#EFEFEF] rounded-2xl rounded-bl-sm px-4 py-2.5">
+            {/* Same surface as a real incoming bubble, whatever the theme */}
+            <div
+              className="rounded-2xl rounded-bl-sm px-4 py-2.5"
+              style={{ background: theme.theirBubble, border: `1px solid ${theme.theirBubbleBorder}` }}
+            >
               <div className="flex gap-1 items-center h-4">
                 <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
                 <div className="w-1.5 h-1.5 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
@@ -875,7 +879,7 @@ export default function ChatThread() {
             <span className="text-xs text-gray-400 flex-shrink-0">Release to send</span>
           </div>
         ) : (
-          <div className="flex-1 bg-gray-50 rounded-full" style={{ border: '1px solid #EFEFEF' }}>
+          <div className="flex-1 rounded-full" style={{ background: '#F5F5F5', border: '1px solid #EFEFEF' }}>
             <input
               value={input}
               onChange={handleInputChange}

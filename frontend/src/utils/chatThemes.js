@@ -10,7 +10,9 @@ export const CHAT_THEMES = {
     name: 'Light',
     background: '#FFFFFF',
     myBubble: '#2C4055', myBubbleText: '#FFFFFF',
-    theirBubble: '#FFFFFF', theirBubbleText: '#1A1A1A', theirBubbleBorder: '#EFEFEF',
+    // Neutral fill, not white — an incoming bubble on a white thread was
+    // carried entirely by its hairline border, which all but disappeared.
+    theirBubble: '#F5F5F5', theirBubbleText: '#1A1A1A', theirBubbleBorder: '#EFEFEF',
     headerBg: '#FFFFFF', headerText: '#0A0A0A', composerBg: '#FFFFFF',
   },
   dark: {
