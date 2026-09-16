@@ -338,10 +338,14 @@ export default function Bible() {
               directly (see below), not via absolutely-positioned children,
               so it has no height-resolution dependency on this box at all. */}
           <div
-            className={themeId === 'scripture' ? 'pb-24' : 'px-5 pt-5 pb-24'}
+            className={themeId === 'scripture' ? '' : 'px-5 pt-5'}
             style={
               themeId === 'scripture'
                 ? {
+                    // Clears the fixed chapter bar below, whose own height now
+                    // grows by the home-indicator inset — the flat pb-24 this
+                    // replaces didn't, so the last verses sat under it.
+                    paddingBottom: 'calc(6rem + env(safe-area-inset-bottom))',
                     // The manuscript treatment paints its own worn sheet as an
                     // inline SVG inside the article, so this box stays bare —
                     // stacking the old CSS parchment behind it would double the
@@ -349,7 +353,13 @@ export default function Bible() {
                     minHeight: '60vh',
                     position: 'relative',
                   }
-                : { background: theme.bg, minHeight: '60vh', position: 'relative', transition: 'background 0.2s ease' }
+                : {
+                    background: theme.bg,
+                    minHeight: '60vh',
+                    position: 'relative',
+                    transition: 'background 0.2s ease',
+                    paddingBottom: 'calc(6rem + env(safe-area-inset-bottom))',
+                  }
             }
           >
             {/* Text content sits in its own relative wrapper. No background
@@ -475,7 +485,13 @@ export default function Bible() {
 
           {/* Bottom chapter nav */}
           {!loading && verses.length > 0 && (
-            <div className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white border-t border-gray-100 px-4 py-3 flex items-center justify-between z-20">
+            // The global nav island is hidden on the reader, so this bar is the
+            // page's own bottom control — it has to carry the home-indicator
+            // inset itself, or its buttons sit under it on a notched device.
+            <div
+              className="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white border-t border-gray-100 px-4 pt-3 flex items-center justify-between z-20"
+              style={{ paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom))' }}
+            >
               <button
                 disabled={chapter <= 1}
                 onClick={() => setChapter(c => c - 1)}

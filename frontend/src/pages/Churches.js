@@ -41,7 +41,7 @@ export default function Churches({ embedded = false }) {
   }
 
   return (
-    <div className={embedded ? '' : 'bg-gray-50 min-h-full'}>
+    <div className={embedded ? '' : 'bg-white min-h-full'}>
       {!embedded && (
         <WaterCard tone="blue" style={{ borderRadius: '0 0 24px 24px', padding: '20px 20px 32px' }}>
           <div className="flex items-center justify-between">
@@ -64,7 +64,7 @@ export default function Churches({ embedded = false }) {
         </WaterCard>
       )}
 
-      <div className={embedded ? 'px-4 pt-4 pb-4' : '-mt-3 rounded-t-3xl bg-gray-50 px-4 pt-5 pb-4'}>
+      <div className={embedded ? 'px-4 pt-4 pb-4' : '-mt-3 rounded-t-3xl bg-white px-4 pt-5 pb-4'}>
         {embedded && (
           <div className="flex items-center justify-end mb-3">
             {!myChurch ? (

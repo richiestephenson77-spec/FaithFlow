@@ -86,7 +86,7 @@ export default function FindChurches({ embedded = false }) {
   }
 
   return (
-    <div className={embedded ? '' : 'bg-gray-50 min-h-full'}>
+    <div className={embedded ? '' : 'bg-white min-h-full'}>
       {!embedded && (
         <div className="px-4 pt-5 pb-4 flex items-center gap-3 bg-white border-b border-gray-100">
           <button onClick={() => navigate(-1)} aria-label="Back" className="p-1 -ml-1">

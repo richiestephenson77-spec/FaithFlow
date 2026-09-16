@@ -15,7 +15,7 @@ export default function ChurchesHub() {
   const [tab, setTab] = useState('near');
 
   return (
-    <div className="bg-gray-50 min-h-full">
+    <div className="bg-white min-h-full">
       <div className="bg-white px-4 pt-5 pb-3 border-b border-gray-100">
         <div className="flex items-center gap-3 mb-4">
           <button onClick={() => navigate(-1)} aria-label="Back" className="p-1 -ml-1">
