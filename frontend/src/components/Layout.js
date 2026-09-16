@@ -377,7 +377,7 @@ export default function Layout() {
   }
 
   return (
-    <div className="h-screen bg-gray-50 flex flex-col max-w-md mx-auto relative shadow-xl overflow-hidden" style={{ height: '100dvh' }}>
+    <div className="h-screen bg-white flex flex-col max-w-md mx-auto relative shadow-xl overflow-hidden" style={{ height: '100dvh' }}>
       {/* Slim, non-blocking offline banner — auto-hides on reconnect. */}
       <AnimatePresence>
         {!online && (

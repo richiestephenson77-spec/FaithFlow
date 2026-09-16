@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Flame, BookOpen, Radio, ChevronRight, MoreHorizontal } from 'lucide-react';
+import { ChevronRight, MoreHorizontal } from 'lucide-react';
 import api from '../utils/api';
 import { track } from '../utils/analytics';
 import { useAuth } from '../contexts/AuthContext';
@@ -54,7 +54,7 @@ function PostCard({ post, onLike, onUserClick, currentUserId, onOptions }) {
         )}
         {isOwn && (
           <button onClick={onOptions} aria-label="Post options" className="w-11 h-11 -mr-2 flex items-center justify-center flex-shrink-0">
-            <MoreHorizontal size={18} strokeWidth={1.8} color="#9ca3af" />
+            <MoreHorizontal size={18} strokeWidth={1.8} color="#8E8E8E" />
           </button>
         )}
       </div>
@@ -223,37 +223,25 @@ export default function Home() {
           {...fadeUp}
           {...springTap}
           onClick={() => { hapticLight(); navigate('/prayer'); }}
-          className="w-full rounded-2xl bg-white px-5 py-4 mb-6 text-left"
+          className="w-full rounded-2xl bg-white px-4 py-3 mb-4 text-left"
           style={{ border: '1px solid #EFEFEF' }}
         >
-          <div className="flex items-center justify-between">
-            <span className="text-base type-heading">Prayer Room</span>
-            <div className="flex items-center gap-1.5">
+          {/* Compact by design — this is an entry point, not a hero, and the
+              feed is what Home is for. The Streaks / Verses / Live Cells row
+              that used to sit under this was three labels with no action of
+              their own, costing a chunk of the first screen. */}
+          <div className="flex items-center gap-3">
+            <div className="flex-1 min-w-0">
+              <span className="text-base type-heading">Prayer Room</span>
+              <p className="text-xs mt-0.5" style={{ color: '#8E8E8E' }}>Pray for others and keep your streak alive</p>
+            </div>
+            <div className="flex items-center gap-1.5 flex-shrink-0">
               <span className="w-1.5 h-1.5 rounded-full bg-[#2C4055] animate-pulse" />
               <span className="text-[11px] font-semibold" style={{ color: '#0A0A0A' }}>
                 {liveCount != null ? `${liveCount} praying now` : 'Open'}
               </span>
+              <ChevronRight size={15} color="#0A0A0A" />
             </div>
-          </div>
-
-          <p className="text-sm mt-0.5" style={{ color: '#8E8E8E' }}>Pray for others and keep your streak alive</p>
-
-          <div className="flex items-center justify-between mt-3.5">
-            <div className="flex items-center gap-4">
-              {[
-                { Icon: Flame,    label: 'Streaks' },
-                { Icon: BookOpen, label: 'Verses' },
-                { Icon: Radio,    label: 'Live Cells' },
-              ].map(({ Icon, label }) => (
-                <div key={label} className="flex items-center gap-1.5">
-                  <Icon size={14} strokeWidth={1.7} color="#0A0A0A" />
-                  <span style={{ fontSize: 11, color: '#8E8E8E' }}>{label}</span>
-                </div>
-              ))}
-            </div>
-            <span className="flex items-center gap-0.5 text-xs font-semibold flex-shrink-0" style={{ color: '#0A0A0A' }}>
-              Enter <ChevronRight size={14} />
-            </span>
           </div>
         </motion.button>
 

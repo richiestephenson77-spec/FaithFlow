@@ -192,7 +192,7 @@ export default function Profile() {
   // with Unblock only when the viewer is the one who blocked.
   if (profile.unavailable) {
     return (
-      <div className="min-h-full bg-gray-50 flex flex-col">
+      <div className="min-h-full bg-white flex flex-col">
         <div className="px-4 pt-5 pb-3 flex items-center gap-3 bg-white" style={{ borderBottom: '1px solid #EFEFEF' }}>
           <button onClick={() => navigate(-1)} aria-label="Back" className="p-1 -ml-1">
             <ChevronLeft size={22} color="#0A0A0A" strokeWidth={2} />
@@ -226,7 +226,7 @@ export default function Profile() {
     const answeredCount = publicRequests.filter(r => r.isAnswered).length;
 
     return (
-      <div className="bg-gray-50 min-h-full pb-10">
+      <div className="bg-white min-h-full pb-10">
         {/* Top bar */}
         <div className="bg-white px-3 pt-4 pb-2 flex items-center justify-between" style={{ borderBottom: '1px solid #EFEFEF' }}>
           <button onClick={() => navigate(-1)} aria-label="Back" className="w-11 h-11 flex items-center justify-center">
@@ -320,8 +320,8 @@ export default function Profile() {
                   <p className="font-semibold text-sm" style={{ color: '#0A0A0A' }}>{r.title}</p>
                   <p className="text-xs mt-1 line-clamp-2" style={{ color: '#8E8E8E' }}>{r.body}</p>
                   <div className="flex items-center gap-3 mt-2">
-                    <span className="text-xs" style={{ color: '#9AA6AD' }}>{getTimeAgo(r.createdAt)}</span>
-                    {r._count?.sessions != null && <span className="text-xs" style={{ color: '#9AA6AD' }}>{r._count.sessions} prayed</span>}
+                    <span className="text-xs" style={{ color: '#8E8E8E' }}>{getTimeAgo(r.createdAt)}</span>
+                    {r._count?.sessions != null && <span className="text-xs" style={{ color: '#8E8E8E' }}>{r._count.sessions} prayed</span>}
                   </div>
                 </button>
               ))}
@@ -372,7 +372,7 @@ export default function Profile() {
   }
 
   return (
-    <div className="pb-8 bg-gray-50 min-h-full relative">
+    <div className="pb-8 bg-white min-h-full relative">
       {/* Settings gear — absolute top-right */}
       {isOwnProfile && (
         <Link
@@ -465,17 +465,20 @@ export default function Profile() {
             )}
           </motion.button>
 
-          {/* Stats — 3 columns */}
+          {/* Social counts */}
           <motion.div
             variants={staggerChildren}
             initial="initial"
             animate="animate"
             className="flex-1 flex justify-around"
           >
+            {/* stats.totalSessions used to sit here as "Total Prayers" AND
+                again as "Prayers" in the pill row just below — the same number
+                twice, one screen apart. It stays in the pill row, with the
+                other prayer stats; this row is the social counts only. */}
             {[
-              { value: stats?.totalSessions ?? 0, label: 'Total Prayers' },
-              { value: profile._count?.followers ?? 0, label: 'Believers', onTap: () => setFollowModal('followers') },
               { value: profile._count?.posts ?? 0, label: 'Posts' },
+              { value: profile._count?.followers ?? 0, label: 'Believers', onTap: () => setFollowModal('followers') },
             ].map(({ value, label, onTap }) => (
               <motion.button
                 key={label}
@@ -484,7 +487,7 @@ export default function Profile() {
                 className="flex flex-col items-center"
               >
                 <span className="text-xl font-bold text-gray-900 leading-tight">{value}</span>
-                <span className="text-xs text-gray-400 mt-0.5 text-center leading-tight">{label}</span>
+                <span className="text-xs mt-0.5 text-center leading-tight" style={{ color: '#8E8E8E' }}>{label}</span>
               </motion.button>
             ))}
           </motion.div>
@@ -505,7 +508,7 @@ export default function Profile() {
             <p className="text-xs mt-0.5" style={{ color: '#8E8E8E' }}>{profile.location}</p>
           )}
           {profile.bio && (
-            <p className="text-sm mt-1.5 leading-snug" style={{ color: '#5C6672' }}>{profile.bio}</p>
+            <p className="text-sm mt-1.5 leading-snug" style={{ color: '#8E8E8E' }}>{profile.bio}</p>
           )}
         </motion.div>
 
@@ -566,29 +569,29 @@ export default function Profile() {
               <motion.div
                 key={label}
                 variants={fadeUpItem}
-                className="bg-gray-50 rounded-2xl p-3 text-center"
+                className="rounded-2xl p-3 text-center" style={{ background: '#F5F5F5' }}
               >
                 <div className="flex justify-center mb-1">{icon}</div>
                 <p className="text-lg font-bold text-gray-900 leading-none">{value}</p>
-                <p className="text-xs text-gray-400 mt-0.5">{label}</p>
+                <p className="text-xs mt-0.5" style={{ color: '#8E8E8E' }}>{label}</p>
               </motion.div>
             ))}
           </motion.div>
 
           {/* 2 stat cards */}
           <div className="grid grid-cols-2 gap-2">
-            <div className="bg-gray-50 rounded-2xl p-4 flex items-center gap-3">
+            <div className="rounded-2xl p-4 flex items-center gap-3" style={{ background: '#F5F5F5' }}>
               <Clock size={18} color="#0A0A0A" strokeWidth={1.8} />
               <div>
                 <p className="text-sm font-bold text-gray-900">{formatDuration(stats.totalPrayerSeconds)}</p>
-                <p className="text-xs text-gray-400">Prayer Time</p>
+                <p className="text-xs" style={{ color: '#8E8E8E' }}>Prayer Time</p>
               </div>
             </div>
-            <div className="bg-gray-50 rounded-2xl p-4 flex items-center gap-3">
+            <div className="rounded-2xl p-4 flex items-center gap-3" style={{ background: '#F5F5F5' }}>
               <Users size={18} color="#0A0A0A" strokeWidth={1.8} />
               <div>
                 <p className="text-sm font-bold text-gray-900">{stats.totalPeoplePrayedFor ?? 0}</p>
-                <p className="text-xs text-gray-400">Prayed For</p>
+                <p className="text-xs" style={{ color: '#8E8E8E' }}>Prayed For</p>
               </div>
             </div>
           </div>
@@ -619,10 +622,10 @@ export default function Profile() {
           </div>
 
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold" style={{ color: profile.prayerWarriorBadge ? '#0A0A0A' : '#9AA6AD' }}>
+            <p className="text-sm font-bold" style={{ color: profile.prayerWarriorBadge ? '#0A0A0A' : '#8E8E8E' }}>
               Prayer Warrior
             </p>
-            <p className="text-xs mt-0.5" style={{ color: profile.prayerWarriorBadge ? '#5C6672' : '#9AA6AD' }}>
+            <p className="text-xs mt-0.5" style={{ color: profile.prayerWarriorBadge ? '#8E8E8E' : '#8E8E8E' }}>
               {profile.prayerWarriorBadge ? 'Level 1 · Seeker' : 'Complete daily quota to unlock'}
             </p>
             {/* Progress bar */}
@@ -650,7 +653,7 @@ export default function Profile() {
               key={key}
               onClick={() => setActiveTab(key)}
               className="flex-1 py-3.5 text-sm transition-colors relative"
-              style={{ color: activeTab === key ? '#0A0A0A' : '#9AA6AD', fontWeight: activeTab === key ? 600 : 400 }}
+              style={{ color: activeTab === key ? '#0A0A0A' : '#8E8E8E', fontWeight: activeTab === key ? 600 : 400 }}
             >
               {label}
               {activeTab === key && (
@@ -725,9 +728,9 @@ export default function Profile() {
                         <p className="font-semibold text-sm" style={{ color: '#0A0A0A' }}>{r.title}</p>
                         <p className="text-xs mt-1 line-clamp-2" style={{ color: '#8E8E8E' }}>{r.body}</p>
                         <div className="flex items-center gap-3 mt-2">
-                          <span className="text-xs" style={{ color: '#9AA6AD' }}>{getTimeAgo(r.createdAt)}</span>
+                          <span className="text-xs" style={{ color: '#8E8E8E' }}>{getTimeAgo(r.createdAt)}</span>
                           {r._count?.sessions != null && (
-                            <span className="text-xs" style={{ color: '#9AA6AD' }}>{r._count.sessions} prayed</span>
+                            <span className="text-xs" style={{ color: '#8E8E8E' }}>{r._count.sessions} prayed</span>
                           )}
                         </div>
                       </div>
@@ -792,7 +795,7 @@ export default function Profile() {
                   { icon: '🔥', label: 'Current Prayer Streak', value: `${stats?.streak || 0} days` },
                   { icon: '🏅', label: 'Longest Streak', value: `${stats?.longestStreak || 0} days` },
                 ].map(({ icon, label, value }) => (
-                  <div key={label} className="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-3">
+                  <div key={label} className="flex items-center justify-between rounded-xl px-4 py-3" style={{ background: '#F5F5F5' }}>
                     <div className="flex items-center gap-3">
                       <span className="text-lg">{icon}</span>
                       <p className="text-sm text-gray-600">{label}</p>
