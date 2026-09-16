@@ -19,6 +19,73 @@ html, body { height: 100%; overflow: hidden; }
 
 * { font-family: 'Inter', sans-serif; }
 
+/* ── Shared floating navigation island ──────────────────────────────────────
+   ONE island, rendered by components/Layout.js for all five main tabs. Pages
+   must not render their own bottom bar and must not add their own bottom
+   padding for it — the scroll container gets --fs-nav-reserve from Layout,
+   which is the single source of truth for how much room the island needs. */
+:root {
+  /* The app column's own width (Layout's max-w-md = 28rem). The island is
+     position:fixed, so it anchors to the viewport; capping it here is what
+     keeps it aligned to the centred column on desktop instead of stretching. */
+  --app-content-max-width: 448px;
+  --fs-nav-height: 64px;
+  --fs-nav-offset: 10px;
+  /* island height + its bottom offset + a small gap, so the LAST row of
+     content on any tab can scroll completely clear of the island. */
+  --fs-nav-reserve: calc(
+    var(--fs-nav-height) + var(--fs-nav-offset) + 14px + env(safe-area-inset-bottom, 0px)
+  );
+}
+
+.fs-nav-island {
+  position: fixed;
+  left: 50%;
+  /* Safe. A transform only creates a containing block for position:fixed
+     DESCENDANTS — this element has none of its own, so centring it this way
+     cannot re-anchor anything. Never put a transform on an ancestor instead. */
+  transform: translateX(-50%);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + var(--fs-nav-offset));
+  width: calc(100% - 32px);
+  max-width: calc(var(--app-content-max-width) - 32px);
+  min-height: var(--fs-nav-height);
+  border-radius: 999px;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  align-items: center;
+  background: rgba(255, 255, 255, 0.80);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+  border: 1px solid rgba(10, 10, 10, 0.08);
+  box-shadow: 0 4px 16px rgba(10, 10, 10, 0.06);
+}
+
+/* Without backdrop-filter the translucency would just look like a washed-out
+   grey block over the content, so fall back to plain white. Same when the
+   platform asks for reduced transparency. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .fs-nav-island { background: #FFFFFF; }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .fs-nav-island {
+    background: #FFFFFF;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
+.fs-nav-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fs-nav-item, .fs-nav-item * { transition: none !important; animation: none !important; }
+}
+
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 

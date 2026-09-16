@@ -231,10 +231,9 @@ function StandardTile({ title, blurb, to, art, theme }) {
 export default function Explore() {
   return (
     <div className="min-h-full" style={{ background: '#FFFFFF' }}>
-      {/* The bottom nav is a floating row of 52px icons with no background of
-          its own, so it sits directly over whatever it passes. Clear it here
-          rather than relying only on the outlet's padding. */}
-      <div className="px-4 pt-4" style={{ paddingBottom: 'calc(4.5rem + env(safe-area-inset-bottom))' }}>
+      {/* No bottom padding here — the scroll container already reserves the
+          nav island's footprint via --fs-nav-reserve (see index.css). */}
+      <div className="px-4 pt-4">
         <h2 className="font-fraunces" style={{ fontSize: 30, margin: '4px 0', color: INK, lineHeight: 1.1 }}>Explore</h2>
         <p style={{ margin: '2px 0 12px', color: '#66717b', fontSize: 14 }}>Deepen your faith journey</p>
 

@@ -12,7 +12,6 @@ import { chatCache } from '../utils/chatCache';
 import NotesRow from '../components/inbox/NotesRow';
 import FilterPills from '../components/inbox/FilterPills';
 import ThreadRow from '../components/inbox/ThreadRow';
-import InboxTabBar from '../components/inbox/InboxTabBar';
 import { TINT_BY_ID, ACCENT, BORDER, CLAY, FAINT, INK, MUTED, RECESS, SURFACE } from '../utils/inboxTints';
 import { buildStubNotes, stubNoteUserIds, stubOnlineUserIds } from '../utils/inboxStubs';
 
@@ -175,7 +174,6 @@ export default function Messages() {
           maxWidth: COLUMN_WIDTH,
           borderLeft: `1px solid ${BORDER}`,
           borderRight: `1px solid ${BORDER}`,
-          paddingBottom: 110,
         }}
       >
         {/* 1 — HEADER */}
@@ -371,9 +369,6 @@ export default function Messages() {
           </div>
         )}
       </div>
-
-      {/* 6 — TAB BAR */}
-      <InboxTabBar showBadge={unreadMessages > 0} />
     </PullToRefresh>
   );
 }

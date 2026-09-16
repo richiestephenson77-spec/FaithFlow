@@ -41,12 +41,11 @@ const SHOW_HEADER_ON = ['/'];
 // Immersive drill-ins (chat thread /messages/:id, prayer /pray/:id) hide the nav.
 // The list pages (/messages, /prayer) keep their frame.
 const HIDE_NAV_ON = ['/messages/', '/pray/'];
-// Confession wall + detail and Bible Maps hide the bottom nav (immersive, back-arrow to leave)
-// The Messages inbox renders its OWN floating tab bar (InboxTabBar) as part of
-// its redesign, so the global bar is suppressed there to avoid two navs. Note
-// this only affects the bare inbox — every /messages/* sub-route is already
-// covered by HIDE_NAV_ON above.
-const HIDE_NAV_EXACT = ['/confessions', '/bible-maps', '/messages'];
+// Confession wall + detail and Bible Maps hide the bottom nav (immersive, back-arrow to leave).
+// '/messages' is deliberately NOT here: the inbox is one of the five main tabs
+// and now shows the same shared island as every other tab (it used to render
+// its own InboxTabBar duplicate, which is why the global bar was suppressed).
+const HIDE_NAV_EXACT = ['/confessions', '/bible-maps'];
 
 // Swipe-nav tuning: distance/velocity needed to count as an intentional swipe,
 // and the dead zone at the left screen edge reserved for iOS's system back gesture.
@@ -167,9 +166,9 @@ function AnimatedOutlet({ fullHeight, isSlide, direction, registerCurrentX, show
         // Header only renders on Home; every other page needs the top inset
         // here so its own top content doesn't sit under the status bar/notch.
         paddingTop: showHeader ? undefined : 'env(safe-area-inset-top)',
-        // Nav sits flush at the safe-area inset with a 52px tap target; clear
-        // its top edge (plus breathing room) with generous bottom padding.
-        paddingBottom: hideNav ? undefined : 'calc(5.5rem + env(safe-area-inset-bottom))',
+        // The one place the island's footprint is reserved. Pages must not add
+        // their own bottom padding for it — see --fs-nav-reserve in index.css.
+        paddingBottom: hideNav ? undefined : 'var(--fs-nav-reserve)',
       }}
       initial={skipEnter ? { x: 0, opacity: 1 } : (isSlide ? { x: direction * window.innerWidth, opacity: 1 } : { opacity: 0 })}
       animate={{ x: 0, opacity: 1 }}
@@ -223,7 +222,7 @@ function PeekLayer({ direction, baseX, path, showHeader }) {
         overscrollBehavior: 'contain',
         WebkitOverflowScrolling: 'touch',
         paddingTop: showHeader ? undefined : 'env(safe-area-inset-top)',
-        paddingBottom: 'calc(5.5rem + env(safe-area-inset-bottom))',
+        paddingBottom: 'var(--fs-nav-reserve)',
         zIndex: 2,
       }}
     >
@@ -499,41 +498,42 @@ export default function Layout() {
         />
       )}
 
+      {/* The ONE navigation island — same element, same position, on all five
+          main tabs. z-30 keeps it under sheets/modals (z-50) and over content.
+          NavLink supplies aria-current="page" on the active destination. */}
       {!hideNav && (
-        <div
-          className="fixed left-1/2 -translate-x-1/2 flex gap-2 z-30"
-          style={{ bottom: 0, paddingBottom: 'env(safe-area-inset-bottom)' }}
-        >
+        <nav className="fs-nav-island z-30" aria-label="Main">
           {navItems.map(({ to, label, Icon, end }) => (
-            <NavLink key={to} to={to} end={end} onClick={hapticLight} aria-label={label}>
+            <NavLink
+              key={to}
+              to={to}
+              end={end}
+              onClick={hapticLight}
+              aria-label={label}
+              className="fs-nav-item"
+            >
               {({ isActive }) => (
-                <motion.div
-                  whileTap={{ scale: 0.88 }}
+                <motion.span
+                  whileTap={{ scale: 0.92 }}
                   transition={{ type: 'spring', stiffness: 500, damping: 25 }}
                   className="relative flex items-center justify-center"
-                  style={{ width: 52, height: 52 }}
+                  style={{ width: 44, height: 44 }}
                 >
-                  <motion.span
-                    className="flex items-center justify-center"
-                    animate={{ scale: isActive ? 1.3 : 1 }}
-                    transition={{ type: 'spring', stiffness: 400, damping: 22 }}
-                  >
-                    <Icon
-                      size={26}
-                      strokeWidth={isActive ? 2.5 : 2}
-                      color={isActive ? '#0A0A0A' : '#1A1A1A'}
-                    />
-                  </motion.span>
+                  <Icon
+                    size={24}
+                    strokeWidth={isActive ? 2.4 : 1.9}
+                    color={isActive ? '#0A0A0A' : '#8E8E8E'}
+                  />
                   {label === 'Chats' && unreadMessages > 0 && (
-                    <span className="absolute top-1 right-1 bg-red-500 text-white text-[9px] rounded-full w-4 h-4 flex items-center justify-center leading-none font-bold">
+                    <span className="absolute top-0 right-0 bg-red-500 text-white text-[9px] rounded-full w-4 h-4 flex items-center justify-center leading-none font-bold">
                       {unreadMessages > 9 ? '9+' : unreadMessages}
                     </span>
                   )}
-                </motion.div>
+                </motion.span>
               )}
             </NavLink>
           ))}
-        </div>
+        </nav>
       )}
     </div>
   );
