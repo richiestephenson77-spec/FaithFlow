@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider  = "postgresql"
   // Runtime queries go through Supabase's TRANSACTION-mode pooler (port 6543,
   // ?pgbouncer=true&connection_limit=...). Transaction mode returns each
   // connection to the pool after every query/transaction, so a small pool of
@@ -17,71 +17,71 @@ datasource db {
 }
 
 model User {
-  id              String    @id @default(cuid())
-  email           String    @unique
-  password        String
-  name            String
-  bio             String?
-  churchName      String?
-  location        String?
-  profilePhoto    String?
-  coverPhoto      String?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id           String   @id @default(cuid())
+  email        String   @unique
+  password     String
+  name         String
+  bio          String?
+  churchName   String?
+  location     String?
+  profilePhoto String?
+  coverPhoto   String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   prayerStreak        Int       @default(0)
   longestPrayerStreak Int       @default(0)
   lastPrayerDate      DateTime?
 
-  gratitudeStreak     Int       @default(0)
-  lastGratitudeDate   DateTime?
+  gratitudeStreak   Int       @default(0)
+  lastGratitudeDate DateTime?
 
-  prayerRequests  PrayerRequest[]
-  prayerSessions  PrayerSession[]
-  posts           Post[]
-  postLikes       PostLike[]
-  comments        Comment[]
-  notifications   Notification[]
-  botMessages     BibleBotMessage[]
-  resetTokens     PasswordResetToken[]
-  churchFollows   ChurchFollow[]
+  prayerRequests PrayerRequest[]
+  prayerSessions PrayerSession[]
+  posts          Post[]
+  postLikes      PostLike[]
+  comments       Comment[]
+  notifications  Notification[]
+  botMessages    BibleBotMessage[]
+  resetTokens    PasswordResetToken[]
+  churchFollows  ChurchFollow[]
 
-  latitude              Float?
-  longitude             Float?
+  latitude  Float?
+  longitude Float?
 
   dailyPrayerQuota      Int       @default(5)
   prayerWarriorBadge    Boolean   @default(false)
   totalPeoplesPrayedFor Int       @default(0)
   prayerWarriorEarnedAt DateTime?
 
-  graceDaysAvailable    Int       @default(0)
-  graceDayUsedAt        DateTime?
+  graceDaysAvailable Int       @default(0)
+  graceDayUsedAt     DateTime?
 
-  isVerifiedPastor  Boolean  @default(false)
-  pastorBio         String?
-  pastorChurch      String?
-  pastorTitle       String?
+  isVerifiedPastor Boolean @default(false)
+  pastorBio        String?
+  pastorChurch     String?
+  pastorTitle      String?
 
-  isAdmin           Boolean  @default(false)
-  isSuspended       Boolean  @default(false)
+  isAdmin     Boolean @default(false)
+  isSuspended Boolean @default(false)
 
-  followers       Follow[]  @relation("Following")
-  following       Follow[]  @relation("Followers")
-  dailyQuotaLogs  DailyQuotaLog[]
-  prayerDraft     PrayerDraft?
+  followers                Follow[]                  @relation("Following")
+  following                Follow[]                  @relation("Followers")
+  dailyQuotaLogs           DailyQuotaLog[]
+  prayerDraft              PrayerDraft?
   conversationParticipants ConversationParticipant[]
-  sentMessages    Message[]
-  confessionAuthors ConfessionAuthor[]
+  sentMessages             Message[]
+  confessionAuthors        ConfessionAuthor[]
   confessionEncouragements ConfessionEncouragement[]
-  confessionComments ConfessionComment[]
-  pastorRequests  PastorPrayerRequest[] @relation("PastorRequests")
-  userPastorRequests PastorPrayerRequest[] @relation("UserPastorRequests")
-  prayerPastorAccess PrayerPastorAccess[]
+  confessionComments       ConfessionComment[]
+  pastorRequests           PastorPrayerRequest[]     @relation("PastorRequests")
+  userPastorRequests       PastorPrayerRequest[]     @relation("UserPastorRequests")
+  prayerPastorAccess       PrayerPastorAccess[]
 
-  notifyPrayerStarted  Boolean @default(true)
-  notifyNewFollower    Boolean @default(true)
-  notifyPostLike       Boolean @default(true)
-  notifyPostComment    Boolean @default(true)
+  notifyPrayerStarted     Boolean @default(true)
+  notifyNewFollower       Boolean @default(true)
+  notifyPostLike          Boolean @default(true)
+  notifyPostComment       Boolean @default(true)
   notifyPrayerAnswered    Boolean @default(true)
   notifyConfessionComment Boolean @default(true)
   notifyStreakReminder    Boolean @default(true)
@@ -90,7 +90,7 @@ model User {
   prayerReminderEnabled Boolean @default(false)
   prayerReminderTime    String?
 
-  autoDownloadMedia     Boolean @default(true)
+  autoDownloadMedia Boolean @default(true)
 
   prayerCellsCreated              PrayerCell[]                   @relation("PrayerCellCreator")
   prayerCellMemberships           PrayerCellMember[]             @relation("PrayerCellMemberships")
@@ -98,16 +98,27 @@ model User {
   prayerCellSessionsStarted       PrayerCellSession[]            @relation("PrayerCellSessionStarter")
   prayerCellSessionParticipations PrayerCellSessionParticipant[] @relation("PrayerCellSessionParticipations")
 
-  gender          String?
+  gender String?
 
-  partnerships1   PrayerPartnership[] @relation("User1Partnerships")
-  partnerships2   PrayerPartnership[] @relation("User2Partnerships")
-  partnerRequests PrayerPartnerRequest[]
+  partnerships1    PrayerPartnership[]    @relation("User1Partnerships")
+  partnerships2    PrayerPartnership[]    @relation("User2Partnerships")
+  partnerRequests  PrayerPartnerRequest[]
   gratitudeEntries GratitudeEntry[]
 
   reportsMade     Report[]
-  blocksInitiated Block[] @relation("Blocker")
-  blocksReceived  Block[] @relation("Blocked")
+  blocksInitiated Block[]  @relation("Blocker")
+  blocksReceived  Block[]  @relation("Blocked")
+
+  // Prayer Rooms. These are VIRTUAL relation fields only — every foreign key
+  // lives on the prayer_room_* tables, so none of these adds, drops or alters
+  // a column on "users". The accompanying migration contains no statement
+  // touching the users table; see 20260920120000_prayer_rooms/migration.sql.
+  prayerRoomsHosted        PrayerRoomSeries[]          @relation("PrayerRoomHost")
+  prayerRoomRoles          PrayerRoomRole[]            @relation("PrayerRoomRoles")
+  prayerRoomAttendance     PrayerRoomAttendance[]      @relation("PrayerRoomAttendance")
+  prayerRoomSubscriptions  PrayerRoomSubscription[]    @relation("PrayerRoomSubscriptions")
+  prayerRoomLinkedRequests PrayerRoomLinkedRequest[]   @relation("PrayerRoomLinkedRequests")
+  prayerRoomNotifications  PrayerRoomNotificationLog[] @relation("PrayerRoomNotificationLog")
 
   @@map("users")
 }
@@ -119,9 +130,9 @@ model Report {
   id             String    @id @default(cuid())
   reporterId     String
   reporter       User      @relation(fields: [reporterId], references: [id], onDelete: Cascade)
-  reason         String    // SPAM | HARASSMENT | HATE_SPEECH | SEXUAL_CONTENT | VIOLENCE | SELF_HARM | MISINFORMATION | OTHER
+  reason         String // SPAM | HARASSMENT | HATE_SPEECH | SEXUAL_CONTENT | VIOLENCE | SELF_HARM | MISINFORMATION | OTHER
   details        String?
-  contentType    String    // PRAYER | CONFESSION | COMMENT | MESSAGE | PROFILE | PRAYER_CELL
+  contentType    String // PRAYER | CONFESSION | COMMENT | MESSAGE | PROFILE | PRAYER_CELL
   contentId      String
   reportedUserId String?
   status         String    @default("PENDING") // PENDING | REVIEWED | ACTIONED | DISMISSED
@@ -160,9 +171,12 @@ model PrayerCell {
   lastActiveAt  DateTime?
   createdAt     DateTime  @default(now())
 
-  members      PrayerCellMember[]
-  joinRequests PrayerCellJoinRequest[]
-  sessions     PrayerCellSession[]
+  members          PrayerCellMember[]
+  joinRequests     PrayerCellJoinRequest[]
+  sessions         PrayerCellSession[]
+  /// Prayer Room series scoped to this cell. Virtual — the FK is on
+  /// prayer_room_series.cellId. The cell's own sessions above are untouched.
+  prayerRoomSeries PrayerRoomSeries[]
 
   @@index([creatorId])
   @@map("prayer_cells")
@@ -200,14 +214,14 @@ model PrayerCellJoinRequest {
 
 // A live audio prayer session belonging to a cell. Multiple members can join.
 model PrayerCellSession {
-  id           String     @id @default(cuid())
+  id           String                         @id @default(cuid())
   cellId       String
   startedById  String
-  startedAt    DateTime   @default(now())
+  startedAt    DateTime                       @default(now())
   endedAt      DateTime?
-  isActive     Boolean    @default(true)
-  cell         PrayerCell @relation(fields: [cellId], references: [id], onDelete: Cascade)
-  startedBy    User       @relation("PrayerCellSessionStarter", fields: [startedById], references: [id], onDelete: Cascade)
+  isActive     Boolean                        @default(true)
+  cell         PrayerCell                     @relation(fields: [cellId], references: [id], onDelete: Cascade)
+  startedBy    User                           @relation("PrayerCellSessionStarter", fields: [startedById], references: [id], onDelete: Cascade)
   participants PrayerCellSessionParticipant[]
 
   @@index([cellId])
@@ -228,64 +242,68 @@ model PrayerCellSessionParticipant {
 }
 
 model Conversation {
-  id           String    @id @default(cuid())
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  id           String                    @id @default(cuid())
+  createdAt    DateTime                  @default(now())
+  updatedAt    DateTime                  @updatedAt
   participants ConversationParticipant[]
   messages     Message[]
+
   @@map("conversations")
 }
 
 model ConversationParticipant {
-  id             String       @id @default(cuid())
-  conversationId String
-  userId         String
-  lastReadAt     DateTime?
-  theme                  String  @default("light")
-  vanishMode             String  @default("off") // off | after_seen | 24h | 7d | 30d
-  readReceiptsEnabled    Boolean @default(true)
-  typingIndicatorEnabled Boolean @default(true)
-  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                     String       @id @default(cuid())
+  conversationId         String
+  userId                 String
+  lastReadAt             DateTime?
+  theme                  String       @default("light")
+  vanishMode             String       @default("off") // off | after_seen | 24h | 7d | 30d
+  readReceiptsEnabled    Boolean      @default(true)
+  typingIndicatorEnabled Boolean      @default(true)
+  conversation           Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user                   User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@unique([conversationId, userId])
   @@map("conversation_participants")
 }
 
 model Message {
-  id             String       @id @default(cuid())
-  conversationId String
-  senderId       String
-  content        String
-  reaction       String?
-  audioUrl       String?
-  audioDuration  Int?
-  imageUrl       String?
-  replyToId      String?
-  isDeleted      Boolean      @default(false)
-  isRemoved      Boolean      @default(false)
-  removedReason  String?
-  isVanish       Boolean      @default(false)
-  seenAt         DateTime?
-  expiresAt      DateTime?
+  id                    String       @id @default(cuid())
+  conversationId        String
+  senderId              String
+  content               String
+  reaction              String?
+  audioUrl              String?
+  audioDuration         Int?
+  imageUrl              String?
+  replyToId             String?
+  isDeleted             Boolean      @default(false)
+  isRemoved             Boolean      @default(false)
+  removedReason         String?
+  isVanish              Boolean      @default(false)
+  seenAt                DateTime?
+  expiresAt             DateTime?
   sharedPrayerRequestId String?
-  createdAt      DateTime     @default(now())
-  isRead         Boolean      @default(false)
-  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  sender         User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
-  replyTo        Message?     @relation("MessageReplies", fields: [replyToId], references: [id], onDelete: SetNull)
-  replies        Message[]    @relation("MessageReplies")
+  createdAt             DateTime     @default(now())
+  isRead                Boolean      @default(false)
+  conversation          Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender                User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  replyTo               Message?     @relation("MessageReplies", fields: [replyToId], references: [id], onDelete: SetNull)
+  replies               Message[]    @relation("MessageReplies")
+
   @@map("messages")
 }
 
 model Confession {
-  id             String    @id @default(cuid())
+  id             String                    @id @default(cuid())
   content        String
-  category       String    @default("General")
-  createdAt      DateTime  @default(now())
-  isRemoved      Boolean   @default(false)
+  category       String                    @default("General")
+  createdAt      DateTime                  @default(now())
+  isRemoved      Boolean                   @default(false)
   removedReason  String?
   encouragements ConfessionEncouragement[]
   comments       ConfessionComment[]
+
   @@map("confessions")
 }
 
@@ -298,6 +316,7 @@ model ConfessionAuthor {
   userId       String
   createdAt    DateTime @default(now())
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@map("confession_authors")
 }
 
@@ -307,36 +326,39 @@ model ConfessionEncouragement {
   userId       String
   confession   Confession @relation(fields: [confessionId], references: [id], onDelete: Cascade)
   user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@unique([confessionId, userId])
   @@map("confession_encouragements")
 }
 
 model ConfessionComment {
-  id           String     @id @default(cuid())
-  confessionId String
-  userId       String
-  content      String
-  isAnonymous  Boolean    @default(false)
-  isRemoved    Boolean    @default(false)
+  id            String     @id @default(cuid())
+  confessionId  String
+  userId        String
+  content       String
+  isAnonymous   Boolean    @default(false)
+  isRemoved     Boolean    @default(false)
   removedReason String?
-  createdAt    DateTime   @default(now())
-  confession   Confession @relation(fields: [confessionId], references: [id], onDelete: Cascade)
-  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt     DateTime   @default(now())
+  confession    Confession @relation(fields: [confessionId], references: [id], onDelete: Cascade)
+  user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@map("confession_comments")
 }
 
 model PastorPrayerRequest {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   userId      String
   pastorId    String
   request     String
-  isAnonymous Boolean  @default(false)
-  status      String   @default("PENDING")
+  isAnonymous Boolean   @default(false)
+  status      String    @default("PENDING")
   response    String?
-  createdAt   DateTime @default(now())
+  createdAt   DateTime  @default(now())
   respondedAt DateTime?
-  user        User     @relation("UserPastorRequests", fields: [userId], references: [id], onDelete: Cascade)
-  pastor      User     @relation("PastorRequests", fields: [pastorId], references: [id], onDelete: Cascade)
+  user        User      @relation("UserPastorRequests", fields: [userId], references: [id], onDelete: Cascade)
+  pastor      User      @relation("PastorRequests", fields: [pastorId], references: [id], onDelete: Cascade)
+
   @@map("pastor_prayer_requests")
 }
 
@@ -346,37 +368,40 @@ model Follow {
   followingId String
   createdAt   DateTime @default(now())
 
-  follower    User @relation("Followers", fields: [followerId], references: [id], onDelete: Cascade)
-  following   User @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
+  follower  User @relation("Followers", fields: [followerId], references: [id], onDelete: Cascade)
+  following User @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
 
   @@unique([followerId, followingId])
   @@map("follows")
 }
 
 model PrayerRequest {
-  id                String          @id @default(cuid())
-  userId            String
-  title             String
-  body              String
-  isActive          Boolean         @default(true)
-  isAnswered        Boolean         @default(false)
-  answeredAt        DateTime?
-  testimonyMessage  String?
-  answeredIsPublic  Boolean         @default(true)
-  isRemoved         Boolean         @default(false)
-  removedReason     String?
-  updateMessage     String?
-  category          PrayerCategory  @default(GENERAL)
-  isUrgent          Boolean         @default(false)
-  visibility        String          @default("PUBLIC")
-  isAnonymous       Boolean         @default(false)
-  createdAt         DateTime        @default(now())
-  updatedAt         DateTime        @updatedAt
-  lastActivityAt    DateTime        @default(now())
+  id               String         @id @default(cuid())
+  userId           String
+  title            String
+  body             String
+  isActive         Boolean        @default(true)
+  isAnswered       Boolean        @default(false)
+  answeredAt       DateTime?
+  testimonyMessage String?
+  answeredIsPublic Boolean        @default(true)
+  isRemoved        Boolean        @default(false)
+  removedReason    String?
+  updateMessage    String?
+  category         PrayerCategory @default(GENERAL)
+  isUrgent         Boolean        @default(false)
+  visibility       String         @default("PUBLIC")
+  isAnonymous      Boolean        @default(false)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  lastActivityAt   DateTime       @default(now())
 
-  user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  sessions          PrayerSession[]
-  pastorAccess      PrayerPastorAccess[]
+  user         User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessions     PrayerSession[]
+  pastorAccess PrayerPastorAccess[]
+  /// Rooms this request has been surfaced in. A link, never a copy — the
+  /// request's own `visibility` still governs who may see it.
+  roomLinks    PrayerRoomLinkedRequest[]
 
   @@map("prayer_requests")
 }
@@ -387,6 +412,7 @@ model PrayerPastorAccess {
   pastorId        String
   prayerRequest   PrayerRequest @relation(fields: [prayerRequestId], references: [id], onDelete: Cascade)
   pastor          User          @relation(fields: [pastorId], references: [id], onDelete: Cascade)
+
   @@unique([prayerRequestId, pastorId])
   @@map("prayer_pastor_access")
 }
@@ -399,39 +425,39 @@ model PrayerSession {
   endedAt         DateTime?
   durationSeconds Int?
 
-  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  prayerRequest   PrayerRequest @relation(fields: [prayerRequestId], references: [id], onDelete: Cascade)
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  prayerRequest PrayerRequest @relation(fields: [prayerRequestId], references: [id], onDelete: Cascade)
 
   @@map("prayer_sessions")
 }
 
 model Post {
-  id          String     @id @default(cuid())
-  userId      String
-  content     String
-  type        PostType   @default(UPDATE)
-  bibleVerse  String?
-  location    String?
-  isArchived  Boolean    @default(false)
-  media       PostMedia[]
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  id         String      @id @default(cuid())
+  userId     String
+  content    String
+  type       PostType    @default(UPDATE)
+  bibleVerse String?
+  location   String?
+  isArchived Boolean     @default(false)
+  media      PostMedia[]
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
 
-  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  likes       PostLike[]
-  comments    Comment[]
+  user     User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  likes    PostLike[]
+  comments Comment[]
 
   @@map("posts")
 }
 
 model PostMedia {
-  id        String    @id @default(cuid())
-  postId    String
-  url       String
-  type      MediaType
-  order     Int       @default(0)
+  id     String    @id @default(cuid())
+  postId String
+  url    String
+  type   MediaType
+  order  Int       @default(0)
 
-  post      Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
 
   @@map("post_media")
 }
@@ -463,8 +489,8 @@ model PostLike {
   postId    String
   createdAt DateTime @default(now())
 
-  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  post      Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
 
   @@unique([userId, postId])
   @@map("post_likes")
@@ -477,8 +503,8 @@ model Comment {
   content   String
   createdAt DateTime @default(now())
 
-  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  post      Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
 
   @@map("comments")
 }
@@ -493,7 +519,7 @@ model Notification {
   isRead    Boolean          @default(false)
   createdAt DateTime         @default(now())
 
-  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("notifications")
 }
@@ -516,6 +542,11 @@ enum NotificationType {
   CELL_JOIN_REQUEST
   CELL_REQUEST_APPROVED
   CELL_SESSION_STARTED
+  ROOM_REMINDER
+  ROOM_STARTED
+  ROOM_RESCHEDULED
+  ROOM_CANCELED
+  ROOM_INVITED
 }
 
 model Church {
@@ -530,8 +561,8 @@ model Church {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  followers   ChurchFollow[]
-  posts       ChurchPost[]
+  followers ChurchFollow[]
+  posts     ChurchPost[]
 
   @@map("churches")
 }
@@ -542,24 +573,24 @@ model ChurchFollow {
   churchId  String
   createdAt DateTime @default(now())
 
-  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  church    Church @relation(fields: [churchId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  church Church @relation(fields: [churchId], references: [id], onDelete: Cascade)
 
   @@unique([userId, churchId])
   @@map("church_follows")
 }
 
 model ChurchPost {
-  id        String   @id @default(cuid())
+  id        String         @id @default(cuid())
   churchId  String
   title     String?
   content   String
   type      ChurchPostType @default(UPDATE)
   imageUrl  String?
   eventDate DateTime?
-  createdAt DateTime @default(now())
+  createdAt DateTime       @default(now())
 
-  church    Church @relation(fields: [churchId], references: [id], onDelete: Cascade)
+  church Church @relation(fields: [churchId], references: [id], onDelete: Cascade)
 
   @@map("church_posts")
 }
@@ -578,7 +609,7 @@ model PasswordResetToken {
   used      Boolean  @default(false)
   createdAt DateTime @default(now())
 
-  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("password_reset_tokens")
 }
@@ -590,7 +621,7 @@ model BibleBotMessage {
   content   String
   createdAt DateTime @default(now())
 
-  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("bible_bot_messages")
 }
@@ -635,14 +666,14 @@ model PrayerPartnerRequest {
 }
 
 model DailyQuotaLog {
-  id         String   @id @default(cuid())
+  id         String  @id @default(cuid())
   userId     String
   date       String
   target     Int
-  completed  Int      @default(0)
-  isComplete Boolean  @default(false)
+  completed  Int     @default(0)
+  isComplete Boolean @default(false)
 
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, date])
   @@map("daily_quota_logs")
@@ -656,7 +687,239 @@ model GratitudeEntry {
   isPublic  Boolean  @default(false)
   createdAt DateTime @default(now())
 
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("gratitude_entries")
+}
+
+// ============================================================================
+// PRAYER ROOMS
+// ----------------------------------------------------------------------------
+// One session system for spontaneous, scheduled, pastor-led, daily and
+// cell-linked audio prayer. Deliberately SEPARATE from PrayerCellSession, which
+// stays exactly as it is: cells remain persistent communities and their
+// existing "start a live session" flow is untouched. A Prayer Room session may
+// optionally BELONG to a cell (cellId), but a cell does not need one.
+//
+// Value sets are String columns with the allowed values in a comment, matching
+// the prayer-cell models rather than the older enum-based ones: a Postgres
+// enum needs its own migration to gain a value and cannot use that value in
+// the same transaction, which makes additive rollouts awkward.
+// ============================================================================
+
+/// The template. Holds the RECURRENCE RULE as a local wall clock, never as an
+/// interval — see src/utils/zonedTime.js. A one-off session is just a series
+/// with recurrence = NONE and exactly one occurrence.
+model PrayerRoomSeries {
+  id          String  @id @default(cuid())
+  title       String
+  description String?
+
+  hostId String
+  host   User   @relation("PrayerRoomHost", fields: [hostId], references: [id], onDelete: Cascade)
+
+  /// Optional owning cell. Only cell admins may set this (enforced server-side).
+  cellId String?
+  cell   PrayerCell? @relation(fields: [cellId], references: [id], onDelete: Cascade)
+
+  // --- Schedule: wall clock + zone is the source of truth -------------------
+  /// IANA zone id, e.g. "Europe/London". Validated against Intl.
+  timeZone        String
+  /// "HH:MM" wall clock in `timeZone`.
+  localTime       String
+  /// "YYYY-MM-DD" first local date in `timeZone`.
+  startLocalDate  String
+  /// "YYYY-MM-DD" inclusive last local date, or null for open-ended.
+  untilLocalDate  String?
+  /// NONE | DAILY | WEEKLY
+  recurrence      String  @default("NONE")
+  /// WEEKLY only. 0=Sunday .. 6=Saturday.
+  weekdays        Int[]   @default([])
+  durationMinutes Int     @default(30)
+
+  /// PUBLIC | CELL | INVITE
+  audience String @default("PUBLIC")
+  /// STANDARD | DAILY_PRAYER — DAILY_PRAYER surfaces on the Daily Prayer tab.
+  /// There are no seeded/official series; an authorized organizer creates them.
+  kind     String @default("STANDARD")
+  /// ACTIVE | CANCELED
+  status   String @default("ACTIVE")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  occurrences   PrayerRoomOccurrence[]
+  roles         PrayerRoomRole[]
+  subscriptions PrayerRoomSubscription[]
+
+  @@index([hostId])
+  @@index([cellId])
+  @@index([kind, status])
+  @@map("prayer_room_series")
+}
+
+/// A concrete instance. `scheduledStartUtc` is DERIVED from the series' wall
+/// clock; the unique key on (seriesId, scheduledStartUtc) is what stops the
+/// materializer creating the same occurrence twice.
+///
+/// Schedule-bearing fields are COPIED here at materialization so that editing
+/// the series later cannot rewrite what already happened.
+model PrayerRoomOccurrence {
+  id       String           @id @default(cuid())
+  seriesId String
+  series   PrayerRoomSeries @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+
+  scheduledStartUtc DateTime
+  durationMinutes   Int
+
+  /// Per-occurrence overrides for "edit this occurrence only". Null = inherit.
+  titleOverride       String?
+  descriptionOverride String?
+
+  /// SCHEDULED | LIVE | ENDED | CANCELED
+  status String @default("SCHEDULED")
+
+  /// When the host actually opened and closed the room, as opposed to when it
+  /// was scheduled to run.
+  actualStartedAt DateTime?
+  actualEndedAt   DateTime?
+
+  /// Set when this occurrence was moved, so subscribers can be told what
+  /// changed and history keeps the original instant.
+  rescheduledFromUtc DateTime?
+
+  canceledAt     DateTime?
+  canceledReason String?
+
+  /// The scheduled window elapsed with no host connection. Set by the sweeper,
+  /// never by a client.
+  hostNoShow Boolean @default(false)
+
+  /// Opaque room id from the media provider, allocated when the room goes live.
+  /// Null until then, and null forever if no provider is configured.
+  mediaRoomId String?
+
+  attendance      PrayerRoomAttendance[]
+  subscriptions   PrayerRoomSubscription[]
+  linkedRequests  PrayerRoomLinkedRequest[]
+  notificationLog PrayerRoomNotificationLog[]
+
+  @@unique([seriesId, scheduledStartUtc])
+  @@index([status, scheduledStartUtc])
+  @@index([scheduledStartUtc])
+  @@map("prayer_room_occurrences")
+}
+
+/// One CONNECTED INTERVAL, not one participant. A reconnect opens a second row
+/// rather than overwriting the first, so connected duration is the sum of the
+/// intervals and a flaky network cannot erase the earlier time.
+///
+/// Rows are written from confirmed media-connection events, never from a
+/// button tap. `mediaSessionId` is the provider's own connection id and is
+/// unique per occurrence, which is what makes duplicate and out-of-order
+/// webhook deliveries idempotent.
+model PrayerRoomAttendance {
+  id           String               @id @default(cuid())
+  occurrenceId String
+  occurrence   PrayerRoomOccurrence @relation(fields: [occurrenceId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User                 @relation("PrayerRoomAttendance", fields: [userId], references: [id], onDelete: Cascade)
+
+  joinedAt         DateTime
+  leftAt           DateTime?
+  /// Server-computed on close. Never trusted from the client.
+  connectedSeconds Int?
+
+  /// Provider connection id. Null only for rows closed by the stale sweeper.
+  mediaSessionId String?
+  /// MEDIA | SWEEPER — how this interval was closed, for auditing missing
+  /// disconnect events.
+  closedBy       String?
+
+  @@unique([occurrenceId, mediaSessionId])
+  @@index([occurrenceId, userId])
+  @@index([userId])
+  @@map("prayer_room_attendance")
+}
+
+/// Either a SERIES subscription (seriesId set) or a single-OCCURRENCE reminder
+/// (occurrenceId set) — exactly one, enforced by a CHECK constraint in the
+/// migration. `muted` on an occurrence row is the opt-out for one instance of
+/// a series you are otherwise subscribed to.
+///
+/// Postgres treats NULLs as distinct in a unique index, so the two unique keys
+/// below allow one series row and many occurrence rows per user.
+model PrayerRoomSubscription {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation("PrayerRoomSubscriptions", fields: [userId], references: [id], onDelete: Cascade)
+
+  seriesId     String?
+  series       PrayerRoomSeries?     @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+  occurrenceId String?
+  occurrence   PrayerRoomOccurrence? @relation(fields: [occurrenceId], references: [id], onDelete: Cascade)
+
+  remindMinutesBefore Int      @default(10)
+  /// Occurrence rows only: suppress this one instance of a subscribed series.
+  muted               Boolean  @default(false)
+  createdAt           DateTime @default(now())
+
+  @@unique([userId, seriesId])
+  @@unique([userId, occurrenceId])
+  @@index([seriesId])
+  @@index([occurrenceId])
+  @@map("prayer_room_subscriptions")
+}
+
+/// Co-hosts and invitations, at series level so both persist across
+/// occurrences. INVITEE is also what grants access when audience = INVITE.
+model PrayerRoomRole {
+  id        String           @id @default(cuid())
+  seriesId  String
+  series    PrayerRoomSeries @relation(fields: [seriesId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User             @relation("PrayerRoomRoles", fields: [userId], references: [id], onDelete: Cascade)
+  /// COHOST | INVITEE
+  role      String
+  createdAt DateTime         @default(now())
+
+  @@unique([seriesId, userId])
+  @@index([userId])
+  @@map("prayer_room_roles")
+}
+
+/// A Prayer-page request surfaced inside a room. A LINK, not a copy — the
+/// request keeps its own row, its own owner and its own visibility, and the
+/// server refuses to link anything the linker is not entitled to expose.
+model PrayerRoomLinkedRequest {
+  id              String               @id @default(cuid())
+  occurrenceId    String
+  occurrence      PrayerRoomOccurrence @relation(fields: [occurrenceId], references: [id], onDelete: Cascade)
+  prayerRequestId String
+  prayerRequest   PrayerRequest        @relation(fields: [prayerRequestId], references: [id], onDelete: Cascade)
+  linkedById      String
+  linkedBy        User                 @relation("PrayerRoomLinkedRequests", fields: [linkedById], references: [id], onDelete: Cascade)
+  createdAt       DateTime             @default(now())
+
+  @@unique([occurrenceId, prayerRequestId])
+  @@index([occurrenceId])
+  @@map("prayer_room_linked_requests")
+}
+
+/// Idempotency ledger for outbound notifications. The reminder sweeper runs on
+/// an interval and may overlap itself or restart mid-pass; this unique key is
+/// what guarantees a given user is told about a given occurrence once.
+model PrayerRoomNotificationLog {
+  id           String               @id @default(cuid())
+  occurrenceId String
+  occurrence   PrayerRoomOccurrence @relation(fields: [occurrenceId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User                 @relation("PrayerRoomNotificationLog", fields: [userId], references: [id], onDelete: Cascade)
+  /// REMINDER | STARTED | RESCHEDULED | CANCELED | INVITED
+  kind         String
+  sentAt       DateTime             @default(now())
+
+  @@unique([occurrenceId, userId, kind])
+  @@index([occurrenceId])
+  @@map("prayer_room_notification_log")
 }
