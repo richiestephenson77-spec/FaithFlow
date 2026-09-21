@@ -18,6 +18,7 @@ const pastorRoutes = require('./routes/pastors');
 const quotaRoutes = require('./routes/quota');
 const supportRoutes = require('./routes/support');
 const prayerCellRoutes = require('./routes/prayerCells');
+const prayerRoomRoutes = require('./routes/prayerRooms');
 const findChurchesRoutes = require('./routes/findChurches');
 const bibleRoutes = require('./routes/bible');
 const prayerPartnersRoutes = require('./routes/prayerPartners');
@@ -87,6 +88,13 @@ app.set('io', io);
 const { startVanishJob } = require('./services/vanishJob');
 startVanishJob(io);
 
+// Prayer Room reminders + occurrence lifecycle (every 60s; runs once at boot).
+// Safe to run on more than one dyno: sends are deduplicated by the
+// prayer_room_notification_log unique key and lifecycle updates are filtered
+// on current status, so a losing racer updates zero rows.
+const { startPrayerRoomJobs } = require('./services/prayerRoomJobs');
+startPrayerRoomJobs(io);
+
 app.use(cors({ origin: corsOriginCheck }));
 app.use(express.json());
 app.use('/uploads', express.static('uploads'));
@@ -104,6 +112,7 @@ app.use('/api/pastors', pastorRoutes);
 app.use('/api/quota', quotaRoutes);
 app.use('/api/support', supportRoutes);
 app.use('/api/prayer-cells', prayerCellRoutes);
+app.use('/api/prayer-rooms', prayerRoomRoutes);
 app.use('/api/find-churches', findChurchesRoutes);
 app.use('/api/bible', bibleRoutes);
 app.use('/api/prayer-partners', prayerPartnersRoutes);

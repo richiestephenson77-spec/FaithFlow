@@ -16,6 +16,16 @@ const PREF_BY_TYPE = {
   // A live cell session starting is a "prayer started" event — gate it on the
   // same preference. The membership/request cell types are direct and always sent.
   CELL_SESSION_STARTED: 'notifyPrayerStarted',
+  // Prayer Rooms. A reminder and a room going live are both "a prayer session
+  // is starting", so they reuse notifyPrayerStarted rather than adding a
+  // column to the users table.
+  //
+  // ROOM_RESCHEDULED / ROOM_CANCELED / ROOM_INVITED are deliberately NOT here.
+  // They are transactional: you asked to be told about this session, or someone
+  // invited you to one, and silently dropping "it moved" or "it's off" would
+  // leave people turning up to nothing. Same reasoning as the CELL_* types.
+  ROOM_REMINDER: 'notifyPrayerStarted',
+  ROOM_STARTED: 'notifyPrayerStarted',
 };
 
 // Create a persisted notification (respecting the recipient's per-type setting)
