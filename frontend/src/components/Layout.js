@@ -45,7 +45,12 @@ const HIDE_NAV_ON = ['/messages/', '/pray/'];
 // '/messages' is deliberately NOT here: the inbox is one of the five main tabs
 // and now shows the same shared island as every other tab (it used to render
 // its own InboxTabBar duplicate, which is why the global bar was suppressed).
-const HIDE_NAV_EXACT = ['/confessions', '/bible-maps'];
+// '/prayer-rooms' covers the listing and every screen under it (detail,
+// scheduling, the live room, attendance). Prayer Rooms is reached FROM Explore
+// and has its own back control, so the island would be a second, competing
+// way out — and the live room's controls own the bottom of the screen.
+// Main Explore itself keeps the island.
+const HIDE_NAV_EXACT = ['/confessions', '/bible-maps', '/prayer-rooms'];
 
 // Swipe-nav tuning: distance/velocity needed to count as an intentional swipe,
 // and the dead zone at the left screen edge reserved for iOS's system back gesture.
@@ -272,7 +277,11 @@ export default function Layout() {
   // level since they manage their own internal scroll region.
   const isConfessionDetail = location.pathname.startsWith('/confessions/') && location.pathname.length > '/confessions/'.length;
   const isFullThread = /^\/(messages|pray)\/[^/]+$/.test(location.pathname);
-  const fullHeightPage = isFullThread || isConfessionDetail || location.pathname === '/bible-maps';
+  // The live prayer room pins its own controls to the bottom, so it needs the
+  // exact-height box too. Only the /live screen — the rest of Prayer Rooms
+  // scrolls normally.
+  const isLiveRoom = /^\/prayer-rooms\/[^/]+\/live$/.test(location.pathname);
+  const fullHeightPage = isFullThread || isConfessionDetail || isLiveRoom || location.pathname === '/bible-maps';
 
   const online = useOnlineStatus();
 

@@ -226,18 +226,32 @@ router.get('/mine', authenticate, h(async (req, res) => {
     .sort((a, b) => new Date(b.startsAt) - new Date(a.startsAt))
     .slice(0, 50);
 
-  const state = await viewerStateFor(upcoming.map(o => o.id), upcoming.map(o => o.seriesId), userId);
-  const counts = await Promise.all(upcoming.map(o => (o.status === 'LIVE' ? S.connectedCount(o.id) : null)));
+  // Collapse to the NEXT occurrence of each series. Hosting a daily series
+  // otherwise buries the list under 60 identical rows; the series itself is
+  // already listed under `hosted`, and the detail screen is where you go for
+  // a specific date. A LIVE occurrence always wins over a scheduled one.
+  const nextPerSeries = new Map();
+  for (const occ of upcoming) {
+    const held = nextPerSeries.get(occ.seriesId);
+    if (!held) { nextPerSeries.set(occ.seriesId, occ); continue; }
+    if (held.status !== 'LIVE' && occ.status === 'LIVE') nextPerSeries.set(occ.seriesId, occ);
+  }
+  const nextUpcoming = [...nextPerSeries.values()]
+    .sort((a, b) => a.scheduledStartUtc - b.scheduledStartUtc)
+    .slice(0, 20);
+
+  const state = await viewerStateFor(nextUpcoming.map(o => o.id), nextUpcoming.map(o => o.seriesId), userId);
+  const counts = await Promise.all(nextUpcoming.map(o => (o.status === 'LIVE' ? S.connectedCount(o.id) : null)));
 
   // A private, factual summary. Not a ranking, not a streak: connected time is
   // not proof of prayer, and no qualifying-streak rule has been agreed.
   const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
   const thisWeek = past.filter(p => new Date(p.startsAt) >= weekAgo);
   res.json({
-    upcoming: upcoming.map((o, i) => S.serializeOccurrence(o, { connected: counts[i], viewerState: state(o) })),
+    upcoming: nextUpcoming.map((o, i) => S.serializeOccurrence(o, { connected: counts[i], viewerState: state(o) })),
     hosted: hostedSeries.map(s => ({
-      id: s.id, title: s.title, recurrence: s.recurrence, localTime: s.localTime,
-      timeZone: s.timeZone, audience: s.audience, cell: s.cell,
+      id: s.id, title: s.title, recurrence: s.recurrence, weekdays: s.weekdays,
+      localTime: s.localTime, timeZone: s.timeZone, audience: s.audience, cell: s.cell,
     })),
     past,
     summary: {
@@ -612,6 +626,37 @@ router.post('/occurrences/:id/join', authenticate, h(async (req, res) => {
     mediaRoomId: occ.mediaRoomId, userId: req.user.id, role, ttlSeconds: 300,
   });
   res.json({ role, ...token });
+}));
+
+/**
+ * POST /api/prayer-rooms/occurrences/:id/leave
+ * A safety net for a missing provider disconnect, not a source of truth. It
+ * can only CLOSE an interval that is already open, so the worst a lying
+ * client can do is shorten its own recorded time — it can never create
+ * attendance or extend it.
+ */
+router.post('/occurrences/:id/leave', authenticate, h(async (req, res) => {
+  const now = new Date();
+  const closed = await prisma.prayerRoomAttendance.updateMany({
+    where: { occurrenceId: req.params.id, userId: req.user.id, leftAt: null },
+    data: { leftAt: now, closedBy: 'SWEEPER' },
+  });
+  res.json({ ok: true, closedIntervals: closed.count });
+}));
+
+/** The series behind an occurrence, for the edit form. */
+router.get('/series/:id', authenticate, h(async (req, res) => {
+  const series = await loadSeries(req.params.id);
+  await S.assertCanView(series, req.user.id);
+  res.json({
+    id: series.id, title: series.title, description: series.description,
+    timeZone: series.timeZone, localTime: series.localTime,
+    startLocalDate: series.startLocalDate, untilLocalDate: series.untilLocalDate,
+    recurrence: series.recurrence, weekdays: series.weekdays,
+    durationMinutes: series.durationMinutes, audience: series.audience,
+    kind: series.kind, cellId: series.cellId,
+    canManage: S.isOwner(series, req.user.id),
+  });
 }));
 
 // ---------------------------------------------------------------------------

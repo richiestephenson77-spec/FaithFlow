@@ -140,6 +140,24 @@ const PartnersArt = (t) => (
   </>
 );
 
+// A lit arched window with two figures sitting before it, backs to us — a room
+// people have gathered in, told apart from Prayer Cells' table by the light
+// rather than by a second crowd. Same 195x150 frame as its neighbours.
+const RoomsArt = (t) => (
+  <>
+    {/* Window */}
+    <path fill={t.wash} stroke="none" d="M57 88V40Q57 10 97 10Q137 10 137 40V88Z" />
+    <circle fill={t.accent} stroke="none" cx="80" cy="50" r="13" />
+    <path d="M57 88V40Q57 10 97 10Q137 10 137 40V88ZM97 10V88M57 54H137" />
+    {/* Sill and floor */}
+    <path d="M44 88H150M36 96H158" />
+    {/* Two seated figures, backs to us */}
+    <circle fill="#fff" stroke={t.ink} cx="70" cy="110" r="11" />
+    <circle fill="#fff" stroke={t.ink} cx="126" cy="110" r="11" />
+    <path fill={t.solid} stroke="none" d="M52 143Q54 124 70 124Q86 124 88 143ZM108 143Q110 124 126 124Q142 124 144 143Z" />
+  </>
+);
+
 // A note of thanks, with a heart.
 const AnsweredArt = (t) => (
   <>
@@ -208,6 +226,7 @@ function TileCopy({ title, blurb, titleSize = 18, padding = '8px 12px 10px', chi
 
 // The six standard tiles, in the order the design lays them out.
 const STANDARD_TILES = [
+  { title: 'Prayer Rooms', blurb: 'Gather and pray together', to: '/prayer-rooms', art: RoomsArt, theme: SLATE_ART },
   { title: 'Prayer Cells', blurb: 'Find your prayer circle', to: '/prayer-cells', art: CellsArt, theme: SLATE_ART },
   { title: 'Bible Maps', blurb: 'Walk through the biblical world', to: '/bible-maps', art: MapsArt, theme: ANTIQUE_ART },
 ];

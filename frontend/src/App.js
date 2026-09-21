@@ -57,6 +57,11 @@ import PrayerCellDetail from './pages/PrayerCellDetail';
 import PrayerCellInfo from './pages/PrayerCellInfo';
 import PrayerCellStats from './pages/PrayerCellStats';
 import PrayerCellSessionRoom from './pages/PrayerCellSessionRoom';
+import PrayerRooms from './pages/PrayerRooms';
+import PrayerRoomDetail from './pages/PrayerRoomDetail';
+import PrayerRoomCreate from './pages/PrayerRoomCreate';
+import PrayerRoomLive from './pages/PrayerRoomLive';
+import PrayerRoomAttendance from './pages/PrayerRoomAttendance';
 import Layout from './components/Layout';
 import LoadingScreen from './components/LoadingScreen';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -135,6 +140,14 @@ function AppRoutes() {
         <Route path="prayer-cells/:cellId/info" element={<PrayerCellInfo />} />
         <Route path="prayer-cells/:cellId/stats" element={<PrayerCellStats />} />
         <Route path="prayer-cells/:cellId/session" element={<PrayerCellSessionRoom />} />
+        {/* Prayer Rooms. `series/:seriesId/edit` is declared BEFORE the
+            `:occurrenceId` routes so "series" is never swallowed as an id. */}
+        <Route path="prayer-rooms" element={<PrayerRooms />} />
+        <Route path="prayer-rooms/new" element={<PrayerRoomCreate />} />
+        <Route path="prayer-rooms/series/:seriesId/edit" element={<PrayerRoomCreate />} />
+        <Route path="prayer-rooms/:occurrenceId" element={<PrayerRoomDetail />} />
+        <Route path="prayer-rooms/:occurrenceId/live" element={<PrayerRoomLive />} />
+        <Route path="prayer-rooms/:occurrenceId/attendance" element={<PrayerRoomAttendance />} />
         <Route path="find-churches" element={<FindChurches />} />
         <Route path="find-churches/:placeId" element={<FindChurchDetail />} />
         <Route path="churches-hub" element={<ChurchesHub />} />
