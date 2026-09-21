@@ -2,6 +2,7 @@
   "name": "faithbridge-backend",
   "version": "1.0.0",
   "scripts": {
+    "test": "node --test \"test/**/*.test.js\"",
     "dev": "nodemon src/index.js",
     "build": "npx prisma generate",
     "start": "npx prisma generate && npx prisma migrate deploy && node src/index.js",
