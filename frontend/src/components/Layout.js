@@ -50,7 +50,10 @@ const HIDE_NAV_ON = ['/messages/', '/pray/'];
 // and has its own back control, so the island would be a second, competing
 // way out — and the live room's controls own the bottom of the screen.
 // Main Explore itself keeps the island.
-const HIDE_NAV_EXACT = ['/confessions', '/bible-maps', '/prayer-rooms'];
+// '/churches' also covers '/churches-hub' and '/churches/:id' by prefix, and
+// '/find-churches' covers the directory list and every church detail page.
+// Main Explore keeps the island; the directory has its own back control.
+const HIDE_NAV_EXACT = ['/confessions', '/bible-maps', '/prayer-rooms', '/churches', '/find-churches'];
 
 // Swipe-nav tuning: distance/velocity needed to count as an intentional swipe,
 // and the dead zone at the left screen edge reserved for iOS's system back gesture.

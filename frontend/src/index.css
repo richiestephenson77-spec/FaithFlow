@@ -17,7 +17,11 @@ html, body { height: 100%; overflow: hidden; }
 .pt-safe { padding-top: calc(1rem + env(safe-area-inset-top)); }
 .pb-safe { padding-bottom: calc(0.75rem + env(safe-area-inset-bottom)); }
 
-* { font-family: 'Inter', sans-serif; }
+/* Inter carries no Telugu glyphs, so a Telugu church name would otherwise fall
+   back to whatever the browser picked. Noto Sans Telugu is named explicitly
+   after Inter: Latin text still renders in Inter (it wins for codepoints it
+   has), and Telugu text gets a real face instead of tofu. */
+* { font-family: 'Inter', 'Noto Sans Telugu', 'Gautami', sans-serif; }
 
 /* ── Shared floating navigation island ──────────────────────────────────────
    ONE island, rendered by components/Layout.js for all five main tabs. Pages

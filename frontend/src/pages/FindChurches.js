@@ -1,235 +1,368 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, MapPin, Star, Church } from 'lucide-react';
+import { MapPin, Search, List as ListIcon, Map as MapIcon, Plus } from 'lucide-react';
 import api from '../utils/api';
+import { hapticLight } from '../utils/haptics';
+import ChurchMap from '../components/churches/ChurchMap';
+import {
+  ChurchHeader, LazyPhoto, GoogleAttribution, PrimaryButton, OutlineButton,
+  CardSkeleton, INK, MUTED, HAIRLINE, ACCENT,
+} from '../components/churches/ChurchUI';
+import {
+  haversineKm, formatDistance, viewerCountry, SEARCH_COUNTRIES,
+} from '../utils/churchFormat';
 
-const RADII = [
-  { label: '2km', value: 2000 },
-  { label: '5km', value: 5000 },
-  { label: '10km', value: 10000 },
-  { label: '20km', value: 20000 },
-  { label: '50km', value: 50000 },
-];
+const RADII = [2000, 5000, 10000, 20000, 50000];
 
-function getDistanceKm(lat1, lon1, lat2, lon2) {
-  const R = 6371;
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = Math.sin(dLat / 2) ** 2 +
-    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-    Math.sin(dLon / 2) ** 2;
-  return (R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))).toFixed(1);
-}
-
-const stagger = { hidden: {}, show: { transition: { staggerChildren: 0.07 } } };
-const item = {
-  hidden: { opacity: 0, y: 16 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.3 } },
-};
+// List state survives a trip into a church and back, so returning restores the
+// same results, radius, tab and scroll position rather than re-searching.
+const VIEW_STATE = { scrollTop: 0, view: 'list' };
 
 export default function FindChurches({ embedded = false }) {
   const navigate = useNavigate();
-  const [location, setLocation] = useState(null);
-  const [locationDenied, setLocationDenied] = useState(false);
-  const [churches, setChurches] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [radius, setRadius] = useState(5000);
-  const [error, setError] = useState('');
+  const scrollerRef = useRef(null);
 
-  const fetchChurches = useCallback(async (lat, lng, r) => {
+  const [origin, setOrigin] = useState(null);          // { lat, lng, label, kind }
+  const [country, setCountry] = useState(() => (viewerCountry() === 'IN' ? 'IN' : 'US'));
+  const [churches, setChurches] = useState(null);
+  const [radius, setRadius] = useState(5000);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [view, setView] = useState(VIEW_STATE.view);
+
+  // Manual location search
+  const [query, setQuery] = useState('');
+  const [choices, setChoices] = useState(null);
+  const [resolving, setResolving] = useState(false);
+  const [permissionDenied, setPermissionDenied] = useState(false);
+
+  const search = useCallback(async (o, r) => {
     setLoading(true);
     setError('');
     try {
-      const res = await api.get(`/find-churches/nearby?lat=${lat}&lng=${lng}&radius=${r}`);
+      const res = await api.get(`/find-churches/nearby?lat=${o.lat}&lng=${o.lng}&radius=${r}`);
       setChurches(res.data.churches || []);
     } catch (err) {
-      console.error('Failed to fetch churches:', err?.response?.status, err?.response?.data);
-      setChurches([]);
-      setError(err?.response?.data?.message || err?.response?.data?.error || 'Could not load churches right now');
+      setChurches(null);
+      setError(err.friendlyMessage || err.response?.data?.error || 'Could not load churches right now');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }, []);
 
-  const requestLocation = useCallback(() => {
-    if (!navigator.geolocation) {
-      setLocationDenied(true);
-      return;
-    }
+  /**
+   * GPS is only ever used when the reader asks for it, and a stored origin is
+   * only reused while it is fresh — a stale GPS fix silently standing in for
+   * "near me" is exactly what must not happen.
+   */
+  const useMyLocation = useCallback(() => {
+    if (!navigator.geolocation) { setPermissionDenied(true); return; }
+    hapticLight();
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-        localStorage.setItem('userLocation', JSON.stringify(loc));
-        setLocationDenied(false);
-        setLocation(loc);
-        fetchChurches(loc.lat, loc.lng, radius);
+        const o = { lat: pos.coords.latitude, lng: pos.coords.longitude, label: 'your location', kind: 'gps' };
+        setPermissionDenied(false);
+        setOrigin(o);
+        search(o, radius);
       },
-      () => setLocationDenied(true)
+      () => setPermissionDenied(true),
+      { maximumAge: 5 * 60 * 1000, timeout: 10000 },
     );
-  }, [fetchChurches, radius]);
+  }, [radius, search]);
 
-  useEffect(() => {
-    const saved = localStorage.getItem('userLocation');
-    if (saved) {
-      const loc = JSON.parse(saved);
-      setLocation(loc);
-      fetchChurches(loc.lat, loc.lng, radius);
-    } else {
-      requestLocation();
+  /** Resolve a typed place on SUBMIT — never per keystroke. */
+  async function resolvePlace(e) {
+    e?.preventDefault();
+    const q = query.trim();
+    if (q.length < 2) return;
+    setResolving(true);
+    setError('');
+    setChoices(null);
+    try {
+      const res = await api.get(`/find-churches/locations?q=${encodeURIComponent(q)}&country=${country}`);
+      const results = res.data.results || [];
+      if (results.length === 0) setError(`Nothing found for "${q}" in ${country === 'IN' ? 'India' : 'the United States'}`);
+      else if (results.length === 1) pickPlace(results[0]);
+      else setChoices(results);  // genuinely ambiguous — the reader chooses
+    } catch (err) {
+      setError(err.friendlyMessage || err.response?.data?.error || 'Could not look that up');
+    } finally {
+      setResolving(false);
     }
-    // eslint-disable-next-line
-  }, []);
-
-  function handleRadiusChange(r) {
-    setRadius(r);
-    if (location) fetchChurches(location.lat, location.lng, r);
   }
 
+  function pickPlace(p) {
+    const o = { lat: p.lat, lng: p.lng, label: p.label || p.name, kind: 'manual' };
+    setChoices(null);
+    setOrigin(o);
+    search(o, radius);
+  }
+
+  function changeRadius(r) {
+    setRadius(r);
+    if (origin) search(origin, r);
+  }
+
+  useEffect(() => { VIEW_STATE.view = view; }, [view]);
+  useEffect(() => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    if (VIEW_STATE.scrollTop) el.scrollTop = VIEW_STATE.scrollTop;
+    const onScroll = () => { VIEW_STATE.scrollTop = el.scrollTop; };
+    el.addEventListener('scroll', onScroll, { passive: true });
+    return () => el.removeEventListener('scroll', onScroll);
+  }, []);
+
+  const open = (c) => navigate(`/find-churches/${c.placeId}`);
+
+  const withDistance = (churches || []).map(c => ({
+    ...c,
+    distanceKm: origin ? haversineKm(origin.lat, origin.lng, c.lat, c.lng) : null,
+  }));
+
   return (
-    <div className={embedded ? '' : 'bg-white min-h-full'}>
+    <div ref={scrollerRef} className={embedded ? '' : 'min-h-full'} style={{ background: '#FFFFFF', color: INK }}>
       {!embedded && (
-        <div className="px-4 pt-5 pb-4 flex items-center gap-3 bg-white border-b border-gray-100">
-          <button onClick={() => navigate(-1)} aria-label="Back" className="p-1 -ml-1">
-            <ChevronLeft size={22} color="#111827" strokeWidth={2} />
-          </button>
-          <div>
-            <h2 className="text-lg font-bold text-gray-900 leading-tight">Find Churches</h2>
-            <p className="text-xs text-gray-400">Churches near you</p>
-          </div>
-        </div>
+        <ChurchHeader
+          title="Churches"
+          subtitle="Find a place to worship"
+          onBack={() => navigate('/explore')}
+        />
       )}
 
-      {locationDenied ? (
-        <div className="flex flex-col items-center py-20 px-8">
-          <MapPin size={48} color="#d1d5db" strokeWidth={1.5} />
-          <p className="font-semibold text-gray-700 mt-4 text-center">Location access needed</p>
-          <p className="text-sm text-gray-400 mt-1 text-center">
-            Please enable location to find nearby churches
-          </p>
-          <button
-            onClick={requestLocation}
-            className="mt-6 px-6 py-3 rounded-full text-white font-semibold text-sm"
-            style={{ background: '#2C4055' }}
+      {/* Where to look ------------------------------------------------------ */}
+      <div style={{ padding: '8px 16px 0' }}>
+        <form onSubmit={resolvePlace} className="flex gap-2">
+          <div
+            className="flex items-center gap-2 flex-1 min-w-0"
+            style={{ border: `1px solid ${HAIRLINE}`, borderRadius: 12, padding: '0 12px', height: 44 }}
           >
-            Enable Location
+            <Search size={16} strokeWidth={2} color={MUTED} className="flex-shrink-0" />
+            <input
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              placeholder={country === 'IN' ? 'City or PIN code' : 'City or ZIP code'}
+              aria-label="Search by city, PIN or ZIP code"
+              className="flex-1 min-w-0 bg-transparent focus:outline-none"
+              // 16px stops iOS Safari zooming the page on focus.
+              style={{ fontSize: 16, color: INK }}
+            />
+          </div>
+          <select
+            value={country}
+            onChange={e => setCountry(e.target.value)}
+            aria-label="Country"
+            style={{ border: `1px solid ${HAIRLINE}`, borderRadius: 12, height: 44, fontSize: 14, padding: '0 8px', background: '#FFFFFF', color: INK }}
+          >
+            {SEARCH_COUNTRIES.map(c => <option key={c.code} value={c.code}>{c.code}</option>)}
+          </select>
+        </form>
+
+        <div className="flex items-center gap-3 mt-2.5">
+          <button
+            onClick={useMyLocation}
+            className="flex items-center gap-1.5"
+            style={{ minHeight: 44, fontSize: 13.5, color: ACCENT, background: 'none', border: 0 }}
+          >
+            <MapPin size={15} strokeWidth={1.9} /> Use my location
           </button>
+          {resolving && <span style={{ fontSize: 12.5, color: MUTED }}>Looking that up…</span>}
+        </div>
+
+        {permissionDenied && (
+          <p style={{ fontSize: 12.5, color: MUTED, lineHeight: 1.45, marginTop: 2 }}>
+            Location is off, which is fine — search by city, PIN or ZIP code instead.
+          </p>
+        )}
+
+        {/* Ambiguous place names are resolved by asking, never by guessing. */}
+        {choices && (
+          <div style={{ border: `1px solid ${HAIRLINE}`, borderRadius: 16, marginTop: 10, overflow: 'hidden' }}>
+            <p style={{ fontSize: 12, color: MUTED, padding: '10px 14px 6px' }}>
+              More than one match — which did you mean?
+            </p>
+            {choices.map(p => (
+              <button
+                key={p.placeId}
+                onClick={() => pickPlace(p)}
+                className="w-full text-left"
+                style={{ padding: '11px 14px', borderTop: `1px solid ${HAIRLINE}`, fontSize: 13.5, background: 'none', border: 0, minHeight: 44 }}
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Results ------------------------------------------------------------ */}
+      {!origin ? (
+        <div className="text-center" style={{ padding: '56px 28px' }}>
+          <p className="type-heading" style={{ fontSize: 19 }}>Where should we look?</p>
+          <p className="type-subtitle" style={{ fontSize: 13.5, marginTop: 6, lineHeight: 1.5 }}>
+            Search a city, PIN or ZIP code — or use your location. You don't need
+            to share your location to browse.
+          </p>
         </div>
       ) : (
         <>
-          {!loading && churches.length > 0 && (
-            <div className="flex gap-2 overflow-x-auto px-4 pt-4 pb-2 no-scrollbar">
-              {RADII.map(r => (
+          <div className="flex items-center justify-between gap-3" style={{ padding: '16px 16px 0' }}>
+            <p style={{ fontSize: 12, color: MUTED, minWidth: 0 }} className="truncate">
+              {origin.kind === 'manual' ? `from ${origin.label}` : 'from your location'}
+            </p>
+            <div className="flex gap-1 flex-shrink-0" role="group" aria-label="View">
+              {[
+                { id: 'list', Icon: ListIcon, label: 'List' },
+                { id: 'map', Icon: MapIcon, label: 'Map' },
+              ].map(({ id, Icon, label }) => (
                 <button
-                  key={r.value}
-                  onClick={() => handleRadiusChange(r.value)}
-                  className="flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-colors duration-200"
+                  key={id}
+                  onClick={() => setView(id)}
+                  aria-pressed={view === id}
+                  aria-label={label}
+                  className="flex items-center gap-1.5"
                   style={{
-                    background: radius === r.value ? '#111827' : '#fff',
-                    color: radius === r.value ? '#fff' : '#6b7280',
-                    border: radius === r.value ? 'none' : '1px solid #e5e7eb',
+                    minHeight: 36, padding: '0 11px', borderRadius: 999, fontSize: 12.5,
+                    border: `1px solid ${view === id ? ACCENT : HAIRLINE}`,
+                    background: view === id ? ACCENT : '#FFFFFF',
+                    color: view === id ? '#FFFFFF' : INK,
                   }}
                 >
-                  {r.label}
+                  <Icon size={14} strokeWidth={1.9} /> {label}
                 </button>
               ))}
             </div>
+          </div>
+
+          <div className="flex gap-2 overflow-x-auto no-scrollbar" style={{ padding: '12px 16px 4px' }}>
+            {RADII.map(r => (
+              <button
+                key={r}
+                onClick={() => changeRadius(r)}
+                aria-pressed={radius === r}
+                className="flex-shrink-0"
+                style={{
+                  minHeight: 36, padding: '0 14px', borderRadius: 999, fontSize: 12.5,
+                  border: `1px solid ${radius === r ? ACCENT : HAIRLINE}`,
+                  background: radius === r ? ACCENT : '#FFFFFF',
+                  color: radius === r ? '#FFFFFF' : INK,
+                }}
+              >
+                {formatDistance(r / 1000, country)}
+              </button>
+            ))}
+          </div>
+
+          {loading ? (
+            <div style={{ paddingTop: 8 }}>{[1, 2, 3, 4].map(i => <CardSkeleton key={i} />)}</div>
+          ) : error ? (
+            <div className="text-center" style={{ padding: '44px 28px' }}>
+              <p className="type-heading" style={{ fontSize: 18 }}>Couldn't load churches</p>
+              <p className="type-subtitle" style={{ fontSize: 13, marginTop: 6 }}>{error}</p>
+              <div className="mt-5 flex justify-center">
+                <OutlineButton onClick={() => search(origin, radius)}>Try again</OutlineButton>
+              </div>
+            </div>
+          ) : view === 'map' ? (
+            <div style={{ padding: '12px 16px 0' }}>
+              <ChurchMap
+                center={origin}
+                markers={withDistance}
+                onMarkerClick={(placeId) => navigate(`/find-churches/${placeId}`)}
+              />
+            </div>
+          ) : withDistance.length === 0 ? (
+            <div className="text-center" style={{ padding: '44px 28px' }}>
+              <p className="type-heading" style={{ fontSize: 18 }}>No churches found nearby</p>
+              <p className="type-subtitle" style={{ fontSize: 13, marginTop: 6, lineHeight: 1.5 }}>
+                Try a wider radius, or search a different area. Listings in some
+                places are sparse — that doesn't mean there's no church there.
+              </p>
+              {radius < 50000 && (
+                <div className="mt-5 flex justify-center">
+                  <PrimaryButton onClick={() => changeRadius(Math.min(radius * 2, 50000))}>
+                    Search a wider area
+                  </PrimaryButton>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div style={{ paddingTop: 6 }}>
+              {withDistance.map(c => (
+                <ChurchCard key={c.placeId} church={c} country={country} onOpen={() => open(c)} />
+              ))}
+
+              {/* Honest about what this list is. */}
+              <p style={{ fontSize: 12, color: MUTED, padding: '14px 16px 0', lineHeight: 1.5 }}>
+                These are nearby results, not a complete directory. Try a wider
+                area or a different search to see more.
+              </p>
+
+              {/* Claim / add live BELOW useful results, not in a banner above them. */}
+              <div style={{ padding: '16px 16px 0', display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                <OutlineButton
+                  disabled
+                  style={{ flex: 1, minWidth: 180, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}
+                >
+                  <Plus size={15} strokeWidth={2} /> Add your church
+                </OutlineButton>
+              </div>
+              <p style={{ fontSize: 11.5, color: MUTED, padding: '8px 16px 0', lineHeight: 1.45 }}>
+                Adding and claiming a church is coming next — it isn't available yet.
+              </p>
+            </div>
           )}
-
-          <AnimatePresence mode="wait">
-            {loading ? (
-              <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-3 px-4 pt-4">
-                {[1, 2, 3].map(i => (
-                  <div key={i} className="h-24 rounded-2xl bg-gray-200 animate-pulse" />
-                ))}
-              </motion.div>
-            ) : error ? (
-              <motion.div key="error" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="text-center py-16 px-8">
-                <Church size={44} color="#fca5a5" strokeWidth={1.5} className="mx-auto" />
-                <p className="font-semibold text-gray-700 mt-4">Something went wrong</p>
-                <p className="text-sm text-gray-400 mt-1">{error}</p>
-                <button
-                  onClick={() => location && fetchChurches(location.lat, location.lng, radius)}
-                  className="mt-6 px-6 py-3 rounded-full text-white font-semibold text-sm"
-                  style={{ background: '#2C4055' }}
-                >
-                  Try Again
-                </button>
-              </motion.div>
-            ) : churches.length === 0 ? (
-              <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="text-center py-16 px-8">
-                <Church size={44} color="#e5e7eb" strokeWidth={1.5} className="mx-auto" />
-                <p className="font-semibold text-gray-700 mt-4">
-                  No churches found within {radius / 1000}km
-                </p>
-                <p className="text-sm text-gray-400 mt-1">Try increasing the search radius</p>
-                <button
-                  onClick={() => handleRadiusChange(Math.min(radius * 2, 50000))}
-                  className="mt-6 px-6 py-3 rounded-full text-white font-semibold text-sm"
-                  style={{ background: '#2C4055' }}
-                >
-                  Increase Radius
-                </button>
-              </motion.div>
-            ) : (
-              <motion.div key="list" variants={stagger} initial="hidden" animate="show" className="pt-3 pb-8">
-                {churches.map(c => (
-                  <motion.div key={c.id} variants={item}>
-                    <ChurchCard church={c} location={location} onClick={() => navigate(`/find-churches/${c.id}`)} />
-                  </motion.div>
-                ))}
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          <p className="text-center text-xs text-gray-300 py-4">Powered by Google</p>
         </>
       )}
+
+      <GoogleAttribution />
     </div>
   );
 }
 
-function ChurchCard({ church, location, onClick }) {
-  const dist = location ? getDistanceKm(location.lat, location.lng, church.lat, church.lng) : null;
-
+/**
+ * A list card. Deliberately minimal: name, distance, photo.
+ *
+ * NO "Open / Closed" — Google's opening hours describe the building, and
+ * showing them here reads as "is there a service on", which they do not mean.
+ * Denomination and languages are absent because Phase 1 has no sourced value
+ * for either, and guessing from a name is exactly what must not happen.
+ */
+function ChurchCard({ church, country, onOpen }) {
+  const distance = formatDistance(church.distanceKm, country);
   return (
     <button
-      onClick={onClick}
-      className="w-full flex bg-white rounded-2xl mx-4 mb-3 overflow-hidden text-left active:opacity-80 transition-opacity"
-      style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}
+      onClick={onOpen}
+      className="w-full flex gap-3 text-left"
+      style={{ padding: '12px 16px', borderBottom: `1px solid ${HAIRLINE}`, background: 'none', border: 0, borderBottomWidth: 1, borderBottomStyle: 'solid', borderBottomColor: HAIRLINE }}
     >
-      <div className="w-[100px] flex-shrink-0">
-        {church.photo ? (
-          <img loading="lazy" decoding="async" src={church.photo} alt="" className="w-full h-full object-cover" />
-        ) : (
-          <div className="w-full h-full bg-terracotta-50 flex items-center justify-center">
-            <Church size={28} color="#0A0A0A" strokeWidth={1.5} />
-          </div>
+      <LazyPhoto
+        photoRef={church.photo?.ref}
+        width={240}
+        alt=""
+        illustrationLabel={false}
+        style={{ width: 88, height: 72, borderRadius: 12, flexShrink: 0, border: `1px solid ${HAIRLINE}` }}
+      />
+      <span className="flex-1 min-w-0 block">
+        <span className="block" style={{ fontSize: 15, fontWeight: 500, lineHeight: 1.3 }}>
+          {church.name}
+        </span>
+        {distance && (
+          <span className="block" style={{ fontSize: 12, color: MUTED, marginTop: 3 }}>
+            {distance} away · approximate
+          </span>
         )}
-      </div>
-      <div className="flex-1 min-w-0 p-3">
-        <p className="text-base font-semibold text-gray-900 leading-tight">{church.name}</p>
-        <div className="flex items-center gap-1.5 mt-1">
-          {church.rating && (
-            <span className="flex items-center gap-0.5 text-sm text-gray-600">
-              <Star size={12} fill="#2C4055" color="#0A0A0A" /> {church.rating}
-            </span>
-          )}
-          {church.isOpen != null && (
-            <span className="flex items-center gap-1 text-xs">
-              <span className={`w-1.5 h-1.5 rounded-full ${church.isOpen ? 'bg-green-500' : 'bg-red-400'}`} />
-              <span className={church.isOpen ? 'text-green-600' : 'text-red-400'}>
-                {church.isOpen ? 'Open' : 'Closed'}
-              </span>
-            </span>
-          )}
-        </div>
         {church.address && (
-          <p className="text-xs text-gray-400 mt-0.5 truncate">{church.address}</p>
+          <span className="block truncate" style={{ fontSize: 12, color: MUTED, marginTop: 2 }}>
+            {church.address}
+          </span>
         )}
-        {dist != null && (
-          <p className="text-xs text-gray-400 mt-0.5">{dist} km away</p>
-        )}
-      </div>
+        {/* Service times are never inferred. Until a representative confirms
+            them, this says so plainly. */}
+        <span className="block" style={{ fontSize: 12, color: MUTED, marginTop: 4 }}>
+          Service times not available
+        </span>
+      </span>
     </button>
   );
 }
