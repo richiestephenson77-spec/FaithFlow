@@ -95,16 +95,16 @@ export default function PrayerCellInfo() {
   async function leaveCell() {
     try {
       await api.post(`/prayer-cells/${cellId}/leave`);
-      showToast('You left the cell');
-      navigate('/prayer-cells');
+      showToast('You left the group');
+      navigate('/prayer-rooms', { state: { tab: 'groups' } });
     } catch (err) { showToast(err.response?.data?.error || 'Failed', 'error'); }
   }
 
   async function deleteCell() {
     try {
       await api.delete(`/prayer-cells/${cellId}`);
-      showToast('Cell deleted');
-      navigate('/prayer-cells');
+      showToast('Group deleted');
+      navigate('/prayer-rooms', { state: { tab: 'groups' } });
     } catch (err) { showToast(err.response?.data?.error || 'Failed', 'error'); }
   }
 
@@ -225,12 +225,12 @@ export default function PrayerCellInfo() {
       <div className="px-5 pb-8 space-y-2">
         {cell.isMember && !isCreator && (
           <button onClick={leaveCell} className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold" style={{ background: '#fff', border: '1px solid #EFEFEF', color: '#C0392B' }}>
-            <LogOut size={16} strokeWidth={2} /> Leave cell
+            <LogOut size={16} strokeWidth={2} /> Leave group
           </button>
         )}
         {isAdmin && (
           <button onClick={() => setMemberMenu({ confirmDelete: true })} className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold text-white" style={{ background: '#C0392B' }}>
-            <Trash2 size={16} strokeWidth={2} /> Delete cell
+            <Trash2 size={16} strokeWidth={2} /> Delete group
           </button>
         )}
       </div>
@@ -246,7 +246,7 @@ export default function PrayerCellInfo() {
               ) : (
                 <button onClick={() => setRole(memberMenu, 'admin')} className="w-full text-left px-4 py-3.5 text-sm font-medium rounded-xl" style={{ color: '#1A1A1A' }}>Make admin</button>
               )}
-              <button onClick={() => removeMember(memberMenu)} className="w-full text-left px-4 py-3.5 text-sm font-medium rounded-xl" style={{ color: '#C0392B' }}>Remove from cell</button>
+              <button onClick={() => removeMember(memberMenu)} className="w-full text-left px-4 py-3.5 text-sm font-medium rounded-xl" style={{ color: '#C0392B' }}>Remove from group</button>
               <button onClick={() => setMemberMenu(null)} className="w-full text-center px-4 py-3.5 text-sm font-semibold rounded-xl mt-1" style={{ color: '#8E8E8E' }}>Cancel</button>
             </div>
           </Sheet>
@@ -254,8 +254,8 @@ export default function PrayerCellInfo() {
         {memberMenu?.confirmDelete && (
           <div className="fixed inset-0 z-[60] bg-black/50 flex items-center justify-center px-8" onClick={() => setMemberMenu(null)}>
             <motion.div initial={{ scale: 0.92, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.92, opacity: 0 }} className="bg-white rounded-3xl w-full max-w-xs p-5 text-center" onClick={e => e.stopPropagation()}>
-              <p className="font-bold text-[15px]" style={{ color: '#0A0A0A' }}>Delete this cell?</p>
-              <p className="text-sm mt-2 leading-snug" style={{ color: '#6B7680' }}>This removes the cell and all its members permanently. This can't be undone.</p>
+              <p className="font-bold text-[15px]" style={{ color: '#0A0A0A' }}>Delete this group?</p>
+              <p className="text-sm mt-2 leading-snug" style={{ color: '#6B7680' }}>This removes the group and all its members permanently. This can't be undone.</p>
               <div className="flex gap-2 mt-5">
                 <button onClick={() => setMemberMenu(null)} className="flex-1 py-3 rounded-xl text-sm font-semibold" style={{ background: '#F0F0F0', color: '#1A1A1A' }}>Cancel</button>
                 <button onClick={deleteCell} className="flex-1 py-3 rounded-xl text-sm font-semibold text-white" style={{ background: '#C0392B' }}>Delete</button>
@@ -366,7 +366,7 @@ function EditCellSheet({ cell, onClose, onSaved, showToast }) {
     setSaving(true);
     try {
       await api.patch(`/prayer-cells/${cell.id}`, { name: name.trim(), description: description.trim(), imageUrl });
-      showToast('Cell updated');
+      showToast('Group updated');
       await onSaved();
       onClose();
     } catch (err) { showToast(err.response?.data?.error || 'Could not save', 'error'); setSaving(false); }
@@ -376,7 +376,7 @@ function EditCellSheet({ cell, onClose, onSaved, showToast }) {
     <Sheet onClose={onClose}>
       <div className="px-4 pt-4 pb-3 flex items-center justify-between flex-shrink-0" style={{ borderBottom: '1px solid #EFEFEF' }}>
         <button onClick={onClose} className="text-sm font-medium" style={{ color: '#8E8E8E' }}>Cancel</button>
-        <h3 className="font-bold text-[15px]" style={{ color: '#0A0A0A', fontFamily: "'Fraunces', serif" }}>Edit cell</h3>
+        <h3 className="font-bold text-[15px]" style={{ color: '#0A0A0A', fontFamily: "'Fraunces', serif" }}>Edit group</h3>
         <button onClick={save} disabled={!name.trim() || saving} className="text-sm font-bold disabled:opacity-40" style={{ color: ACCENT }}>{saving ? 'Saving…' : 'Save'}</button>
       </div>
       <div className="overflow-y-auto px-4 py-4 space-y-4">

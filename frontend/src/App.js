@@ -62,6 +62,7 @@ import PrayerRoomDetail from './pages/PrayerRoomDetail';
 import PrayerRoomCreate from './pages/PrayerRoomCreate';
 import PrayerRoomLive from './pages/PrayerRoomLive';
 import PrayerRoomAttendance from './pages/PrayerRoomAttendance';
+import LegacyCellRedirect from './pages/LegacyCellRedirect';
 import Layout from './components/Layout';
 import LoadingScreen from './components/LoadingScreen';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -134,12 +135,30 @@ function AppRoutes() {
         <Route path="messages/:conversationId/vanish" element={<ChatVanish />} />
         <Route path="confessions" element={<Confessions />} />
         <Route path="/confessions/:id" element={<ConfessionDetail />} />
-        <Route path="prayer-cells" element={<PrayerCellDirectory />} />
-        <Route path="prayer-cells/create" element={<CreatePrayerCell />} />
-        <Route path="prayer-cells/:cellId" element={<PrayerCellDetail />} />
-        <Route path="prayer-cells/:cellId/info" element={<PrayerCellInfo />} />
-        <Route path="prayer-cells/:cellId/stats" element={<PrayerCellStats />} />
-        <Route path="prayer-cells/:cellId/session" element={<PrayerCellSessionRoom />} />
+        {/* Groups (formerly the Prayer Cells tile) now live INSIDE Prayer
+            Rooms. Every screen survives — directory, detail, members, admin
+            controls, join requests, stats and the live cell session room —
+            they just moved address. Declared BEFORE the ':occurrenceId'
+            routes below so "groups" is never swallowed as an occurrence id. */}
+        <Route path="prayer-rooms/groups/create" element={<CreatePrayerCell />} />
+        <Route path="prayer-rooms/groups/:cellId" element={<PrayerCellDetail />} />
+        <Route path="prayer-rooms/groups/:cellId/info" element={<PrayerCellInfo />} />
+        <Route path="prayer-rooms/groups/:cellId/stats" element={<PrayerCellStats />} />
+        <Route path="prayer-rooms/groups/:cellId/session" element={<PrayerCellSessionRoom />} />
+
+        {/* Old URLs keep working: shared group links and older CELL_*
+            notification deep links both point at these. Nothing 404s. */}
+        <Route path="prayer-cells" element={<LegacyCellRedirect to="/prayer-rooms" />} />
+        <Route path="prayer-cells/create" element={<LegacyCellRedirect to="/prayer-rooms/groups/create" />} />
+        <Route path="prayer-cells/:cellId" element={<LegacyCellRedirect to="/prayer-rooms/groups/:cellId" />} />
+        <Route path="prayer-cells/:cellId/info" element={<LegacyCellRedirect to="/prayer-rooms/groups/:cellId/info" />} />
+        <Route path="prayer-cells/:cellId/stats" element={<LegacyCellRedirect to="/prayer-rooms/groups/:cellId/stats" />} />
+        <Route path="prayer-cells/:cellId/session" element={<LegacyCellRedirect to="/prayer-rooms/groups/:cellId/session" />} />
+        {/* /host and /guest never had routes at all — the Prayer page's link
+            to :cellId/guest has been dead. Mapping them here fixes that
+            without touching the Prayer page. */}
+        <Route path="prayer-cells/:cellId/host" element={<LegacyCellRedirect to="/prayer-rooms/groups/:cellId" />} />
+        <Route path="prayer-cells/:cellId/guest" element={<LegacyCellRedirect to="/prayer-rooms/groups/:cellId" />} />
         {/* Prayer Rooms. `series/:seriesId/edit` is declared BEFORE the
             `:occurrenceId` routes so "series" is never swallowed as an id. */}
         <Route path="prayer-rooms" element={<PrayerRooms />} />

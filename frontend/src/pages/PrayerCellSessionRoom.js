@@ -121,7 +121,7 @@ export default function PrayerCellSessionRoom() {
             {others === 0 && (
               <div className="col-span-3 text-center mt-6">
                 <p className="text-sm" style={{ color: '#8E8E8E' }}>Waiting for others to join…</p>
-                <p className="text-xs mt-1" style={{ color: '#B0B0B0' }}>Share this cell so members can pray with you.</p>
+                <p className="text-xs mt-1" style={{ color: '#B0B0B0' }}>Share this group so members can pray with you.</p>
               </div>
             )}
           </div>

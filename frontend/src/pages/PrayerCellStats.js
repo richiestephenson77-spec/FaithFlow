@@ -62,7 +62,7 @@ export default function PrayerCellStats() {
         <button onClick={() => navigate(-1)} aria-label="Back" className="p-1 -ml-1">
           <ChevronLeft size={22} color="#0A0A0A" strokeWidth={2} />
         </button>
-        <h1 className="text-lg font-bold" style={{ color: '#0A0A0A', fontFamily: "'Fraunces', serif" }}>Cell Stats</h1>
+        <h1 className="text-lg font-bold" style={{ color: '#0A0A0A', fontFamily: "'Fraunces', serif" }}>Group Stats</h1>
       </div>
 
       {loading ? (

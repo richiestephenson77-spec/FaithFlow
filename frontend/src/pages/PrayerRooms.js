@@ -4,6 +4,7 @@ import { Plus } from 'lucide-react';
 import api from '../utils/api';
 import { hapticLight } from '../utils/haptics';
 import RoomArt from '../components/prayerRooms/RoomArt';
+import PrayerCellDirectory from './PrayerCellDirectory';
 import {
   RoomHeader, Eyebrow, Card, PrimaryButton, OutlineButton, ReminderBell,
   RoomAvatar, EmptyState, RowSkeleton, ErrorNote,
@@ -18,6 +19,9 @@ const TABS = [
   { id: 'discover', label: 'Discover' },
   { id: 'daily', label: 'Daily prayer' },
   { id: 'mine', label: 'My sessions' },
+  // The group communities that used to be the Prayer Cells tile. Their own
+  // screens are unchanged and still reachable; this is the way in.
+  { id: 'groups', label: 'Groups' },
 ];
 
 // Tab and scroll position are restored when coming back from a detail screen,
@@ -35,9 +39,12 @@ export default function PrayerRooms() {
   const [error, setError] = useState(null);
   const [busyId, setBusyId] = useState(null);
 
+  // Groups renders PrayerCellDirectory, which loads itself from
+  // /api/prayer-cells — so there is no endpoint here for that tab.
   const endpoint = { discover: '/prayer-rooms/discover', daily: '/prayer-rooms/daily', mine: '/prayer-rooms/mine' }[tab];
 
   const load = useCallback(async () => {
+    if (!endpoint) { setLoading(false); return; }
     setError(null);
     setLoading(true);
     try {
@@ -107,8 +114,11 @@ export default function PrayerRooms() {
         onBack={() => navigate('/explore')}
         action={
           <button
-            onClick={() => navigate('/prayer-rooms/new', { state: { tab } })}
-            aria-label="Create a prayer session"
+            onClick={() => navigate(
+              tab === 'groups' ? '/prayer-rooms/groups/create' : '/prayer-rooms/new',
+              { state: { tab } },
+            )}
+            aria-label={tab === 'groups' ? 'Create a group' : 'Create a prayer session'}
             className="grid place-items-center"
             style={{ width: 44, height: 44, color: INK }}
           >
@@ -128,7 +138,11 @@ export default function PrayerRooms() {
         <div
           role="tablist"
           aria-label="Prayer sessions"
-          className="flex gap-5"
+          // Four labels do not fit at 320px with a comfortable gap, and a tab
+          // clipped off the edge is a tab nobody finds. Tighten the gap on the
+          // narrowest screens instead, and keep the row scrollable as a
+          // backstop for long translations.
+          className="flex gap-2.5 min-[360px]:gap-4 min-[390px]:gap-5 overflow-x-auto no-scrollbar"
           style={{ borderBottom: `1px solid ${HAIRLINE}`, marginBottom: 20 }}
         >
           {TABS.map(t => (
@@ -157,7 +171,11 @@ export default function PrayerRooms() {
         </div>
 
         <div role="tabpanel" id={`room-panel-${tab}`} aria-labelledby={`room-tab-${tab}`}>
-          {loading && !current ? (
+          {/* Groups loads itself, so it skips this page's loading/error gate
+              entirely rather than flashing skeletons it will never fill. */}
+          {tab === 'groups' ? (
+            <PrayerCellDirectory embedded />
+          ) : loading && !current ? (
             <div>{[1, 2, 3].map(i => <RowSkeleton key={i} />)}</div>
           ) : error && !current ? (
             <ErrorNote onRetry={load}>{error}</ErrorNote>

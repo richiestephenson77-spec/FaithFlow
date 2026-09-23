@@ -25,14 +25,14 @@ export default function PrayerCellDetail() {
 
   async function handleShare() {
     setMenuOpen(false);
-    const url = `${window.location.origin}/prayer-cells/${cellId}`;
+    const url = `${window.location.origin}/prayer-rooms/groups/${cellId}`;
     const shareText = `Join "${cell.name}" — a prayer cell on FaithString`;
     try {
       if (navigator.share) {
         await navigator.share({ title: cell.name, text: shareText, url });
       } else {
         await navigator.clipboard.writeText(url);
-        showToast('Cell link copied');
+        showToast('Group link copied');
       }
     } catch { /* user dismissed the share sheet — no-op */ }
   }
@@ -42,7 +42,7 @@ export default function PrayerCellDetail() {
       const res = await api.get(`/prayer-cells/${cellId}`);
       setCell(res.data);
     } catch (err) {
-      showToast('Could not load this cell', 'error');
+      showToast('Could not load this group', 'error');
     }
     setLoading(false);
   }, [cellId, showToast]);
@@ -53,7 +53,7 @@ export default function PrayerCellDetail() {
     setBusy(true);
     try {
       const res = await api.post(`/prayer-cells/${cellId}/join`);
-      if (res.data.status === 'member') { await load(); showToast('Welcome to the cell'); }
+      if (res.data.status === 'member') { await load(); showToast('Welcome to the group'); }
       else showToast('Request sent — an admin will review it');
       if (res.data.status !== 'member') load();
     } catch (err) {
@@ -67,8 +67,8 @@ export default function PrayerCellDetail() {
     setBusy(true);
     try {
       await api.post(`/prayer-cells/${cellId}/leave`);
-      showToast('You left the cell');
-      navigate('/prayer-cells');
+      showToast('You left the group');
+      navigate('/prayer-rooms', { state: { tab: 'groups' } });
     } catch (err) {
       showToast(err.friendlyMessage || err.response?.data?.error || 'Could not leave', 'error');
       setBusy(false);
@@ -77,7 +77,7 @@ export default function PrayerCellDetail() {
 
   function goLive() {
     hapticLight();
-    navigate(`/prayer-cells/${cellId}/session`, { state: { name: cell.name } });
+    navigate(`/prayer-rooms/groups/${cellId}/session`, { state: { name: cell.name } });
   }
 
   if (loading) {
@@ -96,7 +96,7 @@ export default function PrayerCellDetail() {
     <div className="min-h-full" style={{ background: '#FAFAFA' }}>
       {/* Header */}
       <div className="px-4 pt-5 pb-3 flex items-center justify-between">
-        <button onClick={() => navigate('/prayer-cells')} aria-label="Back" className="p-1 -ml-1">
+        <button onClick={() => navigate('/prayer-rooms', { state: { tab: 'groups' } })} aria-label="Back" className="p-1 -ml-1">
           <ChevronLeft size={22} color="#0A0A0A" strokeWidth={2} />
         </button>
         <button onClick={() => setMenuOpen(true)} aria-label="Options" className="p-1 -mr-1">
@@ -150,7 +150,7 @@ export default function PrayerCellDetail() {
             className="w-full h-12 rounded-xl text-white text-sm font-bold disabled:opacity-50"
             style={{ background: ACCENT }}
           >
-            {cell.joinPolicy === 'request' ? 'Request to join' : 'Join cell'}
+            {cell.joinPolicy === 'request' ? 'Request to join' : 'Join group'}
           </motion.button>
         )}
       </div>
@@ -173,7 +173,7 @@ export default function PrayerCellDetail() {
 
       {/* Members section → Group Info */}
       <button
-        onClick={() => navigate(`/prayer-cells/${cellId}/info`)}
+        onClick={() => navigate(`/prayer-rooms/groups/${cellId}/info`)}
         className="mx-5 mt-5 w-[calc(100%-2.5rem)] flex items-center justify-between bg-white rounded-2xl p-4"
         style={{ border: '1px solid #EFEFEF' }}
       >
@@ -207,10 +207,10 @@ export default function PrayerCellDetail() {
               onClick={e => e.stopPropagation()}
             >
               <div className="p-2">
-                <button onClick={() => { setMenuOpen(false); navigate(`/prayer-cells/${cellId}/info`); }} className="w-full flex items-center gap-3 px-4 py-3.5 text-sm font-medium rounded-xl" style={{ color: '#1A1A1A' }}>
+                <button onClick={() => { setMenuOpen(false); navigate(`/prayer-rooms/groups/${cellId}/info`); }} className="w-full flex items-center gap-3 px-4 py-3.5 text-sm font-medium rounded-xl" style={{ color: '#1A1A1A' }}>
                   <Info size={18} strokeWidth={1.9} color="#0A0A0A" /> Cell info
                 </button>
-                <button onClick={() => { setMenuOpen(false); navigate(`/prayer-cells/${cellId}/stats`); }} className="w-full flex items-center gap-3 px-4 py-3.5 text-sm font-medium rounded-xl" style={{ color: '#1A1A1A' }}>
+                <button onClick={() => { setMenuOpen(false); navigate(`/prayer-rooms/groups/${cellId}/stats`); }} className="w-full flex items-center gap-3 px-4 py-3.5 text-sm font-medium rounded-xl" style={{ color: '#1A1A1A' }}>
                   <BarChart3 size={18} strokeWidth={1.9} color="#0A0A0A" /> Stats
                 </button>
                 <button onClick={handleShare} className="w-full flex items-center gap-3 px-4 py-3.5 text-sm font-medium rounded-xl" style={{ color: '#1A1A1A' }}>
@@ -223,7 +223,7 @@ export default function PrayerCellDetail() {
                 )}
                 {cell.isMember && cell.creatorId !== user?.id && (
                   <button onClick={handleLeave} className="w-full flex items-center gap-3 px-4 py-3.5 text-sm font-medium rounded-xl" style={{ color: '#C0392B' }}>
-                    <LogOut size={18} strokeWidth={1.9} color="#C0392B" /> Leave cell
+                    <LogOut size={18} strokeWidth={1.9} color="#C0392B" /> Leave group
                   </button>
                 )}
                 <button onClick={() => setMenuOpen(false)} className="w-full text-center px-4 py-3.5 text-sm font-semibold rounded-xl mt-1" style={{ color: '#8E8E8E' }}>

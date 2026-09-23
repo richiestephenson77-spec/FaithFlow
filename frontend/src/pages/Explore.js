@@ -61,20 +61,6 @@ const BibleArt = (t) => (
   </>
 );
 
-// Three people gathered around a table.
-const CellsArt = (t) => (
-  <>
-    <ellipse fill={t.wash} stroke="none" cx="97" cy="105" rx="76" ry="26" />
-    <path fill={t.solid} stroke="none" d="M31 98Q24 71 44 65Q62 68 65 96ZM132 98Q137 65 155 67Q176 75 165 103Z" />
-    <circle fill="#fff" stroke={t.ink} cx="44" cy="53" r="12" />
-    <circle fill="#fff" stroke={t.ink} cx="153" cy="55" r="12" />
-    <path fill={t.wash} stroke="none" d="M77 68Q72 45 96 43Q118 48 115 75Z" />
-    <circle fill="#fff" stroke={t.ink} cx="96" cy="30" r="11" />
-    <ellipse fill="#fff" cx="98" cy="92" rx="48" ry="17" />
-    <path d="M66 93L87 80L99 84L108 78L130 91L106 102ZM99 84V99M64 105L57 128M131 106L139 129M84 69L95 76L106 66" />
-  </>
-);
-
 // A coastline, a dotted journey between two named places, hills and a compass.
 const MapsArt = (t) => (
   <>
@@ -141,8 +127,9 @@ const PartnersArt = (t) => (
 );
 
 // A lit arched window with two figures sitting before it, backs to us — a room
-// people have gathered in, told apart from Prayer Cells' table by the light
-// rather than by a second crowd. Same 195x150 frame as its neighbours.
+// people have gathered in. Same 195x150 frame as its neighbours. This is now
+// the single entry point for both scheduled rooms and the group communities
+// that used to have their own tile.
 const RoomsArt = (t) => (
   <>
     {/* Window */}
@@ -225,9 +212,12 @@ function TileCopy({ title, blurb, titleSize = 18, padding = '8px 12px 10px', chi
 }
 
 // The six standard tiles, in the order the design lays them out.
+// Prayer Cells no longer has a tile of its own: groups live INSIDE Prayer
+// Rooms, on its Groups tab. Nothing was deleted — every cell, membership,
+// admin, join request and session is intact, and the old /prayer-cells URLs
+// redirect. CellsArt is retired with the tile.
 const STANDARD_TILES = [
   { title: 'Prayer Rooms', blurb: 'Gather and pray together', to: '/prayer-rooms', art: RoomsArt, theme: SLATE_ART },
-  { title: 'Prayer Cells', blurb: 'Find your prayer circle', to: '/prayer-cells', art: CellsArt, theme: SLATE_ART },
   { title: 'Bible Maps', blurb: 'Walk through the biblical world', to: '/bible-maps', art: MapsArt, theme: ANTIQUE_ART },
 ];
 

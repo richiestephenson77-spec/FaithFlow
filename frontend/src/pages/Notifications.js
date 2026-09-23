@@ -47,9 +47,9 @@ function routeFor(n) {
     // Cell notifications: join/request → group info (approve/deny lives there),
     // approved → the cell, session started → straight into the live room.
     case 'CELL_MEMBER_JOINED':
-    case 'CELL_JOIN_REQUEST':      return n.refId ? `/prayer-cells/${n.refId}/info` : '/prayer-cells';
-    case 'CELL_REQUEST_APPROVED':  return n.refId ? `/prayer-cells/${n.refId}` : '/prayer-cells';
-    case 'CELL_SESSION_STARTED':   return n.refId ? `/prayer-cells/${n.refId}/session` : '/prayer-cells';
+    case 'CELL_JOIN_REQUEST':      return n.refId ? `/prayer-rooms/groups/${n.refId}/info` : '/prayer-rooms';
+    case 'CELL_REQUEST_APPROVED':  return n.refId ? `/prayer-rooms/groups/${n.refId}` : '/prayer-rooms';
+    case 'CELL_SESSION_STARTED':   return n.refId ? `/prayer-rooms/groups/${n.refId}/session` : '/prayer-rooms';
     default:                       return n.sender?.id ? `/profile/${n.sender.id}` : null;
   }
 }

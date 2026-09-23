@@ -61,10 +61,10 @@ export default function CreatePrayerCell() {
     try {
       const res = await api.post('/prayer-cells', { name: name.trim(), description: description.trim(), imageUrl, joinPolicy });
       hapticLight();
-      showToast('Prayer cell created');
-      navigate(`/prayer-cells/${res.data.id}`, { replace: true });
+      showToast('Group created');
+      navigate(`/prayer-rooms/groups/${res.data.id}`, { replace: true });
     } catch (err) {
-      showToast(err.friendlyMessage || err.response?.data?.error || 'Could not create cell', 'error');
+      showToast(err.friendlyMessage || err.response?.data?.error || 'Could not create group', 'error');
       setSaving(false);
     }
   }
@@ -76,13 +76,13 @@ export default function CreatePrayerCell() {
         <button onClick={() => navigate(-1)} aria-label="Back" className="p-1 -ml-1">
           <ChevronLeft size={22} color="#0A0A0A" strokeWidth={2} />
         </button>
-        <h1 className="text-lg font-bold" style={{ color: '#0A0A0A', fontFamily: "'Fraunces', serif" }}>New Prayer Cell</h1>
+        <h1 className="text-lg font-bold" style={{ color: '#0A0A0A', fontFamily: "'Fraunces', serif" }}>New Group</h1>
       </div>
 
       <div className="px-4 py-5 space-y-5">
         {/* Image */}
         <div className="flex justify-center">
-          <button onClick={() => fileRef.current?.click()} className="relative" aria-label="Add cell image">
+          <button onClick={() => fileRef.current?.click()} className="relative" aria-label="Add group image">
             {imageUrl ? (
               <img src={imageUrl} alt="" className="rounded-3xl object-cover" style={{ width: 96, height: 96 }} />
             ) : (
@@ -153,7 +153,7 @@ export default function CreatePrayerCell() {
           className="w-full h-12 rounded-xl text-white text-sm font-bold disabled:opacity-50"
           style={{ background: ACCENT }}
         >
-          {saving ? 'Creating…' : 'Create Cell'}
+          {saving ? 'Creating…' : 'Create Group'}
         </button>
       </div>
     </div>

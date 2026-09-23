@@ -63,7 +63,15 @@ function CellImage({ cell, size = 52 }) {
   );
 }
 
-export default function PrayerCellDirectory() {
+// Route base. Prayer Cells no longer has its own Explore tile — the groups
+// live inside Prayer Rooms. The API paths are unchanged; only the client
+// routes moved, and the old /prayer-cells/* URLs still redirect here.
+const GROUPS = '/prayer-rooms/groups';
+
+// `embedded` renders just the search + list, for the Groups tab inside
+// Prayer Rooms (which supplies its own header and page padding). Standalone
+// keeps its own header for deep links arriving via the old URLs.
+export default function PrayerCellDirectory({ embedded = false }) {
   const navigate = useNavigate();
   const { socket } = useSocket();
   const showToast = useToast();
@@ -105,7 +113,7 @@ export default function PrayerCellDirectory() {
     try {
       const res = await api.post(`/prayer-cells/${cell.id}/join`);
       if (res.data.status === 'member') {
-        navigate(`/prayer-cells/${cell.id}`);
+        navigate(`${GROUPS}/${cell.id}`);
       } else {
         showToast('Request sent — an admin will review it');
         fetchCells(query.trim());
@@ -116,35 +124,39 @@ export default function PrayerCellDirectory() {
     setJoiningId(null);
   }
 
+  const pad = embedded ? '' : 'px-4';
+
   return (
-    <div className="min-h-full" style={{ background: '#FAFAFA' }}>
-      {/* Header */}
+    <div className={embedded ? '' : 'min-h-full'} style={embedded ? undefined : { background: '#FAFAFA' }}>
+      {/* Header — only when this is its own page */}
+      {!embedded && (
       <div className="px-4 pt-5 pb-3 flex items-center gap-3">
         <button onClick={() => navigate(-1)} aria-label="Back" className="p-1 -ml-1 flex-shrink-0">
           <ChevronLeft size={22} color="#0A0A0A" strokeWidth={2} />
         </button>
         <div className="flex-1">
-          <h1 className="text-xl type-heading">Prayer Cells</h1>
+          <h1 className="text-xl type-heading">Groups</h1>
           <p className="text-xs mt-0.5 type-subtitle">Group communities that pray together</p>
         </div>
         <button
-          onClick={() => { hapticLight(); navigate('/prayer-cells/create'); }}
-          aria-label="Create a cell"
+          onClick={() => { hapticLight(); navigate(`${GROUPS}/create`); }}
+          aria-label="Create a group"
           className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
           style={{ background: ACCENT }}
         >
           <Plus size={20} color="#fff" strokeWidth={2.4} />
         </button>
       </div>
+      )}
 
       {/* Search */}
-      <div className="px-4 pb-3">
+      <div className={`${pad} pb-3`}>
         <div className="relative">
           <Search size={16} strokeWidth={2} color="#9AA6AD" className="absolute left-3.5 top-1/2 -translate-y-1/2" />
           <input
             value={query}
             onChange={e => setQuery(e.target.value)}
-            placeholder="Search cells by name or topic…"
+            placeholder="Search groups by name or topic…"
             className="w-full bg-white rounded-xl pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-[#2C4055]/20"
             style={{ height: 44, border: '1px solid #EFEFEF', color: '#1A1A1A' }}
           />
@@ -152,7 +164,7 @@ export default function PrayerCellDirectory() {
       </div>
 
       {/* List */}
-      <div className="px-4 pt-1 pb-6">
+      <div className={`${pad} pt-1 pb-6`}>
         {loading ? (
           <div className="space-y-2.5">
             {[1, 2, 3, 4].map(i => (
@@ -170,16 +182,16 @@ export default function PrayerCellDirectory() {
             <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4" style={{ background: 'rgba(44,64,85,0.08)' }}>
               <Users size={24} strokeWidth={1.8} color={ACCENT} />
             </div>
-            <p className="font-semibold" style={{ color: '#0A0A0A' }}>{query ? 'No cells found' : 'No prayer cells yet'}</p>
+            <p className="font-semibold" style={{ color: '#0A0A0A' }}>{query ? 'No groups found' : 'No groups yet'}</p>
             <p className="text-sm mt-1" style={{ color: '#8E8E8E' }}>{query ? 'Try a different search.' : 'Start the first group community.'}</p>
             {!query && (
               <motion.button
                 whileTap={{ scale: 0.97 }}
-                onClick={() => navigate('/prayer-cells/create')}
+                onClick={() => navigate(`${GROUPS}/create`)}
                 className="mt-5 inline-flex items-center gap-2 px-5 h-11 rounded-xl text-white text-sm font-semibold"
                 style={{ background: ACCENT }}
               >
-                <Plus size={16} strokeWidth={2.4} /> Create a Cell
+                <Plus size={16} strokeWidth={2.4} /> Create a group
               </motion.button>
             )}
           </div>
@@ -189,7 +201,7 @@ export default function PrayerCellDirectory() {
               <motion.button
                 key={cell.id}
                 whileTap={{ scale: 0.99 }}
-                onClick={() => { hapticLight(); navigate(`/prayer-cells/${cell.id}`); }}
+                onClick={() => { hapticLight(); navigate(`${GROUPS}/${cell.id}`); }}
                 className="w-full flex items-center gap-3 rounded-2xl p-3 text-left"
                 style={{
                   background: cell.liveNow ? 'rgba(237,73,86,0.04)' : '#fff',
