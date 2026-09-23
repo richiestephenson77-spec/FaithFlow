@@ -954,3 +954,73 @@ model PrayerRoomAdmission {
   @@index([occurrenceId, releasedAt])
   @@map("prayer_room_admissions")
 }
+
+// ============================================================================
+// CHURCH DIRECTORY (Phase 1)
+// ----------------------------------------------------------------------------
+// Named ChurchListing, not Church: `Church` is already taken by the app's own
+// church pages (followers, posts) and is a different thing. A ChurchListing is
+// ONE CAMPUS / congregation in the directory.
+//
+// Phase 1 stores almost nothing, on purpose. Google names, addresses, phone
+// numbers, websites, photos, reviews and opening hours are request-scoped
+// display data and are NEVER persisted here — only the place ID, which is the
+// one provider identifier we are permitted to retain long term.
+//
+// These two tables exist now so Phase 2 (claims, representatives, independent
+// facts) and Phase 3 (enrichment) attach to a stable identity instead of
+// reworking URLs and foreign keys later. Phase 2 adds IndependentLocation,
+// SourceRecord, FieldAssertion, ChurchClaim, ChurchMembership and friends
+// against ChurchListing.id; Phase 3 adds ChurchWebsite / EnrichmentJob. None
+// of that requires changing what is below.
+// ============================================================================
+
+/// One campus / congregation. In Phase 1 a listing is an ID-ONLY SHELL: it
+/// carries no name, address or coordinates of its own, because everything
+/// shown about it still comes live from Google. Independent fields arrive in
+/// Phase 2 from representatives, as separate tables.
+model ChurchListing {
+  id           String          @id @default(cuid())
+  /// DRAFT | PUBLISHED | DISPUTED | ARCHIVED. A Phase 1 shell minted from a
+  /// Google place starts DRAFT: nothing independent has been established yet.
+  status       String          @default("DRAFT")
+  /// Set when this listing is folded into another (duplicate campuses). The
+  /// row is kept rather than deleted so inbound references stay resolvable.
+  mergedIntoId String?
+  mergedInto   ChurchListing?  @relation("ChurchListingMerge", fields: [mergedIntoId], references: [id], onDelete: SetNull)
+  mergedFrom   ChurchListing[] @relation("ChurchListingMerge")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  placeLinks ChurchPlaceLink[]
+
+  @@index([status])
+  @@index([mergedIntoId])
+  @@map("church_listings")
+}
+
+/// The link between a listing and a Google place ID.
+///
+/// A place ID is the ONLY Google value retained long term — no provider name,
+/// address, JSON blob or photo reference is stored anywhere in this schema.
+/// Historical IDs are kept (isCurrent = false) because Google occasionally
+/// replaces an ID for the same premises, and losing the old one would orphan
+/// the independent facts attached to it.
+model ChurchPlaceLink {
+  id              String        @id @default(cuid())
+  listingId       String
+  listing         ChurchListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  /// Google Place ID. Globally unique: one place maps to at most one listing.
+  placeId         String        @unique
+  /// Exactly one current link per listing, enforced by a partial unique index
+  /// in the migration (Prisma cannot express a partial index).
+  isCurrent       Boolean       @default(true)
+  firstLinkedAt   DateTime      @default(now())
+  /// Stamped when the ID was last confirmed to still resolve. Not a cache of
+  /// any Google content — just "this identifier was still valid at this time".
+  lastIdCheckedAt DateTime?
+
+  @@index([listingId, isCurrent])
+  @@map("church_place_links")
+}
