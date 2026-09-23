@@ -119,6 +119,7 @@ model User {
   prayerRoomSubscriptions  PrayerRoomSubscription[]    @relation("PrayerRoomSubscriptions")
   prayerRoomLinkedRequests PrayerRoomLinkedRequest[]   @relation("PrayerRoomLinkedRequests")
   prayerRoomNotifications  PrayerRoomNotificationLog[] @relation("PrayerRoomNotificationLog")
+  prayerRoomAdmissions     PrayerRoomAdmission[]       @relation("PrayerRoomAdmissions")
 
   @@map("users")
 }
@@ -800,6 +801,7 @@ model PrayerRoomOccurrence {
   mediaRoomId String?
 
   attendance      PrayerRoomAttendance[]
+  admissions      PrayerRoomAdmission[]
   subscriptions   PrayerRoomSubscription[]
   linkedRequests  PrayerRoomLinkedRequest[]
   notificationLog PrayerRoomNotificationLog[]
@@ -922,4 +924,33 @@ model PrayerRoomNotificationLog {
   @@unique([occurrenceId, userId, kind])
   @@index([occurrenceId])
   @@map("prayer_room_notification_log")
+}
+
+/// A HELD PLACE in a live room, taken at the admission path when a media token
+/// is issued and released on leave / end / expiry.
+///
+/// Deliberately NOT the same thing as PrayerRoomAttendance. Attendance is
+/// history, written only from confirmed media-connection events. An admission
+/// is a live reservation: it is what the 25-person cap counts, and it exists
+/// so the cap can be enforced BEFORE anyone is handed a token, rather than
+/// discovered afterwards.
+///
+/// One row per (occurrence, user) — that unique key is what makes a reconnect
+/// free. A user who drops and comes back re-takes the SAME row instead of
+/// consuming a second place.
+model PrayerRoomAdmission {
+  id           String               @id @default(cuid())
+  occurrenceId String
+  occurrence   PrayerRoomOccurrence @relation(fields: [occurrenceId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User                 @relation("PrayerRoomAdmissions", fields: [userId], references: [id], onDelete: Cascade)
+
+  admittedAt DateTime  @default(now())
+  /// Null while the place is held. Set on leave, on room end, or by the
+  /// sweeper when an admission was never followed by a real connection.
+  releasedAt DateTime?
+
+  @@unique([occurrenceId, userId])
+  @@index([occurrenceId, releasedAt])
+  @@map("prayer_room_admissions")
 }

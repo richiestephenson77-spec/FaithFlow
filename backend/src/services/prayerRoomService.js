@@ -19,6 +19,16 @@ const MAX_OCCURRENCES_PER_SERIES = 120;
 // grace period has elapsed with nobody connected.
 const STALE_GRACE_MINUTES = 30;
 
+// Hard ceiling on simultaneous participants in one room. One number, used both
+// by the admission check below and by provider.createRoom(), so the media layer
+// and the server can never disagree about the size of the room.
+const MAX_ROOM_PARTICIPANTS = 25;
+
+// How long a held place survives without the holder actually connecting. A
+// token is short-lived; if it is never used, the seat must come back rather
+// than blocking the room forever.
+const ADMISSION_TTL_MINUTES = 5;
+
 // ---------------------------------------------------------------------------
 // Validation
 // ---------------------------------------------------------------------------
@@ -312,6 +322,98 @@ async function attendanceSummary(occurrenceId, now = new Date()) {
 }
 
 // ---------------------------------------------------------------------------
+// Admission — the 25-person cap
+// ---------------------------------------------------------------------------
+
+function roomFull() {
+  const err = new Error(`This room is full (${MAX_ROOM_PARTICIPANTS} people). Try again if someone leaves.`);
+  err.status = 409;
+  err.code = 'ROOM_FULL';
+  return err;
+}
+
+/**
+ * Take a place in a room, atomically.
+ *
+ * THIS IS THE ADMISSION PATH. It runs before any media token is issued, and a
+ * concrete provider adapter must call it rather than inventing its own check —
+ * otherwise the cap would live in two places and drift.
+ *
+ * WHY A TRANSACTION AND NOT ONE CLEVER STATEMENT:
+ * The obvious version — a single INSERT ... SELECT guarded by a counting
+ * subquery, with FOR UPDATE on the parent row in a CTE — DOES NOT WORK, and
+ * the concurrency test in test/prayerRooms.test.js catches it: 40 simultaneous
+ * joins let 28 through a cap of 25. Under READ COMMITTED a statement's
+ * snapshot is fixed when the statement BEGINS, so every waiter blocked on the
+ * row lock still counts using the snapshot it took before waiting, and none of
+ * them see the rows the others just committed. The lock serialises execution
+ * but not visibility.
+ *
+ * The fix is ordering, not cleverness: take the lock in one statement, then
+ * count in the NEXT one. READ COMMITTED gives each statement a fresh snapshot,
+ * so by the time the count runs it sees everything the previous lock-holder
+ * committed. Hence: lock -> count -> insert, inside one transaction.
+ *
+ * RECONNECTS ARE FREE. A user who already has a row skips the capacity test
+ * entirely and re-takes that same row, so dropping and coming back never
+ * consumes a second place — even in a full room. The unique key on
+ * (occurrenceId, userId) is what guarantees there is only ever one to re-take.
+ *
+ * Pooler note: interactive transactions are fine through Supabase's
+ * TRANSACTION-mode pooler — the whole transaction runs on one pooled
+ * connection and is handed back at COMMIT. The lock is held for three quick
+ * statements, all on the primary key / a covered index.
+ *
+ * @returns {Promise<{admitted: boolean, rejoined: boolean}>}
+ */
+async function admitToRoom(occurrenceId, userId, { max = MAX_ROOM_PARTICIPANTS } = {}) {
+  return prisma.$transaction(async (tx) => {
+    // 1. Serialise every admission for THIS room behind one row lock.
+    const locked = await tx.$queryRaw`
+      SELECT id FROM prayer_room_occurrences WHERE id = ${occurrenceId} FOR UPDATE
+    `;
+    if (locked.length === 0) throw notFound();
+
+    // 2. Fresh statement, fresh snapshot — this sees what the previous holder
+    //    of the lock committed, which is the whole point.
+    const existing = await tx.prayerRoomAdmission.findUnique({
+      where: { occurrenceId_userId: { occurrenceId, userId } },
+      select: { id: true, releasedAt: true },
+    });
+    const holdsPlace = !!existing && existing.releasedAt === null;
+
+    if (!holdsPlace) {
+      const held = await tx.prayerRoomAdmission.count({
+        where: { occurrenceId, releasedAt: null },
+      });
+      if (held >= max) throw roomFull();
+    }
+
+    // 3. Re-take the existing row if there is one, else claim a new place.
+    await tx.prayerRoomAdmission.upsert({
+      where: { occurrenceId_userId: { occurrenceId, userId } },
+      create: { occurrenceId, userId },
+      update: { releasedAt: null, admittedAt: new Date() },
+    });
+    return { admitted: true, rejoined: !!existing };
+  }, { timeout: 15_000 });
+}
+
+/** Give the place back. Idempotent — releasing twice is a no-op. */
+async function releaseSeat(occurrenceId, userId) {
+  const res = await prisma.prayerRoomAdmission.updateMany({
+    where: { occurrenceId, userId, releasedAt: null },
+    data: { releasedAt: new Date() },
+  });
+  return res.count;
+}
+
+/** Places currently held in a room. */
+async function heldSeats(occurrenceId) {
+  return prisma.prayerRoomAdmission.count({ where: { occurrenceId, releasedAt: null } });
+}
+
+// ---------------------------------------------------------------------------
 // Serialization
 // ---------------------------------------------------------------------------
 
@@ -361,8 +463,10 @@ const SERIES_INCLUDE = {
 module.exports = {
   AUDIENCES, KINDS, RECURRENCES, OCCURRENCE_STATUSES,
   MATERIALIZE_DAYS_AHEAD, MAX_OCCURRENCES_PER_SERIES, STALE_GRACE_MINUTES,
+  MAX_ROOM_PARTICIPANTS, ADMISSION_TTL_MINUTES,
   SERIES_INCLUDE,
-  invalid, forbidden, notFound,
+  invalid, forbidden, notFound, roomFull,
+  admitToRoom, releaseSeat, heldSeats,
   parseSeriesInput,
   cellRoleOf, assertMayOrganizeForCell,
   canView, assertCanView, isHostOrCohost, assertHostOrCohost, isOwner, assertOwner,

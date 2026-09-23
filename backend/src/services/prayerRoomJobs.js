@@ -1,6 +1,6 @@
 const prisma = require('../db');
 const { recipientsFor, notifyOnce } = require('./prayerRoomNotifications');
-const { STALE_GRACE_MINUTES } = require('./prayerRoomService');
+const { STALE_GRACE_MINUTES, ADMISSION_TTL_MINUTES } = require('./prayerRoomService');
 
 // Background upkeep for Prayer Rooms, following the same shape as
 // services/vanishJob.js: an in-process setInterval started from index.js, with
@@ -78,7 +78,32 @@ async function sweepReminders(io, now = new Date()) {
  */
 async function sweepLifecycle(now = new Date()) {
   const grace = STALE_GRACE_MINUTES * 60_000;
-  const result = { ended: 0, noShows: 0, intervalsClosed: 0 };
+  const result = { ended: 0, noShows: 0, intervalsClosed: 0, seatsReclaimed: 0 };
+
+  // Reclaim places taken by someone who was issued a token and then never
+  // connected. Without this a handful of abandoned joins would permanently
+  // shrink a 25-person room. A place is only reclaimed once it is older than
+  // the TTL AND has no open attendance interval behind it — so a real,
+  // connected participant is never evicted however long they stay.
+  const expired = await prisma.prayerRoomAdmission.findMany({
+    where: {
+      releasedAt: null,
+      admittedAt: { lt: new Date(now.getTime() - ADMISSION_TTL_MINUTES * 60_000) },
+    },
+    select: { id: true, occurrenceId: true, userId: true },
+    take: 500,
+  });
+  for (const seat of expired) {
+    const connected = await prisma.prayerRoomAttendance.count({
+      where: { occurrenceId: seat.occurrenceId, userId: seat.userId, leftAt: null },
+    });
+    if (connected > 0) continue;
+    const upd = await prisma.prayerRoomAdmission.updateMany({
+      where: { id: seat.id, releasedAt: null },
+      data: { releasedAt: now },
+    });
+    result.seatsReclaimed += upd.count;
+  }
 
   const live = await prisma.prayerRoomOccurrence.findMany({
     where: { status: 'LIVE' },
@@ -105,6 +130,10 @@ async function sweepLifecycle(now = new Date()) {
       where: { id: occ.id, status: 'LIVE' },
       data: { status: 'ENDED', actualEndedAt: now },
     });
+    await prisma.prayerRoomAdmission.updateMany({
+      where: { occurrenceId: occ.id, releasedAt: null },
+      data: { releasedAt: now },
+    });
     result.ended += upd.count;
     result.intervalsClosed += closed.count;
   }
@@ -127,7 +156,7 @@ async function sweepLifecycle(now = new Date()) {
 }
 
 async function runOnce(io, now = new Date()) {
-  const out = { reminders: 0, ended: 0, noShows: 0, intervalsClosed: 0 };
+  const out = { reminders: 0, ended: 0, noShows: 0, intervalsClosed: 0, seatsReclaimed: 0 };
   try {
     out.reminders = await sweepReminders(io, now);
   } catch (err) {

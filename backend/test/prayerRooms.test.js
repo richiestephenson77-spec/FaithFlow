@@ -36,6 +36,7 @@ async function reset() {
   await prisma.$executeRawUnsafe(`
     TRUNCATE prayer_room_notification_log, prayer_room_linked_requests,
              prayer_room_subscriptions, prayer_room_attendance,
+             prayer_room_admissions,
              prayer_room_roles, prayer_room_occurrences, prayer_room_series,
              prayer_cell_members, prayer_cells, notifications, prayer_requests, users
     RESTART IDENTITY CASCADE`);
@@ -430,4 +431,178 @@ test('series input is validated rather than trusted', () => {
   assert.equal(parsed.hostId, undefined);
   assert.equal(parsed.status, undefined);
   assert.equal(parsed.id, undefined);
+});
+
+// ---------------------------------------------------------------------------
+// Admission — the 25-person cap
+// ---------------------------------------------------------------------------
+
+async function makeUsers(n) {
+  const users = [];
+  for (let i = 0; i < n; i++) users.push(await makeUser(`Person ${i}`));
+  return users;
+}
+
+test('the cap admits up to the limit and refuses the next person', async () => {
+  await reset();
+  const host = await makeUser('Host');
+  const series = await makeSeries(host);
+  const occ = await makeOccurrence(series, { status: 'LIVE' });
+  const users = await makeUsers(4);
+
+  for (const u of users.slice(0, 3)) {
+    const r = await S.admitToRoom(occ.id, u.id, { max: 3 });
+    assert.equal(r.admitted, true);
+    assert.equal(r.rejoined, false);
+  }
+  assert.equal(await S.heldSeats(occ.id), 3);
+
+  await assert.rejects(
+    () => S.admitToRoom(occ.id, users[3].id, { max: 3 }),
+    (err) => err.code === 'ROOM_FULL' && err.status === 409,
+  );
+  assert.equal(await S.heldSeats(occ.id), 3, 'a refused join must not take a place');
+});
+
+test('a reconnect re-takes the SAME place and is free even in a full room', async () => {
+  await reset();
+  const host = await makeUser('Host');
+  const series = await makeSeries(host);
+  const occ = await makeOccurrence(series, { status: 'LIVE' });
+  const users = await makeUsers(3);
+
+  for (const u of users) await S.admitToRoom(occ.id, u.id, { max: 3 });
+  assert.equal(await S.heldSeats(occ.id), 3, 'room is full');
+
+  // The room is full. An existing participant reconnecting must still get in.
+  const again = await S.admitToRoom(occ.id, users[0].id, { max: 3 });
+  assert.equal(again.admitted, true);
+  assert.equal(again.rejoined, true, 'must be reported as a rejoin, not a new place');
+  assert.equal(await S.heldSeats(occ.id), 3, 'a reconnect must not consume a second place');
+
+  const rows = await prisma.prayerRoomAdmission.findMany({ where: { occurrenceId: occ.id, userId: users[0].id } });
+  assert.equal(rows.length, 1, 'exactly one row per person per room');
+});
+
+test('a released place can be re-taken, and by someone else', async () => {
+  await reset();
+  const host = await makeUser('Host');
+  const series = await makeSeries(host);
+  const occ = await makeOccurrence(series, { status: 'LIVE' });
+  const [a, b, c] = await makeUsers(3);
+
+  await S.admitToRoom(occ.id, a.id, { max: 2 });
+  await S.admitToRoom(occ.id, b.id, { max: 2 });
+  await assert.rejects(() => S.admitToRoom(occ.id, c.id, { max: 2 }), /full/i);
+
+  assert.equal(await S.releaseSeat(occ.id, a.id), 1);
+  assert.equal(await S.heldSeats(occ.id), 1);
+  // Releasing twice is a no-op, not a double-free that would inflate capacity.
+  assert.equal(await S.releaseSeat(occ.id, a.id), 0);
+
+  const r = await S.admitToRoom(occ.id, c.id, { max: 2 });
+  assert.equal(r.admitted, true);
+  assert.equal(await S.heldSeats(occ.id), 2);
+
+  // The room is full again, so a fourth person is refused.
+  const d = await makeUser('D');
+  await assert.rejects(() => S.admitToRoom(occ.id, d.id, { max: 2 }), /full/i);
+  // But `a`, who left, still owns their old row and can re-enter once there
+  // is room — the released row is reused, not duplicated.
+  await S.releaseSeat(occ.id, b.id);
+  const back = await S.admitToRoom(occ.id, a.id, { max: 2 });
+  assert.equal(back.rejoined, true, 'returning to your own released row is a rejoin');
+  assert.equal(
+    await prisma.prayerRoomAdmission.count({ where: { occurrenceId: occ.id, userId: a.id } }),
+    1,
+  );
+});
+
+// The point of the whole design. Two sequential queries ("count, then insert
+// if under the limit") would let every one of these read the same count and
+// all insert. This asserts that cannot happen.
+test('CONCURRENT joins cannot exceed the cap', async () => {
+  await reset();
+  const host = await makeUser('Host');
+  const series = await makeSeries(host);
+  const occ = await makeOccurrence(series, { status: 'LIVE' });
+  const users = await makeUsers(40);
+
+  const results = await Promise.allSettled(
+    users.map(u => S.admitToRoom(occ.id, u.id, { max: 25 })),
+  );
+  const admitted = results.filter(r => r.status === 'fulfilled').length;
+  const refused = results.filter(r => r.status === 'rejected');
+
+  assert.equal(admitted, 25, `expected exactly 25 admitted, got ${admitted}`);
+  assert.equal(refused.length, 15);
+  assert.ok(refused.every(r => r.reason.code === 'ROOM_FULL'), 'every refusal must be ROOM_FULL');
+  assert.equal(await S.heldSeats(occ.id), 25, 'the table must agree with what was returned');
+});
+
+test('CONCURRENT reconnects by the same user take exactly one place', async () => {
+  await reset();
+  const host = await makeUser('Host');
+  const series = await makeSeries(host);
+  const occ = await makeOccurrence(series, { status: 'LIVE' });
+  const [u] = await makeUsers(1);
+
+  // A flapping network can fire several joins at once for one person.
+  const results = await Promise.allSettled(
+    Array.from({ length: 10 }, () => S.admitToRoom(occ.id, u.id, { max: 25 })),
+  );
+  assert.ok(results.every(r => r.status === 'fulfilled'), 'no reconnect should be refused');
+  assert.equal(await S.heldSeats(occ.id), 1);
+  assert.equal(
+    await prisma.prayerRoomAdmission.count({ where: { occurrenceId: occ.id, userId: u.id } }),
+    1,
+  );
+});
+
+test('the cap is per room, not global', async () => {
+  await reset();
+  const host = await makeUser('Host');
+  const series = await makeSeries(host);
+  const occA = await makeOccurrence(series, { status: 'LIVE', scheduledStartUtc: new Date(Date.now() + 5 * MIN) });
+  const occB = await makeOccurrence(series, { status: 'LIVE', scheduledStartUtc: new Date(Date.now() + 90 * MIN) });
+  const [a, b] = await makeUsers(2);
+
+  await S.admitToRoom(occA.id, a.id, { max: 1 });
+  await assert.rejects(() => S.admitToRoom(occA.id, b.id, { max: 1 }), /full/i);
+  // A different room has its own places.
+  const r = await S.admitToRoom(occB.id, b.id, { max: 1 });
+  assert.equal(r.admitted, true);
+});
+
+test('the sweeper reclaims a place nobody ever connected on, but not a live one', async () => {
+  await reset();
+  const host = await makeUser('Host');
+  const series = await makeSeries(host);
+  const occ = await makeOccurrence(series, { status: 'LIVE' });
+  const [ghost, present] = await makeUsers(2);
+
+  await S.admitToRoom(occ.id, ghost.id);
+  await S.admitToRoom(occ.id, present.id);
+  // `present` actually connected; `ghost` took a token and vanished.
+  await prisma.prayerRoomAttendance.create({
+    data: { occurrenceId: occ.id, userId: present.id, joinedAt: new Date(), mediaSessionId: 'live-conn' },
+  });
+  // Age both admissions past the TTL.
+  await prisma.prayerRoomAdmission.updateMany({
+    where: { occurrenceId: occ.id },
+    data: { admittedAt: new Date(Date.now() - 60 * MIN) },
+  });
+
+  await sweepLifecycle(new Date());
+
+  const held = await prisma.prayerRoomAdmission.findMany({
+    where: { occurrenceId: occ.id, releasedAt: null },
+    select: { userId: true },
+  });
+  assert.deepEqual(held.map(h => h.userId), [present.id],
+    'a connected participant must keep their place however long they stay');
+});
+
+test('the default cap is 25', () => {
+  assert.equal(S.MAX_ROOM_PARTICIPANTS, 25);
 });

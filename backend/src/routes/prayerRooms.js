@@ -551,7 +551,7 @@ router.post('/occurrences/:id/start', authenticate, h(async (req, res) => {
   const now = new Date();
   let mediaRoomId = occ.mediaRoomId;
   if (!mediaRoomId && provider.isConfigured()) {
-    ({ mediaRoomId } = await provider.createRoom({ occurrenceId: occ.id }));
+    ({ mediaRoomId } = await provider.createRoom({ occurrenceId: occ.id, maxParticipants: S.MAX_ROOM_PARTICIPANTS }));
   }
 
   // The room opens whether or not audio is available, so the schedule, the
@@ -590,6 +590,11 @@ router.post('/occurrences/:id/end', authenticate, h(async (req, res) => {
       where: { occurrenceId: occ.id, leftAt: null },
       data: { leftAt: now, closedBy: 'SWEEPER' },
     }),
+    // And hand every held place back — an ended room holds nobody.
+    prisma.prayerRoomAdmission.updateMany({
+      where: { occurrenceId: occ.id, releasedAt: null },
+      data: { releasedAt: now },
+    }),
     prisma.prayerRoomOccurrence.update({
       where: { id: occ.id }, data: { status: 'ENDED', actualEndedAt: now },
     }),
@@ -614,18 +619,32 @@ router.post('/occurrences/:id/join', authenticate, h(async (req, res) => {
   const host = await S.isHostOrCohost(occ.series, req.user.id);
   const role = occ.series.hostId === req.user.id ? 'HOST' : host ? 'COHOST' : 'LISTENER';
 
-  if (!provider.isConfigured() || !occ.mediaRoomId) {
-    return res.status(503).json({
-      error: 'Live audio is not available yet: no media provider is configured for this deployment.',
-      code: 'MEDIA_PROVIDER_NOT_CONFIGURED',
-      role,
-    });
-  }
+  // THE CAP. Taken here, before any token exists, and atomically — see
+  // admitToRoom. A reconnect by the same user re-takes their own place rather
+  // than consuming a second one. Throws 409 ROOM_FULL at 25 held places.
+  const seat = await S.admitToRoom(occ.id, req.user.id);
 
-  const token = await provider.issueToken({
-    mediaRoomId: occ.mediaRoomId, userId: req.user.id, role, ttlSeconds: 300,
-  });
-  res.json({ role, ...token });
+  try {
+    if (!provider.isConfigured() || !occ.mediaRoomId) {
+      // Nobody can connect, so the place must not be left standing — it would
+      // block a room that has no one in it.
+      await S.releaseSeat(occ.id, req.user.id);
+      return res.status(503).json({
+        error: 'Live audio is not available yet: no media provider is configured for this deployment.',
+        code: 'MEDIA_PROVIDER_NOT_CONFIGURED',
+        role,
+      });
+    }
+
+    const token = await provider.issueToken({
+      mediaRoomId: occ.mediaRoomId, userId: req.user.id, role, ttlSeconds: 300,
+    });
+    res.json({ role, rejoined: seat.rejoined, capacity: S.MAX_ROOM_PARTICIPANTS, ...token });
+  } catch (err) {
+    // Never hold a place for a join that failed.
+    await S.releaseSeat(occ.id, req.user.id).catch(() => {});
+    throw err;
+  }
 }));
 
 /**
@@ -637,6 +656,8 @@ router.post('/occurrences/:id/join', authenticate, h(async (req, res) => {
  */
 router.post('/occurrences/:id/leave', authenticate, h(async (req, res) => {
   const now = new Date();
+  // Give the held place back first, so the room reopens immediately.
+  await S.releaseSeat(req.params.id, req.user.id);
   const closed = await prisma.prayerRoomAttendance.updateMany({
     where: { occurrenceId: req.params.id, userId: req.user.id, leftAt: null },
     data: { leftAt: now, closedBy: 'SWEEPER' },
@@ -878,10 +899,15 @@ router.post('/webhooks/media', express.raw({ type: '*/*', limit: '256kb' }), h(a
         },
       });
     }
+    if (event.userId) await S.releaseSeat(occ.id, event.userId).catch(() => {});
   } else if (event.type === 'room_finished') {
     await prisma.prayerRoomAttendance.updateMany({
       where: { occurrenceId: occ.id, leftAt: null },
       data: { leftAt: event.occurredAt, closedBy: 'MEDIA' },
+    });
+    await prisma.prayerRoomAdmission.updateMany({
+      where: { occurrenceId: occ.id, releasedAt: null },
+      data: { releasedAt: event.occurredAt },
     });
     await prisma.prayerRoomOccurrence.updateMany({
       where: { id: occ.id, status: 'LIVE' },
