@@ -2,7 +2,11 @@ import { useState, useEffect } from 'react';
 import api from '../utils/api';
 import Avatar from './Avatar';
 
-export default function FollowListModal({ userId, type, onClose, onUserClick }) {
+// `onFindBelievers` is optional. The profile page used to carry a large
+// "Find Believers" button in its identity block; that button is gone, but the
+// feature is not — it now lives here, inside the relationship list, which is
+// where someone is actually thinking about who they know.
+export default function FollowListModal({ userId, type, onClose, onUserClick, onFindBelievers }) {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -42,6 +46,16 @@ export default function FollowListModal({ userId, type, onClose, onUserClick }) 
             ))
           )}
         </div>
+
+        {onFindBelievers && type === 'followers' && (
+          <button
+            onClick={onFindBelievers}
+            className="w-full mt-3 flex-shrink-0"
+            style={{ minHeight: 44, borderRadius: 10, border: '1px solid #EFEFEF', background: '#FFFFFF', color: '#2C4055', fontSize: 14, fontWeight: 500 }}
+          >
+            Find believers
+          </button>
+        )}
       </div>
     </div>
   );
