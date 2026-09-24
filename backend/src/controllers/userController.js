@@ -1,84 +1,187 @@
 
 const prisma = require('../db');
 
+// Fields anyone may see on a profile. Identity, nothing more.
+const PUBLIC_PROFILE_SELECT = {
+  id: true, name: true, bio: true, churchName: true,
+  location: true, profilePhoto: true, coverPhoto: true, createdAt: true,
+};
+
+// Everything below is the OWNER'S OWN and must never reach another account.
+// The private prayer journey (streaks, totals, badge, quota) is personal
+// devotional data, not a public score; `gender` exists for prayer-partner
+// matching and is edited only by its owner; `isAdmin` and `autoDownloadMedia`
+// are account state a visitor has no business reading.
+//
+// These are gated by SELECTION, not by hiding them later — a visitor's read
+// never loads them from the database at all, so there is no path by which a
+// refactor could accidentally serialize them.
+const OWNER_PROFILE_SELECT = {
+  ...PUBLIC_PROFILE_SELECT,
+  gender: true,
+  isAdmin: true,
+  autoDownloadMedia: true,
+  prayerStreak: true,
+  longestPrayerStreak: true,
+  prayerWarriorBadge: true,
+  totalPeoplesPrayedFor: true,
+  prayerWarriorEarnedAt: true,
+  dailyPrayerQuota: true,
+};
+
+/**
+ * Which of this user's prayer requests the viewer is entitled to see ON THIS
+ * PROFILE.
+ *
+ * A profile listing ATTRIBUTES every request it shows to the named account, so
+ * the rules here are deliberately stricter than the prayer feed's:
+ *
+ *   - Anonymous requests are excluded for everyone except the author. Listing
+ *     one under someone's name is precisely what "anonymous" was chosen to
+ *     prevent, whatever its visibility setting says.
+ *   - Only PUBLIC requests are listed to others. Pastor access to PRIVATE /
+ *     PASTOR_ONLY requests exists in the prayer feed and the pastor tools,
+ *     where it is a care relationship; extending it to a profile listing
+ *     would widen exposure, which is the wrong direction for this.
+ *   - Removed (moderated) requests are excluded from everyone's listing.
+ *
+ * The author still sees all of their own, labelled with their visibility.
+ */
+function profileRequestWhere(ownerId, isOwner) {
+  const base = { userId: ownerId, isActive: true, isRemoved: false };
+  if (isOwner) return base;
+  return { ...base, visibility: 'PUBLIC', isAnonymous: false };
+}
+
 async function getProfile(req, res) {
   const { id } = req.params;
+  const viewerId = req.user?.id || null;
+  const isOwner = !!viewerId && viewerId === id;
+
   try {
     const user = await prisma.user.findUnique({
       where: { id },
-      select: {
-        id: true, name: true, bio: true, churchName: true,
-        location: true, profilePhoto: true, coverPhoto: true, createdAt: true,
-        gender: true,
-        isAdmin: true,
-        autoDownloadMedia: true,
-        prayerStreak: true, longestPrayerStreak: true,
-        prayerWarriorBadge: true, totalPeoplesPrayedFor: true, prayerWarriorEarnedAt: true, dailyPrayerQuota: true,
-        _count: { select: { followers: true, following: true, prayerRequests: true, posts: true } },
-        prayerRequests: {
-          where: { isActive: true },
-          orderBy: { createdAt: 'desc' },
-          take: 10,
-        },
-      },
+      select: isOwner ? OWNER_PROFILE_SELECT : PUBLIC_PROFILE_SELECT,
     });
     if (!user) return res.status(404).json({ error: 'User not found' });
 
     // Moderation: a block in either direction makes the profile unavailable.
     // Surface isBlockedByMe so the viewer can Unblock; never leak their content.
     // One query for both directions (was two parallel lookups).
-    if (req.user && id !== req.user.id) {
+    if (viewerId && !isOwner) {
       const blocks = await prisma.block.findMany({
         where: {
           OR: [
-            { blockerId: req.user.id, blockedId: id },
-            { blockerId: id, blockedId: req.user.id },
+            { blockerId: viewerId, blockedId: id },
+            { blockerId: id, blockedId: viewerId },
           ],
         },
         select: { blockerId: true },
       });
       if (blocks.length) {
-        const iBlockedThem = blocks.some(b => b.blockerId === req.user.id);
+        const iBlockedThem = blocks.some(b => b.blockerId === viewerId);
         return res.json({ id, unavailable: true, isBlockedByMe: iBlockedThem, name: iBlockedThem ? user.name : null });
       }
     }
 
-    const sessions = await prisma.prayerSession.aggregate({
-      where: { userId: id, durationSeconds: { not: null } },
-      _sum: { durationSeconds: true },
-      _avg: { durationSeconds: true },
-    });
-
-    const uniquePrayedFor = await prisma.prayerSession.findMany({
+    // Absence means visible — see the migration. Existing accounts have no
+    // row and are unaffected.
+    const visibilityRow = await prisma.userProfileVisibility.findUnique({
       where: { userId: id },
-      distinct: ['prayerRequestId'],
-      select: { prayerRequestId: true },
+      select: { showChurch: true, showLocation: true },
     });
+    const visibility = {
+      showChurch: visibilityRow?.showChurch ?? true,
+      showLocation: visibilityRow?.showLocation ?? true,
+    };
 
-    const totalSessions = await prisma.prayerSession.count({ where: { userId: id, durationSeconds: { gt: 0 } } });
-    const todaySeconds = await getTodayPrayerTime(id);
+    const requestWhere = profileRequestWhere(id, isOwner);
 
-    const isFollowing = req.user
-      ? !!(await prisma.follow.findUnique({
-          where: { followerId_followingId: { followerId: req.user.id, followingId: id } },
-        }))
-      : false;
+    const [prayerRequests, visibleRequestCount, followerCount, followingCount, visiblePostCount, isFollowing] =
+      await Promise.all([
+        prisma.prayerRequest.findMany({
+          where: requestWhere,
+          orderBy: { createdAt: 'desc' },
+          take: 10,
+        }),
+        // Counts are scoped to the SAME rule as the list, so a visitor can
+        // never infer how many hidden requests exist from a total that
+        // disagrees with what they were shown.
+        prisma.prayerRequest.count({ where: requestWhere }),
+        prisma.follow.count({ where: { followingId: id } }),
+        prisma.follow.count({ where: { followerId: id } }),
+        // Archived posts are hidden from everyone but their author, so the
+        // count has to match.
+        prisma.post.count({ where: { userId: id, ...(isOwner ? {} : { isArchived: false }) } }),
+        viewerId && !isOwner
+          ? prisma.follow.findUnique({
+              where: { followerId_followingId: { followerId: viewerId, followingId: id } },
+            }).then(Boolean)
+          : Promise.resolve(false),
+      ]);
 
-    res.json({
-      ...user,
-      stats: {
-        totalPeoplePrayedFor: uniquePrayedFor.length,
+    // Hidden fields are REMOVED from a visitor's payload, not left in for the
+    // client to skip rendering. The owner always sees their own, plus the
+    // switch positions so the editor can show them accurately.
+    const visible = { ...user };
+    if (!isOwner) {
+      if (!visibility.showChurch) delete visible.churchName;
+      if (!visibility.showLocation) delete visible.location;
+    }
+
+    const payload = {
+      ...visible,
+      ...(isOwner ? { profileVisibility: visibility } : {}),
+      prayerRequests,
+      _count: {
+        followers: followerCount,
+        following: followingCount,
+        prayerRequests: visibleRequestCount,
+        posts: visiblePostCount,
+      },
+      isOwner,
+      isFollowing,
+      isBlockedByMe: false,
+    };
+
+    // The prayer journey is computed ONLY for its owner. A visitor's request
+    // does not even run these aggregates, so there is nothing to leak and
+    // nothing for the client to have to remember to hide.
+    if (isOwner) {
+      const [sessions, distinctRequestsPrayedFor, totalSessions, todaySeconds] = await Promise.all([
+        prisma.prayerSession.aggregate({
+          where: { userId: id, durationSeconds: { not: null } },
+          _sum: { durationSeconds: true },
+          _avg: { durationSeconds: true },
+        }),
+        prisma.prayerSession.findMany({
+          where: { userId: id },
+          distinct: ['prayerRequestId'],
+          select: { prayerRequestId: true },
+        }),
+        prisma.prayerSession.count({ where: { userId: id, durationSeconds: { gt: 0 } } }),
+        getTodayPrayerTime(id),
+      ]);
+
+      payload.stats = {
+        // NAME CHANGED, VALUE UNCHANGED. This is `distinct prayerRequestId`,
+        // i.e. how many distinct REQUESTS this user has prayed for — not how
+        // many distinct people. One person posting three requests counts three
+        // here. The old key `totalPeoplePrayedFor` claimed something the query
+        // never computed; the number itself is untouched.
+        distinctRequestsPrayedFor: distinctRequestsPrayedFor.length,
         totalPrayerSeconds: sessions._sum.durationSeconds || 0,
         avgSessionSeconds: Math.round(sessions._avg.durationSeconds || 0),
         totalSessions,
         streak: user.prayerStreak,
         longestStreak: user.longestPrayerStreak,
         todaySeconds,
-      },
-      isFollowing,
-      isBlockedByMe: false,
-    });
+      };
+    }
+
+    res.json(payload);
   } catch (err) {
+    console.error('[profile] getProfile', err);
     res.status(500).json({ error: 'Failed to get profile' });
   }
 }

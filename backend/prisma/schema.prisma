@@ -120,6 +120,7 @@ model User {
   prayerRoomLinkedRequests PrayerRoomLinkedRequest[]   @relation("PrayerRoomLinkedRequests")
   prayerRoomNotifications  PrayerRoomNotificationLog[] @relation("PrayerRoomNotificationLog")
   prayerRoomAdmissions     PrayerRoomAdmission[]       @relation("PrayerRoomAdmissions")
+  profileVisibility        UserProfileVisibility?      @relation("UserProfileVisibility")
 
   @@map("users")
 }
@@ -1023,4 +1024,27 @@ model ChurchPlaceLink {
 
   @@index([listingId, isCurrent])
   @@map("church_place_links")
+}
+
+/// Per-field visibility for the profile.
+///
+/// A SEPARATE TABLE, not columns on `users`, deliberately: the users table is
+/// off limits (an ALTER on it previously broke login), and profile display
+/// preferences are not identity — keeping them apart means this can grow with
+/// more fields later without ever touching the account record.
+///
+/// ABSENCE MEANS VISIBLE. Existing users have no row here, and the resolver
+/// treats a missing row as "show it", so nothing about anyone's profile
+/// changes until they actually choose to hide something. No new private data
+/// is published by default, and no backfill is required.
+model UserProfileVisibility {
+  userId       String   @id
+  user         User     @relation("UserProfileVisibility", fields: [userId], references: [id], onDelete: Cascade)
+  /// false hides the church name from anyone but the owner.
+  showChurch   Boolean  @default(true)
+  /// false hides the broad location from anyone but the owner.
+  showLocation Boolean  @default(true)
+  updatedAt    DateTime @updatedAt
+
+  @@map("user_profile_visibility")
 }

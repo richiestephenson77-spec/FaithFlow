@@ -69,6 +69,37 @@ router.patch('/me/settings', authenticate, async (req, res) => {
   }
 });
 
+/**
+ * PATCH /api/users/me/profile-visibility
+ * Hide or show the church name / broad location on your own profile.
+ *
+ * Scoped to `req.user.id` and nothing else: the row is keyed by the
+ * authenticated user, so there is no id in the body and no way to aim this at
+ * another account. Only the two known booleans are read, so extra fields in a
+ * crafted request are ignored rather than assigned.
+ */
+router.patch('/me/profile-visibility', authenticate, async (req, res) => {
+  const { showChurch, showLocation } = req.body || {};
+  const data = {};
+  if (typeof showChurch === 'boolean') data.showChurch = showChurch;
+  if (typeof showLocation === 'boolean') data.showLocation = showLocation;
+  if (Object.keys(data).length === 0) {
+    return res.status(400).json({ error: 'Nothing to update' });
+  }
+  try {
+    const row = await prisma.userProfileVisibility.upsert({
+      where: { userId: req.user.id },
+      create: { userId: req.user.id, ...data },
+      update: data,
+      select: { showChurch: true, showLocation: true },
+    });
+    res.json(row);
+  } catch (err) {
+    console.error('[profile] visibility update', err);
+    res.status(500).json({ error: 'Failed to update visibility' });
+  }
+});
+
 router.put('/me', authenticate, (req, res, next) => {
   uploadProfile(req, res, (err) => {
     if (err) return res.status(400).json({ error: err.message });

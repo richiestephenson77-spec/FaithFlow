@@ -46,7 +46,11 @@ async function getUserPosts(req, res) {
   const me = req.user?.id;
   try {
     const posts = await prisma.post.findMany({
-      where: { userId },
+      // Archiving is how someone takes a post down. The main feed already
+      // honours that (`isArchived: false`), but this endpoint did not, so a
+      // visitor opening a profile saw posts the author had deliberately
+      // hidden. The author still sees their own archived posts here.
+      where: { userId, ...(me === userId ? {} : { isArchived: false }) },
       orderBy: { createdAt: 'desc' },
       include: POST_INCLUDE(me),
     });
